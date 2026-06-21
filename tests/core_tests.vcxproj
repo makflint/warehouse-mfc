@@ -54,6 +54,7 @@
   <ItemGroup>
     <ClCompile Include="third_party\catch2\catch_amalgamated.cpp" />
     <ClCompile Include="src\test_stock_math.cpp" />
+    <ClCompile Include="src\test_movement.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="third_party\catch2\catch_amalgamated.hpp" />

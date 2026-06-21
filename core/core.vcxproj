@@ -53,9 +53,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\warehouse\stock_math.hpp" />
+    <ClInclude Include="include\warehouse\movement.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stock_math.cpp" />
+    <ClCompile Include="src\movement.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
