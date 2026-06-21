@@ -24,9 +24,14 @@ Single source of truth for open work. Milestones follow `docs/PLAN.md`.
   which conflicts with the ODBC-only / no-networking rule. `VoiceCommandParser` (core/)
   stays as the tested design for that path.
 
-## Next
-- [ ] **M5 — MSI.** Inno Setup; ensure seeded LocalDB on first run; note unsigned build.
-- [ ] **M6 — Polish.** README screenshots + short screen recording; public-ready repo.
+- [x] **M5 — Installer.** `installer/warehouse-mfc.iss` (Inno Setup) bundles app + SQL scripts
+  + VC++ runtime + LocalDB MSI, installs runtimes silently. App self-seeds the DB on first run
+  (verified: dropped DB, launched app, DB recreated). Builds `warehouse-mfc-setup.exe`.
+- [x] **M6 — Polish.** README screenshots (`docs/screenshots/`), demo-installer + SmartScreen
+  notes, secret scan clean. (Optional: a short screen recording is still a nice-to-have.)
+
+## Done — all milestones (M0–M6) complete
+Voice STT is the only deferred item (no on-device pl-PL recognizer; see M4 above).
 
 ## Build / test (Windows)
 ```bash

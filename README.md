@@ -15,6 +15,15 @@ piece for a *Senior C++ Developer (MFC)* role.
 - **Creative angle**: hands-free **voice commands** ("przyjmij 10 sztuk artykułu 4521"),
   justified by the domain — warehouse workers have their hands full.
 
+## Screenshots
+| Stock grid (low-stock in red) | Record movement (DDX/DDV) | Low-stock filter |
+|---|---|---|
+| ![Stock grid](docs/screenshots/01-stock-grid.png) | ![Record dialog](docs/screenshots/02-record-dialog.png) | ![Low-stock filter](docs/screenshots/03-low-stock-filter.png) |
+
+On-hand is summed from the movement log; rows at/below the reorder level are drawn red.
+Recording a movement runs through the **Command** stack (undo/redo, Ctrl+Z/Ctrl+Y) and the
+app speaks a Polish confirmation (SAPI TTS).
+
 ## Two build profiles (same code, different connection string)
 | | DEMO (for guests) | DEV (for you) |
 |---|---|---|
@@ -40,6 +49,20 @@ sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql
 sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\02_seed.sql
 # 2) open in Claude Code and follow docs/PLAN.md
 ```
+
+## Demo installer (one-click)
+An [Inno Setup](installer/warehouse-mfc.iss) script bundles the app, the SQL scripts and the
+two runtime prerequisites (Visual C++ runtime + SQL Server LocalDB) and installs them silently.
+The app **seeds its LocalDB database on first run**, so it works on a fresh machine.
+
+```powershell
+# build the Release app, then:
+"%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" installer\warehouse-mfc.iss
+# -> installer\Output\warehouse-mfc-setup.exe
+```
+> The binary assets (`vc_redist.x64.exe`, `SqlLocalDB.msi`) live under `installer/assets/`
+> (gitignored) and must be present before compiling. The build is **unsigned**, so Windows
+> SmartScreen will warn on first run ("More info" → "Run anyway").
 
 See [docs/SPEC.md](docs/SPEC.md) for the design and [docs/PLAN.md](docs/PLAN.md) for the
 ordered implementation milestones.
