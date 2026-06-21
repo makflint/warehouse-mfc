@@ -31,7 +31,23 @@ Single source of truth for open work. Milestones follow `docs/PLAN.md`.
   notes, secret scan clean. (Optional: a short screen recording is still a nice-to-have.)
 
 ## Done — all milestones (M0–M6) complete
-Voice STT is the only deferred item (no on-device pl-PL recognizer; see M4 above).
+17 commits ahead of `origin/main` (not pushed). Working tree clean.
+
+## Next (agreed): Polish STT via whisper.cpp — real offline hands-free voice
+Windows ships no on-device pl-PL recognizer (SAPI/WinRT only en-US), but **whisper.cpp runs
+fully offline** — the model is a local file, inference is local, **no runtime networking**, so
+it does NOT break the ODBC-only rule (the model is a one-time build/install download, like
+`SqlLocalDB.msi`). Use **whisper.cpp (C++)**, not Python.
+- [ ] Vendor + build whisper.cpp; static-link into the app (a new module or `app/`, **not**
+  `core/` — core stays pure, no platform/IO).
+- [ ] Mic capture (WASAPI/waveIn) → ~4 s of 16 kHz mono PCM; push-to-talk ("Słuchaj" menu/hotkey);
+  run whisper on a worker thread, post the result text to the UI thread.
+- [ ] `whisper` `language="pl"` → text → existing `warehouse::parseVoiceCommand` (core/, tested)
+  → same doc command path (ExecuteMovement / Undo / Redo / Refresh / filter).
+- [ ] Ship a `ggml-*.bin` model in the installer (`installer/assets/` + `[Files]`); load from
+  next to the exe. Model size: **base** (small/fast, enough for ~6 commands) vs **small** (more
+  accurate) — decide before downloading.
+- [ ] Update SPEC/CLAUDE.md: voice STT now offline via whisper.cpp (still no *network* I/O).
 
 ## Build / test (Windows)
 ```bash

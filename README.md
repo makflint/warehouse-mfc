@@ -4,9 +4,10 @@ A small but real **MFC + SQL Server** desktop app: warehouse stock & movements, 
 **voice control** (Windows SAPI) and **undo/redo** (Command pattern). Built as a portfolio
 piece for a *Senior C++ Developer (MFC)* role.
 
-> Status: M0 (DB) + M1 (`core/`, TDD) + M2 (`data/`, ODBC) + M3 (MFC UI) done; M4 voice =
-> Polish TTS done (recognition deferred — no on-device pl-PL engine). MSI (M5) is next.
-> Open work and milestone state live in [TODO.md](TODO.md).
+> Status: **M0–M6 done** — DB, `core/` (TDD), `data/` (ODBC), MFC UI (undo/redo, low-stock),
+> Polish TTS, one-click installer, README polish. Next: real offline Polish **STT via
+> whisper.cpp** (recognition; the built-in Windows engines have no pl-PL). Open work and
+> milestone state live in [TODO.md](TODO.md).
 
 ## Why this app
 - **MFC**: SDI doc/view, `CMFCListCtrl` grid, dialogs with DDX/DDV — core of the offer.
