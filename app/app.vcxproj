@@ -64,12 +64,14 @@
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="WarehouseDoc.h" />
     <ClInclude Include="StockView.h" />
+    <ClInclude Include="RecordMovementDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WarehouseApp.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="WarehouseDoc.cpp" />
     <ClCompile Include="StockView.cpp" />
+    <ClCompile Include="RecordMovementDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />

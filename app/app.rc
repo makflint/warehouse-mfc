@@ -10,9 +10,17 @@ BEGIN
     BEGIN
         MENUITEM "Za&koncz",                    ID_APP_EXIT
     END
+    POPUP "&Edycja"
+    BEGIN
+        MENUITEM "&Cofnij\tCtrl+Z",             ID_EDIT_UNDO
+        MENUITEM "&Ponow\tCtrl+Y",              ID_EDIT_REDO
+    END
     POPUP "&Magazyn"
     BEGIN
         MENUITEM "&Odswiez\tF5",                ID_STOCK_REFRESH
+        MENUITEM SEPARATOR
+        MENUITEM "Przyjmij (&IN)...",           ID_STOCK_RECORD_IN
+        MENUITEM "Wydaj (&OUT)...",             ID_STOCK_RECORD_OUT
     END
 END
 
@@ -22,6 +30,26 @@ END
 IDR_MAINFRAME ACCELERATORS
 BEGIN
     VK_F5,          ID_STOCK_REFRESH,       VIRTKEY
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL
+    "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL
+END
+
+/////////////////////////////////////////////////////////////////////////////
+// Dialog
+
+IDD_RECORD_MOVEMENT DIALOGEX 0, 0, 250, 110
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ruch magazynowy"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Produkt:",IDC_STATIC,10,14,45,10
+    COMBOBOX        IDC_PRODUCT,60,12,180,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Magazyn:",IDC_STATIC,10,34,45,10
+    COMBOBOX        IDC_WAREHOUSE,60,32,180,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Ilosc:",IDC_STATIC,10,54,45,10
+    EDITTEXT        IDC_QTY,60,52,60,13,ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,135,88,50,14
+    PUSHBUTTON      "Anuluj",IDCANCEL,190,88,50,14
 END
 
 /////////////////////////////////////////////////////////////////////////////
@@ -31,4 +59,6 @@ STRINGTABLE
 BEGIN
     IDR_MAINFRAME           "warehouse-mfc\n\nWarehouse\n\n\nWarehouse.Document\nWarehouse Document"
     ID_STOCK_REFRESH        "Przeladuj biezace stany z bazy\nOdswiez"
+    ID_STOCK_RECORD_IN      "Zarejestruj przyjecie (IN)\nPrzyjmij"
+    ID_STOCK_RECORD_OUT     "Zarejestruj wydanie (OUT)\nWydaj"
 END

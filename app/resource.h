@@ -1,5 +1,12 @@
 #pragma once
 
-#define IDR_MAINFRAME 128
+#define IDR_MAINFRAME       128
+#define IDD_RECORD_MOVEMENT 130
 
-#define ID_STOCK_REFRESH 32771
+#define IDC_PRODUCT   1001
+#define IDC_WAREHOUSE 1002
+#define IDC_QTY       1003
+
+#define ID_STOCK_REFRESH    32771
+#define ID_STOCK_RECORD_IN  32772
+#define ID_STOCK_RECORD_OUT 32773

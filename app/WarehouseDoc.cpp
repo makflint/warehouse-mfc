@@ -2,10 +2,12 @@
 #include "resource.h"
 
 #include <exception>
+#include <memory>
 
 #include "TextUtil.h"
 #include "WarehouseDoc.h"
 #include "warehouse/connection_profiles.hpp"
+#include "warehouse/movement_command.hpp"
 
 IMPLEMENT_DYNCREATE(CWarehouseDoc, CDocument)
 
@@ -33,6 +35,33 @@ void CWarehouseDoc::Refresh() {
     try {
         stock_ = repository().loadCurrentStock();
         UpdateAllViews(nullptr);
+    } catch (const std::exception& error) {
+        AfxMessageBox(FromUtf8(error.what()), MB_ICONERROR);
+    }
+}
+
+void CWarehouseDoc::ExecuteMovement(const warehouse::Movement& movement) {
+    try {
+        commands_.execute(std::make_unique<warehouse::MovementCommand>(movement, repository()));
+        Refresh();
+    } catch (const std::exception& error) {
+        AfxMessageBox(FromUtf8(error.what()), MB_ICONERROR);
+    }
+}
+
+void CWarehouseDoc::Undo() {
+    try {
+        commands_.undo();
+        Refresh();
+    } catch (const std::exception& error) {
+        AfxMessageBox(FromUtf8(error.what()), MB_ICONERROR);
+    }
+}
+
+void CWarehouseDoc::Redo() {
+    try {
+        commands_.redo();
+        Refresh();
     } catch (const std::exception& error) {
         AfxMessageBox(FromUtf8(error.what()), MB_ICONERROR);
     }
