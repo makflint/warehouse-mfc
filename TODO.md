@@ -11,11 +11,14 @@ Single source of truth for open work. Milestones follow `docs/PLAN.md`.
 - [x] **M2 — `data/` (ODBC).** `StockRepository` (pImpl): `loadCurrentStock()`,
   `recordMovement()` (calls `sp_RecordMovement`, surfaces THROW as exception),
   implements `IMovementRecorder`. Verified by `tools/data_smoke`.
+- [x] **M3 — MFC UI.** SDI doc/view; `CListView` bound to `vCurrentStock` (low-stock rows
+  owner-drawn red); Record-movement dialog (DDX/DDV, product/warehouse/qty); menu Refresh
+  (F5) / Przyjmij (IN) / Wydaj (OUT); **Undo/Redo (Ctrl+Z/Ctrl+Y)** via `core/` CommandStack;
+  low-stock filter toggle. Verified through the GUI against LocalDB (record IN 35->42,
+  undo ->35; filter; red rows). Note: the Debug build needs the debug MFC DLLs on PATH to
+  launch outside VS — Release runs standalone.
 
 ## Next
-- [ ] **M3 — MFC UI.** SDI doc/view; `CMFCListCtrl` bound to `vCurrentStock` (low-stock
-  rows owner-drawn red); Record-movement dialog (DDX/DDV); toolbar Refresh / IN / OUT /
-  **Undo/Redo (Ctrl+Z/Ctrl+Y)**; low-stock filter. Wire `data/` through `core/` commands.
 - [ ] **M4 — Voice (SAPI) + TTS.** Command-and-control grammar (PL) through the same
   `MovementCommand` path; TTS confirmation.
 - [ ] **M5 — MSI.** Inno Setup; ensure seeded LocalDB on first run; note unsigned build.
