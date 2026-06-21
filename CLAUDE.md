@@ -29,6 +29,10 @@ Connection string chosen at build/config time:
 
 ## Build / test commands
 - DB setup: `sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql` then `... -i db\02_seed.sql`
-- Build: open `warehouse-mfc.sln` in VS, or `msbuild warehouse-mfc.sln /p:Configuration=Debug`
-- Core tests: build & run the `core_tests` project (Catch2).
-- (Fill exact paths in once the solution is scaffolded.)
+- Build: open `warehouse-mfc.sln` in VS, or
+  `msbuild warehouse-mfc.sln /p:Configuration=Debug /p:Platform=x64`
+- Core tests: build & run `core_tests` (Catch2 amalgamated under `tests/third_party/catch2`):
+  the exe lands at `x64\Debug\core_tests.exe` (exit 0 = green). In VS: set `core_tests` as
+  startup, Ctrl+F5.
+- Solution layout: `core/` (static lib, pure C++) + `tests/core_tests` (console, Catch2),
+  both `Debug|x64` / `Release|x64`, toolset v143, C++17.
