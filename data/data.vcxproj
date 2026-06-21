@@ -55,9 +55,11 @@
   <ItemGroup>
     <ClInclude Include="include\warehouse\stock_repository.hpp" />
     <ClInclude Include="include\warehouse\connection_profiles.hpp" />
+    <ClInclude Include="include\warehouse\database_initializer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stock_repository.cpp" />
+    <ClCompile Include="src\database_initializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\core\core.vcxproj">

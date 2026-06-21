@@ -23,9 +23,10 @@ ipch/
 *.tlog
 *.log
 
-# Inno Setup output
+# Inno Setup output + bundled binary assets (redist, LocalDB MSI) — not committed
 Output/
 *.iss.bak
+installer/assets/
 
 # Machine setup log (not part of the portfolio)
 docs/WINDOWS_SETUP_LOG.md
