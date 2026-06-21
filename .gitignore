@@ -1,0 +1,34 @@
+# Visual Studio / MFC / C++ build artifacts
+.vs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+*.user
+*.suo
+*.aps
+*.sdf
+*.opensdf
+*.ipch
+ipch/
+*.obj
+*.pch
+*.pdb
+*.idb
+*.ilk
+*.exe
+*.lib
+*.dll
+*.tlog
+*.log
+
+# Inno Setup output
+Output/
+*.iss.bak
+
+# Local DB files / secrets
+*.mdf
+*.ldf
+.env
+*.local
