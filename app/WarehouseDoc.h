@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "framework.h"
+#include "Speech.h"
 #include "warehouse/command.hpp"
 #include "warehouse/movement.hpp"
 #include "warehouse/stock_repository.hpp"
@@ -34,8 +35,10 @@ protected:
 
 private:
     warehouse::StockRepository& repository();
+    int onHandOf(int productId, int warehouseId) const;
 
     std::unique_ptr<warehouse::StockRepository> repo_;
     std::vector<warehouse::StockRow> stock_;
     warehouse::CommandStack commands_;
+    Speech speech_;
 };

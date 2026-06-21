@@ -8,3 +8,4 @@
 #include <afxext.h>   // MFC extensions
 #include <afxcmn.h>   // MFC support for common controls (CListCtrl)
 #include <afxcview.h>  // CListView
+#include <afxole.h>   // AfxOleInit (COM for SAPI)

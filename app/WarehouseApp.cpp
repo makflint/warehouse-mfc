@@ -10,6 +10,7 @@ CWarehouseApp theApp;
 
 BOOL CWarehouseApp::InitInstance() {
     CWinApp::InitInstance();
+    AfxOleInit();  // COM for SAPI text-to-speech
 
     // SDI doc/view: one document, the stock grid as its view.
     auto* docTemplate = new CSingleDocTemplate(
