@@ -59,6 +59,7 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="TextUtil.h" />
     <ClInclude Include="WarehouseApp.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="WarehouseDoc.h" />
