@@ -18,9 +18,13 @@ Single source of truth for open work. Milestones follow `docs/PLAN.md`.
   undo ->35; filter; red rows). Note: the Debug build needs the debug MFC DLLs on PATH to
   launch outside VS — Release runs standalone.
 
+- [~] **M4 — Voice.** **TTS done** (SAPI, Microsoft Paulina): app speaks Polish
+  confirmations on record/undo/redo. **STT (recognition) deferred** — Windows has no
+  on-device pl-PL recognizer (only en-US), and real Polish recognition needs cloud STT,
+  which conflicts with the ODBC-only / no-networking rule. `VoiceCommandParser` (core/)
+  stays as the tested design for that path.
+
 ## Next
-- [ ] **M4 — Voice (SAPI) + TTS.** Command-and-control grammar (PL) through the same
-  `MovementCommand` path; TTS confirmation.
 - [ ] **M5 — MSI.** Inno Setup; ensure seeded LocalDB on first run; note unsigned build.
 - [ ] **M6 — Polish.** README screenshots + short screen recording; public-ready repo.
 

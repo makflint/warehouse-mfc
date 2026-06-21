@@ -51,6 +51,13 @@ Polish grammar (requires Windows PL speech pack):
 Recognized phrase → `VoiceCommandParser` → same `MovementCommand` used by the dialogs (one code
 path). TTS speaks the result: *"zarejestrowano, nowy stan 35"*.
 
+**Implementation note (reality on Windows):** TTS is implemented (SAPI, Microsoft Paulina —
+the app speaks Polish confirmations). Speech *recognition* is **not** shipped: Windows has no
+on-device pl-PL recognizer (only en-US), and real Polish recognition would require cloud STT,
+which conflicts with the **ODBC-only / no-networking** rule. `VoiceCommandParser` is built and
+unit-tested in `core/`, so the recognition path is designed and ready to wire if that
+constraint is ever relaxed.
+
 ## Two build profiles
 - **DEMO**: `Server=(localdb)\MSSQLLocalDB`, seeded by `db/02_seed.sql`, shipped as one-click MSI.
 - **DEV**: `Server=100.84.173.113` (SQL Server on VPS over Tailscale).
