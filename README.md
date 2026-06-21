@@ -4,7 +4,8 @@ A small but real **MFC + SQL Server** desktop app: warehouse stock & movements, 
 **voice control** (Windows SAPI) and **undo/redo** (Command pattern). Built as a portfolio
 piece for a *Senior C++ Developer (MFC)* role.
 
-> Status: spec + DB ready. MFC implementation is done on Windows (this repo is the handoff).
+> Status: M0 (DB) + M1 (`core/`, TDD) + M2 (`data/`, ODBC) done. MFC UI (M3) is next.
+> Open work and milestone state live in [TODO.md](TODO.md).
 
 ## Why this app
 - **MFC**: SDI doc/view, `CMFCListCtrl` grid, dialogs with DDX/DDV — core of the offer.
