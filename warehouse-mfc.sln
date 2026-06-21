@@ -6,6 +6,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core", "core\core.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core_tests", "tests\core_tests.vcxproj", "{22222222-2222-2222-2222-222222222222}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "data", "data\data.vcxproj", "{33333333-3333-3333-3333-333333333333}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "data_smoke", "tools\data_smoke\data_smoke.vcxproj", "{44444444-4444-4444-4444-444444444444}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -20,6 +24,14 @@ Global
 		{22222222-2222-2222-2222-222222222222}.Debug|x64.Build.0 = Debug|x64
 		{22222222-2222-2222-2222-222222222222}.Release|x64.ActiveCfg = Release|x64
 		{22222222-2222-2222-2222-222222222222}.Release|x64.Build.0 = Release|x64
+		{33333333-3333-3333-3333-333333333333}.Debug|x64.ActiveCfg = Debug|x64
+		{33333333-3333-3333-3333-333333333333}.Debug|x64.Build.0 = Debug|x64
+		{33333333-3333-3333-3333-333333333333}.Release|x64.ActiveCfg = Release|x64
+		{33333333-3333-3333-3333-333333333333}.Release|x64.Build.0 = Release|x64
+		{44444444-4444-4444-4444-444444444444}.Debug|x64.ActiveCfg = Debug|x64
+		{44444444-4444-4444-4444-444444444444}.Debug|x64.Build.0 = Debug|x64
+		{44444444-4444-4444-4444-444444444444}.Release|x64.ActiveCfg = Release|x64
+		{44444444-4444-4444-4444-444444444444}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
