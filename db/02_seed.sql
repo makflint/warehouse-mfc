@@ -22,14 +22,25 @@ INSERT INTO Products (Sku, Name, Unit, ReorderLevel) VALUES
     (N'4525', N'Sruba M8x40 (100szt)',    N'opak',15);
 GO
 
-/* Seed some opening stock via the stored proc so the transaction path is exercised. */
+/* Seed some opening stock via the stored proc so the transaction path is exercised.
+   Resolve IDs by natural key (Sku/Code) instead of hardcoding IDENTITY values, so the
+   seed stays correct even when re-run without recreating the schema (DELETE does not
+   reset IDENTITY, so the IDs are not guaranteed to be 1..N on a second run). */
+DECLARE @wA INT = (SELECT WarehouseId FROM Warehouses WHERE Code = N'MAG-A');
+DECLARE @wB INT = (SELECT WarehouseId FROM Warehouses WHERE Code = N'MAG-B');
+DECLARE @p4521 INT = (SELECT ProductId FROM Products WHERE Sku = N'4521');
+DECLARE @p4522 INT = (SELECT ProductId FROM Products WHERE Sku = N'4522');
+DECLARE @p4523 INT = (SELECT ProductId FROM Products WHERE Sku = N'4523');
+DECLARE @p4524 INT = (SELECT ProductId FROM Products WHERE Sku = N'4524');
+DECLARE @p4525 INT = (SELECT ProductId FROM Products WHERE Sku = N'4525');
+
 DECLARE @n INT;
-EXEC sp_RecordMovement @ProductId=1, @WarehouseId=1, @Qty=40, @MovementType=N'IN', @Note=N'Stan poczatkowy', @NewOnHand=@n OUTPUT;
-EXEC sp_RecordMovement @ProductId=2, @WarehouseId=1, @Qty=8,  @MovementType=N'IN', @Note=N'Stan poczatkowy', @NewOnHand=@n OUTPUT;
-EXEC sp_RecordMovement @ProductId=3, @WarehouseId=1, @Qty=60, @MovementType=N'IN', @Note=N'Stan poczatkowy', @NewOnHand=@n OUTPUT;
-EXEC sp_RecordMovement @ProductId=4, @WarehouseId=1, @Qty=30, @MovementType=N'IN', @Note=N'Stan poczatkowy', @NewOnHand=@n OUTPUT;  -- below reorder (low)
-EXEC sp_RecordMovement @ProductId=5, @WarehouseId=2, @Qty=12, @MovementType=N'IN', @Note=N'Stan poczatkowy', @NewOnHand=@n OUTPUT;  -- below reorder (low)
-EXEC sp_RecordMovement @ProductId=1, @WarehouseId=1, @Qty=5,  @MovementType=N'OUT',@Note=N'Wydanie na produkcje', @NewOnHand=@n OUTPUT;
+EXEC sp_RecordMovement @ProductId=@p4521, @WarehouseId=@wA, @Qty=40, @MovementType=N'IN', @Note=N'Stan poczatkowy', @NewOnHand=@n OUTPUT;
+EXEC sp_RecordMovement @ProductId=@p4522, @WarehouseId=@wA, @Qty=8,  @MovementType=N'IN', @Note=N'Stan poczatkowy', @NewOnHand=@n OUTPUT;
+EXEC sp_RecordMovement @ProductId=@p4523, @WarehouseId=@wA, @Qty=60, @MovementType=N'IN', @Note=N'Stan poczatkowy', @NewOnHand=@n OUTPUT;
+EXEC sp_RecordMovement @ProductId=@p4524, @WarehouseId=@wA, @Qty=30, @MovementType=N'IN', @Note=N'Stan poczatkowy', @NewOnHand=@n OUTPUT;  -- below reorder (low)
+EXEC sp_RecordMovement @ProductId=@p4525, @WarehouseId=@wB, @Qty=12, @MovementType=N'IN', @Note=N'Stan poczatkowy', @NewOnHand=@n OUTPUT;  -- below reorder (low)
+EXEC sp_RecordMovement @ProductId=@p4521, @WarehouseId=@wA, @Qty=5,  @MovementType=N'OUT',@Note=N'Wydanie na produkcje', @NewOnHand=@n OUTPUT;
 GO
 
 SELECT * FROM vCurrentStock ORDER BY WarehouseCode, Sku;

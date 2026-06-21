@@ -27,6 +27,9 @@ ipch/
 Output/
 *.iss.bak
 
+# Machine setup log (not part of the portfolio)
+docs/WINDOWS_SETUP_LOG.md
+
 # Local DB files / secrets
 *.mdf
 *.ldf
