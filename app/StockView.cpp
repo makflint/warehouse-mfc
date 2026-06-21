@@ -8,6 +8,8 @@
 IMPLEMENT_DYNCREATE(CStockView, CListView)
 
 BEGIN_MESSAGE_MAP(CStockView, CListView)
+    ON_COMMAND(ID_STOCK_REFRESH, &CStockView::OnStockRefresh)
+    ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, &CStockView::OnCustomDraw)
 END_MESSAGE_MAP()
 
 namespace {
@@ -57,5 +59,34 @@ void CStockView::OnUpdate(CView* /*sender*/, LPARAM /*hint*/, CObject* /*hintObj
         onHand.Format(_T("%d"), stock.onHand);
         list.SetItemText(row, kColOnHand, onHand);
         ++row;
+    }
+}
+
+void CStockView::OnStockRefresh() {
+    if (CWarehouseDoc* doc = GetDocument()) {
+        doc->Refresh();
+    }
+}
+
+// Paint low-stock rows in red (OnHand <= ReorderLevel, per the IsLow flag).
+void CStockView::OnCustomDraw(NMHDR* notify, LRESULT* result) {
+    auto* draw = reinterpret_cast<NMLVCUSTOMDRAW*>(notify);
+    switch (draw->nmcd.dwDrawStage) {
+        case CDDS_PREPAINT:
+            *result = CDRF_NOTIFYITEMDRAW;
+            return;
+        case CDDS_ITEMPREPAINT: {
+            const CWarehouseDoc* doc = GetDocument();
+            const int row = static_cast<int>(draw->nmcd.dwItemSpec);
+            if (doc != nullptr && row >= 0 && row < static_cast<int>(doc->Stock().size()) &&
+                doc->Stock()[row].isLow) {
+                draw->clrText = RGB(192, 0, 0);
+            }
+            *result = CDRF_DODEFAULT;
+            return;
+        }
+        default:
+            *result = CDRF_DODEFAULT;
+            return;
     }
 }

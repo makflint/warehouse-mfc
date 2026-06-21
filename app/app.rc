@@ -10,6 +10,18 @@ BEGIN
     BEGIN
         MENUITEM "Za&koncz",                    ID_APP_EXIT
     END
+    POPUP "&Magazyn"
+    BEGIN
+        MENUITEM "&Odswiez\tF5",                ID_STOCK_REFRESH
+    END
+END
+
+/////////////////////////////////////////////////////////////////////////////
+// Accelerator
+
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    VK_F5,          ID_STOCK_REFRESH,       VIRTKEY
 END
 
 /////////////////////////////////////////////////////////////////////////////
@@ -18,4 +30,5 @@ END
 STRINGTABLE
 BEGIN
     IDR_MAINFRAME           "warehouse-mfc\n\nWarehouse\n\n\nWarehouse.Document\nWarehouse Document"
+    ID_STOCK_REFRESH        "Przeladuj biezace stany z bazy\nOdswiez"
 END

@@ -18,5 +18,7 @@ public:
     void OnUpdate(CView* sender, LPARAM hint, CObject* hintObject) override;
 
 protected:
+    afx_msg void OnStockRefresh();
+    afx_msg void OnCustomDraw(NMHDR* notify, LRESULT* result);
     DECLARE_MESSAGE_MAP()
 };
