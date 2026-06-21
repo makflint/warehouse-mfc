@@ -1,9 +1,14 @@
 #pragma once
 
+#include <atomic>
+#include <memory>
+#include <string>
+
 #include "framework.h"
 #include "warehouse/movement.hpp"
 
 class CWarehouseDoc;
+class Stt;
 
 // The stock grid: a report-style list showing vCurrentStock.
 class CStockView : public CListView {
@@ -11,6 +16,7 @@ class CStockView : public CListView {
 
 public:
     CStockView();
+    ~CStockView() override;  // out-of-line so unique_ptr<Stt> sees a complete type
 
     CWarehouseDoc* GetDocument() const;
 
@@ -28,11 +34,22 @@ protected:
     afx_msg void OnUpdateEditRedo(CCmdUI* cmdUI);
     afx_msg void OnFilterLow();
     afx_msg void OnUpdateFilterLow(CCmdUI* cmdUI);
+    afx_msg void OnVoiceListen();
+    afx_msg LRESULT OnSttResult(WPARAM wParam, LPARAM lParam);
     afx_msg void OnCustomDraw(NMHDR* notify, LRESULT* result);
     DECLARE_MESSAGE_MAP()
 
 private:
     void RecordMovement(warehouse::MovementType type);
 
+    // Voice: lazily load the model, then dispatch one recognised phrase through the
+    // (unit-tested) core parser to the same document commands the menus use.
+    Stt* EnsureStt();
+    void DispatchVoice(const std::string& utf8Text);
+    void ShowLowOnly(bool on);
+
     bool showLowOnly_ = false;
+    bool sttLoadTried_ = false;
+    std::unique_ptr<Stt> stt_;
+    std::atomic<bool> listening_{false};
 };

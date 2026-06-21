@@ -18,11 +18,8 @@ Single source of truth for open work. Milestones follow `docs/PLAN.md`.
   undo ->35; filter; red rows). Note: the Debug build needs the debug MFC DLLs on PATH to
   launch outside VS — Release runs standalone.
 
-- [~] **M4 — Voice.** **TTS done** (SAPI, Microsoft Paulina): app speaks Polish
-  confirmations on record/undo/redo. **STT (recognition) deferred** — Windows has no
-  on-device pl-PL recognizer (only en-US), and real Polish recognition needs cloud STT,
-  which conflicts with the ODBC-only / no-networking rule. `VoiceCommandParser` (core/)
-  stays as the tested design for that path.
+- [x] **M4 — Voice (TTS).** SAPI, Microsoft Paulina: app speaks Polish confirmations on
+  record/undo/redo. STT (recognition) is M7 below.
 
 - [x] **M5 — Installer.** `installer/warehouse-mfc.iss` (Inno Setup) bundles app + SQL scripts
   + VC++ runtime + LocalDB MSI, installs runtimes silently. App self-seeds the DB on first run
@@ -30,31 +27,44 @@ Single source of truth for open work. Milestones follow `docs/PLAN.md`.
 - [x] **M6 — Polish.** README screenshots (`docs/screenshots/`), demo-installer + SmartScreen
   notes, secret scan clean. (Optional: a short screen recording is still a nice-to-have.)
 
-## Done — all milestones (M0–M6) complete
-17 commits ahead of `origin/main` (not pushed). Working tree clean.
+- [x] **M7 — Offline Polish STT (whisper.cpp).** Real hands-free voice, fully offline (model is
+  a local file, inference local, **no runtime networking** — does not break the ODBC-only rule).
+  - whisper.cpp **v1.9.1** as a git **submodule** (`third_party/whisper.cpp`), built to **static
+    libs** (Release+Debug, OpenMP off) with the VS-bundled cmake+ninja.
+  - `app/MicCapture.*` (waveIn, 4 s @ 16 kHz mono) + `app/Stt.*` (whisper wrapper, `language="pl"`).
+    Push-to-talk: **Słuchaj (F2)** menu/hotkey → capture+recognise on a worker thread →
+    `PostMessage(WM_STT_RESULT)` → UI thread.
+  - Recognised text → `warehouse::parseVoiceCommand` (core/) → same doc commands as the menus.
+    Parser gained TDD'd **normalisation** (lower-case incl. Polish letters + strip punctuation)
+    so whisper's "Pokaż niskie stany." matches. 60 assertions green.
+  - Model **`ggml-base.bin`** (multilingual, 141 MB) loaded from next to the exe; shipped in the
+    installer; gitignored locally. Verified: jfk.wav + SAPI-spoken "Pokaż niskie stany" both
+    recognised correctly through our exact libs. (Live mic path is interactive — test with F2.)
 
-## Next (agreed): Polish STT via whisper.cpp — real offline hands-free voice
-Windows ships no on-device pl-PL recognizer (SAPI/WinRT only en-US), but **whisper.cpp runs
-fully offline** — the model is a local file, inference is local, **no runtime networking**, so
-it does NOT break the ODBC-only rule (the model is a one-time build/install download, like
-`SqlLocalDB.msi`). Use **whisper.cpp (C++)**, not Python.
-- [ ] Vendor + build whisper.cpp; static-link into the app (a new module or `app/`, **not**
-  `core/` — core stays pure, no platform/IO).
-- [ ] Mic capture (WASAPI/waveIn) → ~4 s of 16 kHz mono PCM; push-to-talk ("Słuchaj" menu/hotkey);
-  run whisper on a worker thread, post the result text to the UI thread.
-- [ ] `whisper` `language="pl"` → text → existing `warehouse::parseVoiceCommand` (core/, tested)
-  → same doc command path (ExecuteMovement / Undo / Redo / Refresh / filter).
-- [ ] Ship a `ggml-*.bin` model in the installer (`installer/assets/` + `[Files]`); load from
-  next to the exe. Model size: **base** (small/fast, enough for ~6 commands) vs **small** (more
-  accurate) — decide before downloading.
-- [ ] Update SPEC/CLAUDE.md: voice STT now offline via whisper.cpp (still no *network* I/O).
+## Done — all milestones (M0–M7) complete
+Working tree: new submodule + app/core/installer/docs changes (commit pending). The **live mic
+→ command** path is the only thing needing a human with a microphone to exercise (press **F2**,
+speak, e.g. "odśwież", "pokaż niskie stany", "cofnij", "przyjmij 10 4521").
+
+### Possible later polish (not blocking)
+- Larger model (`ggml-small.bin`) if base mis-hears; a brief on-screen "Słucham…" status while
+  capturing; configurable capture seconds; recognised-text echo in the status bar.
 
 ## Build / test (Windows)
 ```bash
 # DB (once): sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql ; ... -i db\02_seed.sql
+
+# whisper.cpp (once): fetch the submodule, build static libs, download the model
+git submodule update --init --recursive
+cmake -S third_party/whisper.cpp -B third_party/whisper.cpp/build -G "Visual Studio 17 2022" -A x64 \
+      -DBUILD_SHARED_LIBS=OFF -DWHISPER_BUILD_TESTS=OFF -DWHISPER_BUILD_EXAMPLES=OFF -DGGML_OPENMP=OFF
+cmake --build third_party/whisper.cpp/build --config Release --target whisper   # and --config Debug
+# model -> models\ggml-base.bin (from https://huggingface.co/ggerganov/whisper.cpp)
+
 msbuild warehouse-mfc.sln /p:Configuration=Debug /p:Platform=x64
 ./x64/Debug/core_tests.exe     # unit tests (Catch2), exit 0 = green
 ./x64/Debug/data_smoke.exe     # data/ smoke check against LocalDB
+# app -> app\x64\<Config>\app.exe (model auto-copied next to it by a post-build step)
 ```
 
 ## Notes for the next session

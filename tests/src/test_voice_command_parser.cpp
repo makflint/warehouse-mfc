@@ -29,6 +29,27 @@ TEST_CASE("the fixed-phrase commands are recognised") {
     REQUIRE(parseVoiceCommand("ponów").kind == CommandKind::Redo);
 }
 
+TEST_CASE("recognised speech is normalised: capitalisation and punctuation tolerated") {
+    // whisper.cpp returns capitalised, punctuated text (e.g. "Odśwież.") — the
+    // parser lower-cases (incl. Polish letters) and strips punctuation first.
+    REQUIRE(parseVoiceCommand("Odśwież.").kind == CommandKind::Refresh);
+    REQUIRE(parseVoiceCommand("Cofnij!").kind == CommandKind::Undo);
+    REQUIRE(parseVoiceCommand("Ponów").kind == CommandKind::Redo);
+    REQUIRE(parseVoiceCommand("Pokaż niskie stany.").kind == CommandKind::ShowLowStock);
+
+    const ParsedCommand in = parseVoiceCommand("Przyjmij 10 4521.");
+    REQUIRE(in.kind == CommandKind::RecordMovement);
+    REQUIRE(in.type == MovementType::In);
+    REQUIRE(in.qty == 10);
+    REQUIRE(in.sku == "4521");
+
+    const ParsedCommand out = parseVoiceCommand("  Wydaj 5 4521 ");
+    REQUIRE(out.kind == CommandKind::RecordMovement);
+    REQUIRE(out.type == MovementType::Out);
+    REQUIRE(out.qty == 5);
+    REQUIRE(out.sku == "4521");
+}
+
 TEST_CASE("garbage and malformed phrases map to Unknown") {
     REQUIRE(parseVoiceCommand("").kind == CommandKind::Unknown);
     REQUIRE(parseVoiceCommand("zrób mi kawę").kind == CommandKind::Unknown);

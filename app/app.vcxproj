@@ -31,16 +31,26 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <!-- Pin output next to the project (app\x64\<Config>) so the path is the same
+         whether built via the .sln or the .vcxproj, and matches the installer. -->
+    <OutDir>$(ProjectDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <WarningLevel>Level3</WarningLevel>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\core\include;$(ProjectDir)..\data\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\core\include;$(ProjectDir)..\data\include;$(ProjectDir)..\third_party\whisper.cpp\include;$(ProjectDir)..\third_party\whisper.cpp\ggml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>whisper.lib;ggml.lib;ggml-cpu.lib;ggml-base.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <!-- Ship the offline speech model next to the exe (copied only when newer). -->
+      <Command>xcopy /Y /D "$(ProjectDir)..\models\ggml-base.bin" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
@@ -48,6 +58,9 @@
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\third_party\whisper.cpp\build\src\Debug;$(ProjectDir)..\third_party\whisper.cpp\build\ggml\src\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
@@ -55,6 +68,9 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\third_party\whisper.cpp\build\src\Release;$(ProjectDir)..\third_party\whisper.cpp\build\ggml\src\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
@@ -66,6 +82,8 @@
     <ClInclude Include="StockView.h" />
     <ClInclude Include="RecordMovementDialog.h" />
     <ClInclude Include="Speech.h" />
+    <ClInclude Include="Stt.h" />
+    <ClInclude Include="MicCapture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WarehouseApp.cpp" />
@@ -74,6 +92,8 @@
     <ClCompile Include="StockView.cpp" />
     <ClCompile Include="RecordMovementDialog.cpp" />
     <ClCompile Include="Speech.cpp" />
+    <ClCompile Include="Stt.cpp" />
+    <ClCompile Include="MicCapture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />

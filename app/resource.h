@@ -11,3 +11,7 @@
 #define ID_STOCK_RECORD_IN  32772
 #define ID_STOCK_RECORD_OUT 32773
 #define ID_STOCK_FILTER_LOW 32774
+#define ID_VOICE_LISTEN     32775
+
+// Posted by the speech worker thread to the view with the recognised UTF-8 text.
+#define WM_STT_RESULT       (WM_APP + 1)
