@@ -1,0 +1,21 @@
+#include "resource.h"
+#include <afxres.h>
+
+/////////////////////////////////////////////////////////////////////////////
+// Menu
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "&Plik"
+    BEGIN
+        MENUITEM "Za&koncz",                    ID_APP_EXIT
+    END
+END
+
+/////////////////////////////////////////////////////////////////////////////
+// String Table
+
+STRINGTABLE
+BEGIN
+    IDR_MAINFRAME           "warehouse-mfc\n\nWarehouse\n\n\nWarehouse.Document\nWarehouse Document"
+END

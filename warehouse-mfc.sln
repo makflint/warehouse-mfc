@@ -10,6 +10,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "data", "data\data.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "data_smoke", "tools\data_smoke\data_smoke.vcxproj", "{44444444-4444-4444-4444-444444444444}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "app", "app\app.vcxproj", "{55555555-5555-5555-5555-555555555555}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -32,6 +34,10 @@ Global
 		{44444444-4444-4444-4444-444444444444}.Debug|x64.Build.0 = Debug|x64
 		{44444444-4444-4444-4444-444444444444}.Release|x64.ActiveCfg = Release|x64
 		{44444444-4444-4444-4444-444444444444}.Release|x64.Build.0 = Release|x64
+		{55555555-5555-5555-5555-555555555555}.Debug|x64.ActiveCfg = Debug|x64
+		{55555555-5555-5555-5555-555555555555}.Debug|x64.Build.0 = Debug|x64
+		{55555555-5555-5555-5555-555555555555}.Release|x64.ActiveCfg = Release|x64
+		{55555555-5555-5555-5555-555555555555}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
