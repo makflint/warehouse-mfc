@@ -26,9 +26,13 @@ protected:
     afx_msg void OnEditRedo();
     afx_msg void OnUpdateEditUndo(CCmdUI* cmdUI);
     afx_msg void OnUpdateEditRedo(CCmdUI* cmdUI);
+    afx_msg void OnFilterLow();
+    afx_msg void OnUpdateFilterLow(CCmdUI* cmdUI);
     afx_msg void OnCustomDraw(NMHDR* notify, LRESULT* result);
     DECLARE_MESSAGE_MAP()
 
 private:
     void RecordMovement(warehouse::MovementType type);
+
+    bool showLowOnly_ = false;
 };

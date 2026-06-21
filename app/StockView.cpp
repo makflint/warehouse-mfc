@@ -18,6 +18,8 @@ BEGIN_MESSAGE_MAP(CStockView, CListView)
     ON_COMMAND(ID_EDIT_REDO, &CStockView::OnEditRedo)
     ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, &CStockView::OnUpdateEditUndo)
     ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, &CStockView::OnUpdateEditRedo)
+    ON_COMMAND(ID_STOCK_FILTER_LOW, &CStockView::OnFilterLow)
+    ON_UPDATE_COMMAND_UI(ID_STOCK_FILTER_LOW, &CStockView::OnUpdateFilterLow)
     ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, &CStockView::OnCustomDraw)
 END_MESSAGE_MAP()
 
@@ -59,15 +61,19 @@ void CStockView::OnUpdate(CView* /*sender*/, LPARAM /*hint*/, CObject* /*hintObj
     CListCtrl& list = GetListCtrl();
     list.DeleteAllItems();
 
-    int row = 0;
+    int item = 0;
     for (const warehouse::StockRow& stock : doc->Stock()) {
-        list.InsertItem(row, FromUtf8(stock.warehouseCode));
-        list.SetItemText(row, kColSku, FromUtf8(stock.sku));
-        list.SetItemText(row, kColProduct, FromUtf8(stock.productName));
+        if (showLowOnly_ && !stock.isLow) {
+            continue;
+        }
+        list.InsertItem(item, FromUtf8(stock.warehouseCode));
+        list.SetItemText(item, kColSku, FromUtf8(stock.sku));
+        list.SetItemText(item, kColProduct, FromUtf8(stock.productName));
         CString onHand;
         onHand.Format(_T("%d"), stock.onHand);
-        list.SetItemText(row, kColOnHand, onHand);
-        ++row;
+        list.SetItemText(item, kColOnHand, onHand);
+        list.SetItemData(item, stock.isLow ? 1 : 0);  // drives the red custom draw
+        ++item;
     }
 }
 
@@ -129,6 +135,15 @@ void CStockView::OnUpdateEditRedo(CCmdUI* cmdUI) {
     cmdUI->Enable(doc != nullptr && doc->CanRedo());
 }
 
+void CStockView::OnFilterLow() {
+    showLowOnly_ = !showLowOnly_;
+    OnUpdate(nullptr, 0, nullptr);  // re-populate with the filter applied
+}
+
+void CStockView::OnUpdateFilterLow(CCmdUI* cmdUI) {
+    cmdUI->SetCheck(showLowOnly_ ? 1 : 0);
+}
+
 // Paint low-stock rows in red (OnHand <= ReorderLevel, per the IsLow flag).
 void CStockView::OnCustomDraw(NMHDR* notify, LRESULT* result) {
     auto* draw = reinterpret_cast<NMLVCUSTOMDRAW*>(notify);
@@ -137,10 +152,8 @@ void CStockView::OnCustomDraw(NMHDR* notify, LRESULT* result) {
             *result = CDRF_NOTIFYITEMDRAW;
             return;
         case CDDS_ITEMPREPAINT: {
-            const CWarehouseDoc* doc = GetDocument();
             const int row = static_cast<int>(draw->nmcd.dwItemSpec);
-            if (doc != nullptr && row >= 0 && row < static_cast<int>(doc->Stock().size()) &&
-                doc->Stock()[row].isLow) {
+            if (GetListCtrl().GetItemData(row) != 0) {  // 1 == low stock
                 draw->clrText = RGB(192, 0, 0);
             }
             *result = CDRF_DODEFAULT;

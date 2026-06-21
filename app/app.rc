@@ -21,6 +21,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Przyjmij (&IN)...",           ID_STOCK_RECORD_IN
         MENUITEM "Wydaj (&OUT)...",             ID_STOCK_RECORD_OUT
+        MENUITEM SEPARATOR
+        MENUITEM "Tylko &niskie stany",         ID_STOCK_FILTER_LOW
     END
 END
 
@@ -61,4 +63,5 @@ BEGIN
     ID_STOCK_REFRESH        "Przeladuj biezace stany z bazy\nOdswiez"
     ID_STOCK_RECORD_IN      "Zarejestruj przyjecie (IN)\nPrzyjmij"
     ID_STOCK_RECORD_OUT     "Zarejestruj wydanie (OUT)\nWydaj"
+    ID_STOCK_FILTER_LOW     "Pokaz tylko pozycje ponizej progu\nFiltr niskich stanow"
 END
