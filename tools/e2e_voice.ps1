@@ -10,8 +10,17 @@
 Add-Type -AssemblyName System.Speech
 
 if (-not (Test-Path '.\wav_command.exe')) {
-    Write-Host 'wav_command.exe not found - build it first (see tools/wav_command.cpp).' -ForegroundColor Red
-    return
+    Write-Host 'Building wav_command.exe...' -ForegroundColor DarkGray
+    $vcvars = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+    $inc = '/I app /I core\include /I third_party\whisper.cpp\include /I third_party\whisper.cpp\ggml\include'
+    $libs = '/link /LIBPATH:x64\Release /LIBPATH:third_party\whisper.cpp\build\src\Release ' +
+            '/LIBPATH:third_party\whisper.cpp\build\ggml\src\Release ' +
+            'core.lib whisper.lib ggml.lib ggml-cpu.lib ggml-base.lib advapi32.lib'
+    cmd /c "`"$vcvars`" >nul && cl /nologo /std:c++17 /EHsc /MD /O2 $inc tools\wav_command.cpp app\Stt.cpp /Fe:wav_command.exe $libs" | Out-Null
+    if (-not (Test-Path '.\wav_command.exe')) {
+        Write-Host 'Build failed. Ensure whisper static libs + x64\Release\core.lib exist (see TODO.md).' -ForegroundColor Red
+        return
+    }
 }
 
 $S=[char]0x015B; $Z=[char]0x017C; $O=[char]0x00F3; $E=[char]0x0119; $C=[char]0x0107
