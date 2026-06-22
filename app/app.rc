@@ -72,5 +72,5 @@ BEGIN
     ID_STOCK_RECORD_IN      "Zarejestruj przyjecie (IN)\nPrzyjmij"
     ID_STOCK_RECORD_OUT     "Zarejestruj wydanie (OUT)\nWydaj"
     ID_STOCK_FILTER_LOW     "Pokaz tylko pozycje ponizej progu\nFiltr niskich stanow"
-    ID_VIEW_THEME_DARK      "Przelacz ciemny / jasny motyw\nCiemny motyw"
+    ID_THEME_MENU           "Wybierz motyw kolorystyczny\nMotyw"
 END

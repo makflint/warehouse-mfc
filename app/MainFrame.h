@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework.h"
+#include "resource.h"
 #include "DockPanes.h"
 
 namespace warehouse {
@@ -23,8 +24,9 @@ public:
 
 protected:
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
-    afx_msg void OnViewThemeDark();
-    afx_msg void OnUpdateViewThemeDark(CCmdUI* cmdUI);
+    afx_msg void OnTheme(UINT cmdId);
+    afx_msg void OnUpdateTheme(CCmdUI* cmdUI);
+    afx_msg void OnUpdateThemeMenu(CCmdUI* cmdUI);
     afx_msg void OnViewPane(UINT cmdId);
     afx_msg void OnUpdateViewPane(CCmdUI* cmdUI);
     DECLARE_MESSAGE_MAP()
@@ -36,12 +38,12 @@ private:
 
     void CreateStatusBar();
     void SetStatusPane(UINT id, const CString& text);
-    void ApplyContentTheme();  // recolour the (non-Feature-Pack) grids + dashboard
+    void ApplyContentTheme(bool dark);  // recolour the non-Feature-Pack content
 
     CMFCRibbonBar ribbon_;
     CMFCRibbonStatusBar statusBar_;
     CDashboardPane dashboard_;
     CListPane movementLog_;
-    CListPane details_;
-    bool dark_ = false;
+    CDetailsPane details_;
+    UINT currentTheme_ = ID_THEME_OFFICE_BLUE;  // app starts in Office 2007 LunaBlue
 };

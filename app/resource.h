@@ -11,7 +11,18 @@
 #define ID_STOCK_RECORD_IN  32772
 #define ID_STOCK_RECORD_OUT 32773
 #define ID_STOCK_FILTER_LOW 32774
-#define ID_VIEW_THEME_DARK  32775
+
+// Theme picker (Widok tab). The applied-theme ids must stay contiguous for the
+// ON_COMMAND_RANGE handler; ID_THEME_MENU is just the drop-down container.
+#define ID_THEME_OFFICE_BLUE   32790
+#define ID_THEME_OFFICE_BLACK  32791
+#define ID_THEME_OFFICE_SILVER 32792
+#define ID_THEME_OFFICE_AQUA   32793
+#define ID_THEME_OFFICE2003    32794
+#define ID_THEME_VS2008        32795
+#define ID_THEME_WINDOWS7      32796
+#define ID_THEME_DARK          32797
+#define ID_THEME_MENU          32798
 
 // Dockable panes (control ids) and their Widok-tab show/hide toggles.
 #define IDC_PANE_DASHBOARD  1201

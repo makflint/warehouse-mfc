@@ -36,8 +36,9 @@ the fuzzy command parser, the model research base/small/medium, the e2e harness,
 
 ## M8 — modern MFC Feature Pack UI + dashboard  (core DONE)
 The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Feature-Pack UI.
-- [x] **Frame upgrade** — `CWinAppEx` + `CFrameWndEx`, `CMFCVisualManager` (Office2007) with a
-  dark-mode toggle; `<afxcontrolbars.h>`.
+- [x] **Frame upgrade** — `CWinAppEx` + `CFrameWndEx`, `CMFCVisualManager` with a **theme picker**
+  (Widok → Motyw drop-down: Office 2007 Blue/Black/Silver/Aqua, Office 2003, VS 2008, Windows 7,
+  radio-checked); `<afxcontrolbars.h>`.
 - [x] **Ribbon** (`CMFCRibbonBar`) replaces the menu — *Magazyn* tab (Stany / Ruchy / Edycja
   panels on the existing command ids) + *Widok* tab (theme + pane toggles). The IDR_MAINFRAME
   menu is kept as the SDI shared menu but hidden via `SetMenu(nullptr)`.
@@ -60,18 +61,29 @@ The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Featu
 - [x] **UX polish round:** Dziennik gained a **Magazyn** column and now shows **local
   Warsaw time** (`AT TIME ZONE`, DST-aware) instead of UTC; all three list grids share
   the system UI font (Segoe UI) for a consistent look; the main grid is **sortable** by
-  clicking any header (toggles asc/desc, shows the sort glyph); the dashboard repaints
-  fully on resize (no stale rectangles when dragging the divider).
+  clicking any header (toggles asc/desc); the dashboard repaints fully on resize (no
+  stale rectangles when dragging the divider).
 - [x] **Polish terminology:** *Asortyment* (distinct items), *Symbol* (item-code column —
   was "SKU"), *Niskie stany magazynowe*, *Suma sztuk*, *Stan magazynowy* (was the "na
   rękę" calque), *Pozycje* (status bar).
-- [x] **Dark theme reaches the content:** the stock grid, dock-pane lists and the
-  owner-drawn dashboard now recolour on the *Ciemny motyw* toggle. Standard
-  `SysListView32` controls + the dashboard aren't themed by `CMFCVisualManager`, so
-  `ApplyListTheme` / `CDashboardPane::SetDark` recolour them from the frame. The sort
-  indicator is a ▲/▼ appended to the active header (more reliable than `HDF_SORTUP`).
-  *Known minor:* the list column-header strip (`SysHeader32`) stays light in dark mode
-  (would need an owner-drawn header).
+- [x] **Feature-Pack list controls (full sweep):** the bare `SysListView32` grids are
+  gone. The **main grid** is a `CView` hosting a `CMFCListCtrl` (themed header, native
+  click-sort via `OnCompareItems` with the orange marked column + arrow, low-stock red
+  via `OnGetCellTextColor`); the **Dziennik** is a `CMFCListCtrl`; **Szczegóły** is a
+  `CMFCPropertyGridCtrl` (themed key/value grid). All are drawn by the visual manager,
+  so they look consistent with the ribbon/panes instead of "z innej bajki".
+- [x] **True dark theme** ("Ciemny (pełny)" in the Motyw picker): a custom
+  `CDarkVisualManager : CMFCVisualManagerOffice2007` (ObsidianBlack chrome) overrides the
+  header draw (`OnFillHeaderCtrlBackground` / `OnDrawHeaderCtrlBorder` /
+  `OnDrawHeaderCtrlSortArrow`) so the list/grid headers go dark; header **text** uses the
+  global `clrBtnText`, flipped light for this theme. Content surfaces recolour via
+  `ApplyContentTheme`: grid + Dziennik (`OnGetCell*Color`), dashboard (owner-draw), and the
+  Szczegóły property grid (`SetCustomColors`). The other 7 themes are the framework's clean
+  light content. (No turnkey OSS dark manager exists for the Feature Pack — this is the
+  documented derive-and-override approach.)
+- [x] **Dziennik sorts by the Czas column only** (`CMovementLogList` overrides `Sort` to
+  ignore the other columns and `OnCompareItems` to order by the timestamp); the main grid
+  stays sortable on every column.
 - [ ] *Optional later:* per-column **filters** on the main grid; update `docs/SPEC.md` /
   `docs/PLAN.md`. Note: the docked list panes + ribbon status bar only paint when the
   window is foreground-active, so the headless screenshot tooling can't render them —

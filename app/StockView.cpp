@@ -1,7 +1,6 @@
 #include "framework.h"
 #include "resource.h"
 
-#include <algorithm>
 #include <set>
 #include <string>
 #include <vector>
@@ -12,9 +11,85 @@
 #include "TextUtil.h"
 #include "WarehouseDoc.h"
 
-IMPLEMENT_DYNCREATE(CStockView, CListView)
+namespace {
+constexpr int kColWarehouse = 0;
+constexpr int kColSku = 1;
+constexpr int kColProduct = 2;
+constexpr int kColOnHand = 3;
+const LPCTSTR kColumnTitles[] = {_T("Magazyn"), _T("Symbol"), _T("Produkt"), _T("Stan")};
+constexpr UINT kGridId = 1;  // child id of the embedded grid
+}  // namespace
 
-BEGIN_MESSAGE_MAP(CStockView, CListView)
+// --- CStockGrid (Feature-Pack list) ----------------------------------------
+
+// Items carry their Stock() row index as item data, so a click-sort compares the
+// underlying fields (numeric for Stan, text otherwise) rather than the cell strings.
+int CStockGrid::OnCompareItems(LPARAM lParam1, LPARAM lParam2, int column) {
+    if (rows_ == nullptr) {
+        return 0;
+    }
+    const std::size_t a = static_cast<std::size_t>(lParam1);
+    const std::size_t b = static_cast<std::size_t>(lParam2);
+    if (a >= rows_->size() || b >= rows_->size()) {
+        return 0;
+    }
+    const warehouse::StockRow& ra = (*rows_)[a];
+    const warehouse::StockRow& rb = (*rows_)[b];
+    switch (column) {
+        case kColWarehouse: return ra.warehouseCode.compare(rb.warehouseCode);
+        case kColSku:       return ra.sku.compare(rb.sku);
+        case kColProduct:   return ra.productName.compare(rb.productName);
+        case kColOnHand:    return ra.onHand - rb.onHand;
+        default:            return 0;
+    }
+}
+
+COLORREF CStockGrid::OnGetCellTextColor(int row, int column) {
+    if (rows_ != nullptr) {
+        const std::size_t idx = GetItemData(row);
+        if (idx < rows_->size() && (*rows_)[idx].isLow) {
+            return ThemeColorsFor(dark_).lowStock;  // low-stock rows stay red
+        }
+    }
+    return dark_ ? ThemeColorsFor(true).text : CMFCListCtrl::OnGetCellTextColor(row, column);
+}
+
+COLORREF CStockGrid::OnGetCellBkColor(int row, int column) {
+    return dark_ ? ThemeColorsFor(true).background : CMFCListCtrl::OnGetCellBkColor(row, column);
+}
+
+void CStockGrid::SetDark(bool dark) {
+    dark_ = dark;
+    if (GetSafeHwnd() == nullptr) {
+        return;
+    }
+    // Colour the whole control (incl. the empty area below the rows), not just cells.
+    const COLORREF bg = dark ? ThemeColorsFor(true).background : ::GetSysColor(COLOR_WINDOW);
+    SetBkColor(bg);
+    SetTextBkColor(bg);
+    // Grid lines look busy on dark (they run through the empty rows); drop them in
+    // dark to match the clean property grid, keep them on light for scanning.
+    const DWORD ex = GetExtendedStyle();
+    SetExtendedStyle(dark ? (ex & ~LVS_EX_GRIDLINES) : (ex | LVS_EX_GRIDLINES));
+    Invalidate();
+}
+
+// Override so the active sort column/direction is captured (native header click or
+// our own Resort()), letting us re-apply it after the data reloads.
+void CStockGrid::Sort(int column, BOOL ascending, BOOL add) {
+    sortColumn_ = column;
+    ascending_ = ascending;
+    CMFCListCtrl::Sort(column, ascending, add);
+}
+
+// --- CStockView ------------------------------------------------------------
+
+IMPLEMENT_DYNCREATE(CStockView, CView)
+
+BEGIN_MESSAGE_MAP(CStockView, CView)
+    ON_WM_CREATE()
+    ON_WM_SIZE()
+    ON_WM_SETFOCUS()
     ON_COMMAND(ID_STOCK_REFRESH, &CStockView::OnStockRefresh)
     ON_COMMAND(ID_STOCK_RECORD_IN, &CStockView::OnRecordIn)
     ON_COMMAND(ID_STOCK_RECORD_OUT, &CStockView::OnRecordOut)
@@ -24,19 +99,8 @@ BEGIN_MESSAGE_MAP(CStockView, CListView)
     ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, &CStockView::OnUpdateEditRedo)
     ON_COMMAND(ID_STOCK_FILTER_LOW, &CStockView::OnFilterLow)
     ON_UPDATE_COMMAND_UI(ID_STOCK_FILTER_LOW, &CStockView::OnUpdateFilterLow)
-    ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, &CStockView::OnItemChanged)
-    ON_NOTIFY_REFLECT(LVN_COLUMNCLICK, &CStockView::OnColumnClick)
-    ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, &CStockView::OnCustomDraw)
+    ON_NOTIFY(LVN_ITEMCHANGED, kGridId, &CStockView::OnItemChanged)
 END_MESSAGE_MAP()
-
-namespace {
-constexpr int kColWarehouse = 0;
-constexpr int kColSku = 1;
-constexpr int kColProduct = 2;
-constexpr int kColOnHand = 3;
-constexpr int kColumnCount = 4;
-const LPCTSTR kColumnTitles[kColumnCount] = {_T("Magazyn"), _T("Symbol"), _T("Produkt"), _T("Stan")};
-}  // namespace
 
 CStockView::CStockView() {}
 
@@ -44,113 +108,75 @@ CWarehouseDoc* CStockView::GetDocument() const {
     return static_cast<CWarehouseDoc*>(m_pDocument);
 }
 
-BOOL CStockView::PreCreateWindow(CREATESTRUCT& cs) {
-    cs.style |= LVS_REPORT;
-    return CListView::PreCreateWindow(cs);
+int CStockView::OnCreate(LPCREATESTRUCT createStruct) {
+    if (CView::OnCreate(createStruct) == -1) {
+        return -1;
+    }
+    const DWORD style = WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SHOWSELALWAYS;
+    grid_.Create(style, CRect(0, 0, 0, 0), this, kGridId);
+    grid_.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+    grid_.EnableMarkSortedColumn(TRUE);  // highlight + arrow on the sorted column
+    grid_.InsertColumn(kColWarehouse, kColumnTitles[kColWarehouse], LVCFMT_LEFT, 90);
+    grid_.InsertColumn(kColSku, kColumnTitles[kColSku], LVCFMT_LEFT, 70);
+    grid_.InsertColumn(kColProduct, kColumnTitles[kColProduct], LVCFMT_LEFT, 220);
+    grid_.InsertColumn(kColOnHand, kColumnTitles[kColOnHand], LVCFMT_RIGHT, 70);
+    CreateUiFont(uiFont_);
+    if (uiFont_.GetSafeHandle() != nullptr) {
+        grid_.SetFont(&uiFont_);
+    }
+    return 0;
+}
+
+void CStockView::OnSize(UINT type, int cx, int cy) {
+    CView::OnSize(type, cx, cy);
+    if (grid_.GetSafeHwnd() != nullptr) {
+        grid_.SetWindowPos(nullptr, 0, 0, cx, cy, SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+}
+
+void CStockView::OnSetFocus(CWnd* /*old*/) {
+    if (grid_.GetSafeHwnd() != nullptr) {
+        grid_.SetFocus();  // keep keyboard focus on the grid, not the bare view
+    }
 }
 
 void CStockView::OnInitialUpdate() {
-    CListCtrl& list = GetListCtrl();
-    if (list.GetHeaderCtrl()->GetItemCount() == 0) {
-        list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-        list.InsertColumn(kColWarehouse, kColumnTitles[kColWarehouse], LVCFMT_LEFT, 90);
-        list.InsertColumn(kColSku, kColumnTitles[kColSku], LVCFMT_LEFT, 70);
-        list.InsertColumn(kColProduct, kColumnTitles[kColProduct], LVCFMT_LEFT, 220);
-        list.InsertColumn(kColOnHand, kColumnTitles[kColOnHand], LVCFMT_RIGHT, 70);
-        CreateUiFont(uiFont_);  // modern UI font, matching the dock-pane lists
-        if (uiFont_.GetSafeHandle() != nullptr) {
-            list.SetFont(&uiFont_);
-        }
-    }
-    CListView::OnInitialUpdate();  // triggers OnUpdate to fill the rows
-    if (list.GetItemCount() > 0) {  // select the first row so the Details pane is populated
-        list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+    CView::OnInitialUpdate();  // triggers OnUpdate to fill the rows
+    if (grid_.GetItemCount() > 0) {  // select the first row so the Details pane fills
+        grid_.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
     }
 }
 
 void CStockView::OnUpdate(CView* /*sender*/, LPARAM /*hint*/, CObject* /*hintObject*/) {
     const CWarehouseDoc* doc = GetDocument();
-    if (doc == nullptr) {
+    if (doc == nullptr || grid_.GetSafeHwnd() == nullptr) {
         return;
     }
-    CListCtrl& list = GetListCtrl();
-    list.DeleteAllItems();
-
     const std::vector<warehouse::StockRow>& rows = doc->Stock();
-
-    // Build the display order (filtered, then sorted by the chosen column).
-    std::vector<std::size_t> order;
-    order.reserve(rows.size());
-    for (std::size_t idx = 0; idx < rows.size(); ++idx) {
-        if (!showLowOnly_ || rows[idx].isLow) {
-            order.push_back(idx);
-        }
-    }
-    if (sortColumn_ >= 0) {
-        std::stable_sort(order.begin(), order.end(), [&](std::size_t a, std::size_t b) {
-            const warehouse::StockRow& ra = rows[a];
-            const warehouse::StockRow& rb = rows[b];
-            int cmp = 0;
-            switch (sortColumn_) {
-                case kColWarehouse: cmp = ra.warehouseCode.compare(rb.warehouseCode); break;
-                case kColSku:       cmp = ra.sku.compare(rb.sku); break;
-                case kColProduct:   cmp = ra.productName.compare(rb.productName); break;
-                case kColOnHand:    cmp = ra.onHand - rb.onHand; break;
-            }
-            return sortAscending_ ? cmp < 0 : cmp > 0;
-        });
-    }
+    grid_.SetRows(&rows);
+    grid_.DeleteAllItems();
 
     int item = 0;
-    for (std::size_t idx : order) {
+    for (std::size_t idx = 0; idx < rows.size(); ++idx) {
         const warehouse::StockRow& stock = rows[idx];
-        list.InsertItem(item, FromUtf8(stock.warehouseCode));
-        list.SetItemText(item, kColSku, FromUtf8(stock.sku));
-        list.SetItemText(item, kColProduct, FromUtf8(stock.productName));
+        if (showLowOnly_ && !stock.isLow) {
+            continue;
+        }
+        grid_.InsertItem(item, FromUtf8(stock.warehouseCode));
+        grid_.SetItemText(item, kColSku, FromUtf8(stock.sku));
+        grid_.SetItemText(item, kColProduct, FromUtf8(stock.productName));
         CString onHand;
         onHand.Format(_T("%d"), stock.onHand);
-        list.SetItemText(item, kColOnHand, onHand);
-        // Item data = index into Stock(): drives the red custom-draw and the Details pane.
-        list.SetItemData(item, static_cast<DWORD_PTR>(idx));
+        grid_.SetItemText(item, kColOnHand, onHand);
+        // Item data = index into Stock(): drives sort comparison, row colour, Details.
+        grid_.SetItemData(item, static_cast<DWORD_PTR>(idx));
         ++item;
     }
-    UpdateSortArrow();
+    grid_.Resort();  // keep the active sort after a data reload
 
     // Keep the dashboard chart/KPIs in sync with the grid.
     if (auto* frame = DYNAMIC_DOWNCAST(CMainFrame, GetParentFrame())) {
         frame->RefreshPanes();
-    }
-}
-
-// Click a header to sort by that column; click again to flip the direction.
-void CStockView::OnColumnClick(NMHDR* notify, LRESULT* result) {
-    const int column = reinterpret_cast<NMLISTVIEW*>(notify)->iSubItem;
-    if (column == sortColumn_) {
-        sortAscending_ = !sortAscending_;
-    } else {
-        sortColumn_ = column;
-        sortAscending_ = true;
-    }
-    OnUpdate(nullptr, 0, nullptr);  // re-populate in the new order
-    *result = 0;
-}
-
-// Show a ▲/▼ glyph next to the active column's title. (Appending to the header
-// text is more reliable across themes than the native HDF_SORTUP header flag.)
-void CStockView::UpdateSortArrow() {
-    CListCtrl& list = GetListCtrl();
-    if (list.GetHeaderCtrl() == nullptr) {
-        return;
-    }
-    for (int i = 0; i < kColumnCount; ++i) {
-        CString title = kColumnTitles[i];
-        if (i == sortColumn_) {
-            title += sortAscending_ ? _T("  \x25B2") : _T("  \x25BC");  // ▲ / ▼
-        }
-        LVCOLUMN column = {};
-        column.mask = LVCF_TEXT;
-        column.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(title));
-        list.SetColumn(i, &column);
     }
 }
 
@@ -212,11 +238,6 @@ void CStockView::OnUpdateEditRedo(CCmdUI* cmdUI) {
     cmdUI->Enable(doc != nullptr && doc->CanRedo());
 }
 
-void CStockView::SetDark(bool dark) {
-    dark_ = dark;
-    ApplyListTheme(GetListCtrl(), dark);  // bg/text follow the theme; row colours via custom-draw
-}
-
 void CStockView::OnFilterLow() { ShowLowOnly(!showLowOnly_); }
 
 void CStockView::ShowLowOnly(bool on) {
@@ -240,33 +261,10 @@ void CStockView::OnItemChanged(NMHDR* notify, LRESULT* result) {
     if (doc == nullptr) {
         return;
     }
-    const std::size_t idx = GetListCtrl().GetItemData(nm->iItem);
+    const std::size_t idx = grid_.GetItemData(nm->iItem);
     if (idx < doc->Stock().size()) {
         if (auto* frame = DYNAMIC_DOWNCAST(CMainFrame, GetParentFrame())) {
             frame->ShowDetails(doc->Stock()[idx]);
         }
-    }
-}
-
-// Paint low-stock rows in red (OnHand <= ReorderLevel, per the IsLow flag).
-void CStockView::OnCustomDraw(NMHDR* notify, LRESULT* result) {
-    auto* draw = reinterpret_cast<NMLVCUSTOMDRAW*>(notify);
-    switch (draw->nmcd.dwDrawStage) {
-        case CDDS_PREPAINT:
-            *result = CDRF_NOTIFYITEMDRAW;
-            return;
-        case CDDS_ITEMPREPAINT: {
-            const int row = static_cast<int>(draw->nmcd.dwItemSpec);
-            const CWarehouseDoc* doc = GetDocument();
-            const std::size_t idx = GetListCtrl().GetItemData(row);
-            if (doc != nullptr && idx < doc->Stock().size() && doc->Stock()[idx].isLow) {
-                draw->clrText = ThemeColorsFor(dark_).lowStock;  // brighter red on dark
-            }
-            *result = CDRF_DODEFAULT;
-            return;
-        }
-        default:
-            *result = CDRF_DODEFAULT;
-            return;
     }
 }

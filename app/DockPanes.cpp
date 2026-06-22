@@ -76,8 +76,7 @@ void CDashboardPane::OnPaint() {
     bmp.CreateCompatibleBitmap(&paint, rc.Width(), rc.Height());
     CBitmap* oldBmp = mem.SelectObject(&bmp);
 
-    // The dashboard is owner-drawn, so it follows the theme by hand.
-    const COLORREF bgColor = dark_ ? RGB(37, 37, 38) : RGB(245, 246, 248);
+    const COLORREF bgColor = dark_ ? RGB(30, 30, 30) : RGB(245, 246, 248);
     const COLORREF fgColor = dark_ ? RGB(215, 215, 215) : RGB(60, 60, 60);
     const COLORREF axisColor = dark_ ? RGB(90, 90, 90) : RGB(180, 180, 180);
     const COLORREF barColor = dark_ ? RGB(70, 120, 200) : RGB(40, 86, 150);
@@ -170,7 +169,47 @@ void CDashboardPane::OnPaint() {
     mem.SelectObject(oldBmp);
 }
 
-// --- List pane (Movement log / Details) ------------------------------------
+// --- Movement-log list (Czas-only sort) ------------------------------------
+int CMovementLogList::OnCompareItems(LPARAM lParam1, LPARAM lParam2, int column) {
+    if (rows_ == nullptr || column != 0) {  // only the Czas column sorts
+        return 0;
+    }
+    const std::size_t a = static_cast<std::size_t>(lParam1);
+    const std::size_t b = static_cast<std::size_t>(lParam2);
+    if (a >= rows_->size() || b >= rows_->size()) {
+        return 0;
+    }
+    return (*rows_)[a].createdAt.compare((*rows_)[b].createdAt);  // ISO text = chronological
+}
+
+void CMovementLogList::Sort(int column, BOOL ascending, BOOL add) {
+    if (column == 0) {  // ignore clicks on the other columns (no arrow, no reorder)
+        CMFCListCtrl::Sort(column, ascending, add);
+    }
+}
+
+void CMovementLogList::SetDark(bool dark) {
+    dark_ = dark;
+    if (GetSafeHwnd() == nullptr) {
+        return;
+    }
+    const COLORREF bg = dark ? ThemeColorsFor(true).background : ::GetSysColor(COLOR_WINDOW);
+    SetBkColor(bg);
+    SetTextBkColor(bg);
+    const DWORD ex = GetExtendedStyle();
+    SetExtendedStyle(dark ? (ex & ~LVS_EX_GRIDLINES) : (ex | LVS_EX_GRIDLINES));
+    Invalidate();
+}
+
+COLORREF CMovementLogList::OnGetCellTextColor(int row, int column) {
+    return dark_ ? ThemeColorsFor(true).text : CMFCListCtrl::OnGetCellTextColor(row, column);
+}
+
+COLORREF CMovementLogList::OnGetCellBkColor(int row, int column) {
+    return dark_ ? ThemeColorsFor(true).background : CMFCListCtrl::OnGetCellBkColor(row, column);
+}
+
+// --- List pane (Movement log) ----------------------------------------------
 BEGIN_MESSAGE_MAP(CListPane, CDockablePane)
     ON_WM_CREATE()
     ON_WM_SIZE()
@@ -195,4 +234,66 @@ void CListPane::OnSize(UINT type, int cx, int cy) {
     if (list_.GetSafeHwnd() != nullptr) {
         list_.SetWindowPos(nullptr, 0, 0, cx, cy, SWP_NOZORDER | SWP_NOACTIVATE);
     }
+}
+
+// --- Details pane (Feature-Pack property grid) -----------------------------
+BEGIN_MESSAGE_MAP(CDetailsPane, CDockablePane)
+    ON_WM_CREATE()
+    ON_WM_SIZE()
+END_MESSAGE_MAP()
+
+int CDetailsPane::OnCreate(LPCREATESTRUCT createStruct) {
+    if (CDockablePane::OnCreate(createStruct) == -1) {
+        return -1;
+    }
+    grid_.Create(WS_VISIBLE | WS_CHILD, CRect(0, 0, 0, 0), this, 1);
+    grid_.EnableHeaderCtrl(TRUE, _T("Pole"), _T("Wartość"));
+    grid_.EnableDescriptionArea(FALSE);  // no room is needed for a flat detail list
+    grid_.SetVSDotNetLook();
+    grid_.MarkModifiedProperties(FALSE);
+    return 0;
+}
+
+void CDetailsPane::OnSize(UINT type, int cx, int cy) {
+    CDockablePane::OnSize(type, cx, cy);
+    if (grid_.GetSafeHwnd() != nullptr) {
+        grid_.SetWindowPos(nullptr, 0, 0, cx, cy, SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+}
+
+void CDetailsPane::Show(const warehouse::StockRow& row) {
+    if (grid_.GetSafeHwnd() == nullptr) {
+        return;
+    }
+    grid_.RemoveAll();
+    const auto add = [this](const CString& name, const CString& value) {
+        auto* property = new CMFCPropertyGridProperty(name, COleVariant(value), nullptr);
+        property->AllowEdit(FALSE);  // details are read-only
+        grid_.AddProperty(property);
+    };
+    CString onHand;
+    onHand.Format(_T("%d"), row.onHand);
+    add(_T("Symbol"), FromUtf8(row.sku));
+    add(_T("Produkt"), FromUtf8(row.productName));
+    add(_T("Magazyn"), FromUtf8(row.warehouseCode + " " + row.warehouseName));
+    add(_T("Stan magazynowy"), onHand);
+    add(_T("Niski stan"), row.isLow ? _T("TAK") : _T("nie"));
+    grid_.AdjustLayout();
+}
+
+void CDetailsPane::SetDark(bool dark) {
+    if (grid_.GetSafeHwnd() == nullptr) {
+        return;
+    }
+    if (dark) {
+        grid_.SetCustomColors(RGB(30, 30, 30), RGB(220, 220, 220),    // background, text
+                              RGB(45, 45, 48), RGB(220, 220, 220),    // group bg, group text
+                              RGB(37, 37, 38), RGB(180, 180, 180),    // description bg, text
+                              RGB(63, 63, 70));                        // grid lines
+    } else {
+        const COLORREF def = static_cast<COLORREF>(-1);  // -1 = framework default
+        grid_.SetCustomColors(def, def, def, def, def, def, def);
+    }
+    grid_.AdjustLayout();
+    grid_.Invalidate();
 }

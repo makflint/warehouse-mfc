@@ -1,6 +1,11 @@
 #include "framework.h"
 #include "resource.h"
 
+#include <afxvisualmanageroffice2003.h>
+#include <afxvisualmanagervs2008.h>
+#include <afxvisualmanagerwindows7.h>
+
+#include "DarkVisualManager.h"
 #include "MainFrame.h"
 #include "StockView.h"
 #include "TextUtil.h"
@@ -11,8 +16,9 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
 
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_WM_CREATE()
-    ON_COMMAND(ID_VIEW_THEME_DARK, &CMainFrame::OnViewThemeDark)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_THEME_DARK, &CMainFrame::OnUpdateViewThemeDark)
+    ON_COMMAND_RANGE(ID_THEME_OFFICE_BLUE, ID_THEME_DARK, &CMainFrame::OnTheme)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_THEME_OFFICE_BLUE, ID_THEME_DARK, &CMainFrame::OnUpdateTheme)
+    ON_UPDATE_COMMAND_UI(ID_THEME_MENU, &CMainFrame::OnUpdateThemeMenu)
     ON_COMMAND_RANGE(ID_TOGGLE_DASHBOARD, ID_TOGGLE_DETAILS, &CMainFrame::OnViewPane)
     ON_UPDATE_COMMAND_UI_RANGE(ID_TOGGLE_DASHBOARD, ID_TOGGLE_DETAILS, &CMainFrame::OnUpdateViewPane)
 END_MESSAGE_MAP()
@@ -73,7 +79,17 @@ void CMainFrame::BuildRibbon() {
     CMFCRibbonCategory* widok =
         ribbon_.AddCategory(_T("Widok"), IDB_RIBBON_WIDOK_16, IDB_RIBBON_WIDOK_32);
     CMFCRibbonPanel* motyw = widok->AddPanel(_T("Motyw"));
-    motyw->Add(new CMFCRibbonButton(ID_VIEW_THEME_DARK, _T("Ciemny motyw"), 0, 0));
+    auto* themeMenu = new CMFCRibbonButton(ID_THEME_MENU, _T("Motyw"), 0, 0);
+    themeMenu->SetDefaultCommand(FALSE);  // whole button opens the menu (not a split button)
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_BLUE, _T("Office 2007 — niebieski")));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_BLACK, _T("Office 2007 — czarny")));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_SILVER, _T("Office 2007 — srebrny")));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_AQUA, _T("Office 2007 — aqua")));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE2003, _T("Office 2003")));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_VS2008, _T("Visual Studio 2008")));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_WINDOWS7, _T("Windows 7")));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_DARK, _T("Ciemny (pełny)")));
+    motyw->Add(themeMenu);
 
     CMFCRibbonPanel* panele = widok->AddPanel(_T("Panele"));
     panele->Add(new CMFCRibbonButton(ID_TOGGLE_DASHBOARD, _T("Pulpit"), 1, 1));
@@ -113,8 +129,6 @@ void CMainFrame::CreatePanes() {
     // narrow; a tab group keeps both reachable at any width.
     CDockablePane* tabbed = nullptr;
     details_.AttachToTabWnd(&movementLog_, DM_SHOW, TRUE, &tabbed);
-    details_.List().InsertColumn(0, _T("Pole"), LVCFMT_LEFT, 110);
-    details_.List().InsertColumn(1, _T("Wartość"), LVCFMT_LEFT, 150);
 }
 
 void CMainFrame::RefreshPanes() {
@@ -131,6 +145,7 @@ void CMainFrame::RefreshPanes() {
 
     CListCtrl& log = movementLog_.List();
     if (doc != nullptr && log.GetSafeHwnd() != nullptr) {
+        movementLog_.SetRows(&doc->Movements());  // backs the Czas-column sort
         log.DeleteAllItems();
         int i = 0;
         for (const warehouse::MovementRow& m : doc->Movements()) {
@@ -141,30 +156,14 @@ void CMainFrame::RefreshPanes() {
             CString qty;
             qty.Format(_T("%d"), m.qty < 0 ? -m.qty : m.qty);
             log.SetItemText(i, 4, qty);
+            log.SetItemData(i, static_cast<DWORD_PTR>(i));  // index into Movements()
             ++i;
         }
     }
 }
 
 void CMainFrame::ShowDetails(const warehouse::StockRow& row) {
-    CListCtrl& list = details_.List();
-    if (list.GetSafeHwnd() == nullptr) {
-        return;
-    }
-    list.DeleteAllItems();
-    const auto add = [&list](const CString& field, const CString& value) {
-        const int i = list.GetItemCount();
-        list.InsertItem(i, field);
-        list.SetItemText(i, 1, value);
-    };
-    CString onHand;
-    onHand.Format(_T("%d"), row.onHand);
-    add(_T("Symbol"), FromUtf8(row.sku));
-    add(_T("Produkt"), FromUtf8(row.productName));
-    add(_T("Magazyn"), FromUtf8(row.warehouseCode + " " + row.warehouseName));
-    add(_T("Stan magazynowy"), onHand);
-    add(_T("Niski stan"), row.isLow ? _T("TAK") : _T("nie"));
-
+    details_.Show(row);
     SetStatusPane(ID_INDICATOR_SKU, _T("Symbol: ") + FromUtf8(row.sku));
 }
 
@@ -189,27 +188,69 @@ void CMainFrame::OnUpdateViewPane(CCmdUI* cmdUI) {
     cmdUI->SetCheck(pane != nullptr && pane->IsVisible());
 }
 
-void CMainFrame::OnViewThemeDark() {
-    dark_ = !dark_;
-    CMFCVisualManagerOffice2007::SetStyle(dark_ ? CMFCVisualManagerOffice2007::Office2007_ObsidianBlack
-                                                : CMFCVisualManagerOffice2007::Office2007_LunaBlue);
-    CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerOffice2007));
-    ApplyContentTheme();  // the standard list controls + dashboard aren't themed by the manager
+// Apply one of the built-in MFC visual managers. The Office 2007 manager needs its
+// colour style set before it becomes the default; the others are self-contained.
+void CMainFrame::OnTheme(UINT cmdId) {
+    using Office2007 = CMFCVisualManagerOffice2007;
+    switch (cmdId) {
+        case ID_THEME_OFFICE_BLUE:
+            Office2007::SetStyle(Office2007::Office2007_LunaBlue);
+            CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(Office2007));
+            break;
+        case ID_THEME_OFFICE_BLACK:
+            Office2007::SetStyle(Office2007::Office2007_ObsidianBlack);
+            CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(Office2007));
+            break;
+        case ID_THEME_OFFICE_SILVER:
+            Office2007::SetStyle(Office2007::Office2007_Silver);
+            CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(Office2007));
+            break;
+        case ID_THEME_OFFICE_AQUA:
+            Office2007::SetStyle(Office2007::Office2007_Aqua);
+            CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(Office2007));
+            break;
+        case ID_THEME_OFFICE2003:
+            CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerOffice2003));
+            break;
+        case ID_THEME_VS2008:
+            CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerVS2008));
+            break;
+        case ID_THEME_WINDOWS7:
+            CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerWindows7));
+            break;
+        case ID_THEME_DARK:
+            Office2007::SetStyle(Office2007::Office2007_ObsidianBlack);  // dark chrome base
+            CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CDarkVisualManager));
+            break;
+        default:
+            return;
+    }
+    // The list/grid header draws its text in the global button-text colour (not a
+    // visual-manager hook), so flip it light for the dark theme and back otherwise.
+    const bool dark = (cmdId == ID_THEME_DARK);
+    GetGlobalData()->clrBtnText = dark ? RGB(220, 220, 220) : ::GetSysColor(COLOR_BTNTEXT);
+    ApplyContentTheme(dark);
+    currentTheme_ = cmdId;
     RedrawWindow(nullptr, nullptr, RDW_ALLCHILDREN | RDW_INVALIDATE | RDW_UPDATENOW | RDW_FRAME | RDW_ERASE);
 }
 
-// CMFCVisualManager only themes Feature-Pack controls; the stock grid and the
-// dock-pane lists are standard Win32 list controls and the dashboard is owner-drawn,
-// so they're recoloured here to follow the dark/light toggle.
-void CMainFrame::ApplyContentTheme() {
-    dashboard_.SetDark(dark_);
-    ApplyListTheme(movementLog_.List(), dark_);
-    ApplyListTheme(details_.List(), dark_);
+// Recolour the non-Feature-Pack content (grids, dock list, owner-drawn dashboard,
+// property grid) for the dark theme; all light themes use the framework defaults.
+void CMainFrame::ApplyContentTheme(bool dark) {
+    dashboard_.SetDark(dark);
+    movementLog_.SetDark(dark);
+    details_.SetDark(dark);
     if (auto* view = DYNAMIC_DOWNCAST(CStockView, GetActiveView())) {
-        view->SetDark(dark_);
+        view->SetDark(dark);
     }
 }
 
-void CMainFrame::OnUpdateViewThemeDark(CCmdUI* cmdUI) {
-    cmdUI->SetCheck(dark_ ? 1 : 0);
+void CMainFrame::OnUpdateTheme(CCmdUI* cmdUI) {
+    cmdUI->SetRadio(cmdUI->m_nID == currentTheme_);  // dot the active theme
+}
+
+// The drop-down container has no command of its own; keep it enabled so its menu opens
+// (MFC would otherwise auto-disable a command with no ON_COMMAND handler).
+void CMainFrame::OnUpdateThemeMenu(CCmdUI* cmdUI) {
+    cmdUI->Enable(TRUE);
 }

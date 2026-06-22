@@ -30,30 +30,20 @@ inline void CreateUiFont(CFont& font) {
     }
 }
 
-// The content-area palette for the current theme. Standard list controls aren't
-// themed by CMFCVisualManager, so we recolour them (and the owner-drawn dashboard)
-// by hand to follow the dark/light toggle.
+// Low-stock accent used by the grid rows and the dashboard bars (light theme).
+constexpr COLORREF kLowStockColor = RGB(192, 0, 0);
+
+// Content palette for the optional dark theme; the light theme uses framework
+// defaults. Drives the grids, dock list and dashboard so they match the dark chrome.
 struct ThemeColors {
     COLORREF background;
     COLORREF text;
-    COLORREF lowStock;  // low-stock accent (grid rows, dashboard bars)
+    COLORREF lowStock;
 };
 
 inline ThemeColors ThemeColorsFor(bool dark) {
     if (dark) {
-        return {RGB(37, 37, 38), RGB(240, 240, 240), RGB(255, 110, 110)};
+        return {RGB(30, 30, 30), RGB(220, 220, 220), RGB(255, 110, 110)};
     }
-    return {RGB(255, 255, 255), RGB(0, 0, 0), RGB(192, 0, 0)};
-}
-
-// Recolour a report list to match the theme (no-op until the control exists).
-inline void ApplyListTheme(CListCtrl& list, bool dark) {
-    if (list.GetSafeHwnd() == nullptr) {
-        return;
-    }
-    const ThemeColors colors = ThemeColorsFor(dark);
-    list.SetBkColor(colors.background);
-    list.SetTextBkColor(colors.background);
-    list.SetTextColor(colors.text);
-    list.Invalidate();
+    return {::GetSysColor(COLOR_WINDOW), ::GetSysColor(COLOR_WINDOWTEXT), kLowStockColor};
 }

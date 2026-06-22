@@ -27,6 +27,7 @@ BOOL CWarehouseDoc::OnNewDocument() {
     if (!CDocument::OnNewDocument()) {
         return FALSE;
     }
+    SetTitle(_T("Stany magazynowe"));  // window title, instead of the default "Untitled"
     Refresh();
     return TRUE;
 }
