@@ -11,5 +11,14 @@ public:
     CMainFrame();
 
 protected:
+    afx_msg int OnCreate(LPCREATESTRUCT createStruct);
+    afx_msg void OnViewThemeDark();
+    afx_msg void OnUpdateViewThemeDark(CCmdUI* cmdUI);
     DECLARE_MESSAGE_MAP()
+
+private:
+    void BuildRibbon();
+
+    CMFCRibbonBar ribbon_;
+    bool dark_ = false;
 };
