@@ -56,14 +56,26 @@ const char* kindName(warehouse::CommandKind k) {
 
 int main(int argc, char** argv) {
     SetConsoleOutputCP(CP_UTF8);  // so printf of UTF-8 text renders and is pipe-captured
-    Stt stt(L"models\\ggml-small.bin");
+
+    std::wstring model = L"models\\ggml-small.bin";
+    std::vector<const char*> wavs;
+    for (int a = 1; a < argc; ++a) {
+        if (std::strcmp(argv[a], "--model") == 0 && a + 1 < argc) {
+            const char* m = argv[++a];
+            model.assign(m, m + std::strlen(m));  // model paths are ASCII
+        } else {
+            wavs.push_back(argv[a]);
+        }
+    }
+
+    Stt stt(model);
     if (!stt.ok()) { std::printf("model load failed\n"); return 1; }
 
-    for (int a = 1; a < argc; ++a) {
-        const std::vector<float> pcm = readWav(argv[a]);
+    for (const char* wav : wavs) {
+        const std::vector<float> pcm = readWav(wav);
         const std::string text = stt.Transcribe(pcm);
         const warehouse::ParsedCommand c = warehouse::parseVoiceCommand(text);
-        std::printf("%-22s heard=[%s]  -> %s", argv[a], text.c_str(), kindName(c.kind));
+        std::printf("%-22s heard=[%s]  -> %s", wav, text.c_str(), kindName(c.kind));
         if (c.kind == warehouse::CommandKind::RecordMovement) {
             std::printf(" (%s qty=%d sku=%s)",
                         c.type == warehouse::MovementType::In ? "IN" : "OUT", c.qty, c.sku.c_str());

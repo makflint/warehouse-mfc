@@ -68,11 +68,24 @@ Press **F2** in the app and speak: "odśwież", "pokaż niskie stany", "cofnij",
   Fix later: extend the grammar + parser with a warehouse term (e.g. "…magazyn A") and resolve it
   in `DispatchVoice`, or default to a currently-selected warehouse.
 - `cofnij` is unreliable on whisper-small (use **anuluj**); `odśwież` mis-recognised on synthetic
-  (Paulina) input — both flagged red in `tools/e2e_voice.ps1`, candidates for the `medium` model.
+  (Paulina) input — both flagged red in `tools/e2e_voice.ps1`.
+
+### Voice STT model research (decision: stay on `small`)
+Compared via `tools/e2e_voice.ps1` (both corpora) — all multilingual (`.en` can't do Polish):
+- **`ggml-base.bin` (141 MB)** — too weak for Polish ("Cofni", "Pał Now", "mniskie"). Rejected.
+- **`ggml-small.bin` (465 MB)** — **chosen.** Best tradeoff; e2e 9/11.
+- **`ggml-medium.bin` (1.5 GB)** — **tested, net worse: e2e 8/11.** Fixed `cofnij` (real → "Cofnij.")
+  but *broke* `ponów` (→ "PONUF!") and `przyjmij` (dropped the SKU) on real voice, and still misses
+  Paulina `odśwież`. 3× size + ~3× slower CPU inference for a worse score — not worth it. Bigger
+  models just shift *which* words break; recognition is inherently flaky on borderline mic input.
+- Sampling: **beam search > greedy** (fixes spoken numbers), in use. `initial_prompt` biasing
+  **blanks the output** (single_segment quirk) — do not use.
+- The model is loaded **once** and reused (app: lazy-load on first F2 then kept; tools: once per run).
+- `wav_command.exe --model <path>` / `e2e_voice.ps1 -Model <path>` to re-compare models later.
 
 ### Possible later polish (not blocking)
 - A brief on-screen "Słucham…"/"Przetwarzam…" status; configurable capture seconds; recognised-text
-  echo in a status bar; try `ggml-medium.bin` for the stubborn words.
+  echo in a status bar.
 
 ## Build / test (Windows)
 ```bash

@@ -6,7 +6,7 @@
 #   - paulina : SAPI-synthesised phrases treated as clean GROUND-TRUTH input. A FAIL
 #               here is a real STT/parser failure, flagged like any other (no excuse).
 # Usage:  powershell -ExecutionPolicy Bypass -File tools\e2e_voice.ps1 [-Corpus both|real|paulina]
-param([ValidateSet('both','real','paulina')] [string]$Corpus = 'both')
+param([ValidateSet('both','real','paulina')] [string]$Corpus = 'both', [string]$Model = '')
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 # --- ensure the runner tool exists (self-build) -----------------------------------
@@ -27,7 +27,10 @@ if (-not (Test-Path '.\wav_command.exe')) {
 # --- run a corpus: cases = @{ id; file; kind; type?; qty?; sku? } ------------------
 function Invoke-Corpus($label, $cases) {
     if (-not $cases) { return @{ pass = 0; fail = 0 } }
-    $out = & .\wav_command.exe ($cases | ForEach-Object { $_.file }) 2>$null
+    $argv = @()
+    if ($Model) { $argv += '--model'; $argv += $Model }
+    $argv += ($cases | ForEach-Object { $_.file })
+    $out = & .\wav_command.exe $argv 2>$null
     $pass = 0; $fail = 0
     Write-Host ''
     Write-Host "=== $label ===" -ForegroundColor Cyan
