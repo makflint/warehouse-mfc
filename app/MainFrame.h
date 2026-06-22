@@ -2,7 +2,9 @@
 
 #include "framework.h"
 
-class CMainFrame : public CFrameWnd {
+// CFrameWndEx is the Feature Pack frame — it hosts the ribbon, dockable panes and
+// honours the active visual manager (theming).
+class CMainFrame : public CFrameWndEx {
     DECLARE_DYNCREATE(CMainFrame)
 
 public:

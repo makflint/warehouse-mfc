@@ -28,8 +28,15 @@ std::string exeDirectory() {
 }  // namespace
 
 BOOL CWarehouseApp::InitInstance() {
-    CWinApp::InitInstance();
-    AfxOleInit();  // COM for SAPI text-to-speech
+    CWinAppEx::InitInstance();
+    AfxOleInit();  // COM (shell / drag-drop)
+
+    // MFC Feature Pack: persist docking/toolbar layout under HKCU, and theme the UI.
+    SetRegistryKey(_T("warehouse-mfc"));
+    InitContextMenuManager();
+    InitKeyboardManager();
+    CMFCVisualManagerOffice2007::SetStyle(CMFCVisualManagerOffice2007::Office2007_LunaBlue);
+    CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerOffice2007));
 
     // First run of the packaged demo: create + seed the LocalDB database if missing.
     const std::string dir = exeDirectory();

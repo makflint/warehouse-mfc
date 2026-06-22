@@ -3,7 +3,8 @@
 #include "framework.h"
 
 // The MFC application object. One global instance (theApp) is the entry point.
-class CWarehouseApp : public CWinApp {
+// CWinAppEx enables the MFC Feature Pack (visual managers, docking, ribbon).
+class CWarehouseApp : public CWinAppEx {
 public:
     BOOL InitInstance() override;
 };

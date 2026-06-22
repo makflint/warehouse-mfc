@@ -3,9 +3,9 @@
 
 #include "MainFrame.h"
 
-IMPLEMENT_DYNCREATE(CMainFrame, CFrameWnd)
+IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
 
-BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
+BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
 END_MESSAGE_MAP()
 
 CMainFrame::CMainFrame() {}
