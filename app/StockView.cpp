@@ -3,16 +3,12 @@
 
 #include <set>
 #include <string>
-#include <thread>
 #include <vector>
 
-#include "MicCapture.h"
 #include "RecordMovementDialog.h"
 #include "StockView.h"
-#include "Stt.h"
 #include "TextUtil.h"
 #include "WarehouseDoc.h"
-#include "warehouse/voice_command_parser.hpp"
 
 IMPLEMENT_DYNCREATE(CStockView, CListView)
 
@@ -26,8 +22,6 @@ BEGIN_MESSAGE_MAP(CStockView, CListView)
     ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, &CStockView::OnUpdateEditRedo)
     ON_COMMAND(ID_STOCK_FILTER_LOW, &CStockView::OnFilterLow)
     ON_UPDATE_COMMAND_UI(ID_STOCK_FILTER_LOW, &CStockView::OnUpdateFilterLow)
-    ON_COMMAND(ID_VOICE_LISTEN, &CStockView::OnVoiceListen)
-    ON_MESSAGE(WM_STT_RESULT, &CStockView::OnSttResult)
     ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, &CStockView::OnCustomDraw)
 END_MESSAGE_MAP()
 
@@ -39,7 +33,6 @@ constexpr int kColOnHand = 3;
 }  // namespace
 
 CStockView::CStockView() {}
-CStockView::~CStockView() = default;
 
 CWarehouseDoc* CStockView::GetDocument() const {
     return static_cast<CWarehouseDoc*>(m_pDocument);
@@ -153,110 +146,6 @@ void CStockView::ShowLowOnly(bool on) {
 
 void CStockView::OnUpdateFilterLow(CCmdUI* cmdUI) {
     cmdUI->SetCheck(showLowOnly_ ? 1 : 0);
-}
-
-// --- Voice command path (offline Polish STT via whisper.cpp) ---------------
-
-Stt* CStockView::EnsureStt() {
-    if (!sttLoadTried_) {
-        sttLoadTried_ = true;
-        wchar_t exePath[MAX_PATH] = {};
-        GetModuleFileNameW(nullptr, exePath, MAX_PATH);
-        std::wstring path(exePath);
-        const std::size_t slash = path.find_last_of(L"\\/");
-        const std::wstring dir = (slash == std::wstring::npos) ? L"" : path.substr(0, slash + 1);
-        auto stt = std::make_unique<Stt>(dir + L"ggml-small.bin");
-        if (stt->ok()) {
-            stt_ = std::move(stt);
-        }
-    }
-    return stt_.get();
-}
-
-void CStockView::OnVoiceListen() {
-    if (listening_.load()) {
-        return;  // a capture is already in flight
-    }
-    if (EnsureStt() == nullptr) {
-        AfxMessageBox(_T("Model głosowy (ggml-small.bin) niedostępny obok aplikacji."),
-                      MB_ICONWARNING);
-        return;
-    }
-
-    listening_.store(true);
-    // Visible cue so the user knows exactly when to speak (a bare beep was too subtle).
-    if (CWnd* frame = AfxGetMainWnd()) {
-        frame->GetWindowText(savedTitle_);
-        frame->SetWindowText(_T("● Słucham — mów teraz…"));
-    }
-    MessageBeep(MB_OK);
-
-    // Capture + recognise off the UI thread, then post the text back to ourselves.
-    const HWND target = GetSafeHwnd();
-    Stt* stt = stt_.get();
-    std::thread([target, stt]() {
-        const std::vector<float> audio = mic::Record(6);  // long enough for "przyjmij <n> <sku>"
-        const WPARAM captured = audio.empty() ? 0 : 1;  // distinguish a dead mic from silence
-        std::string text = stt->Transcribe(audio);
-        ::PostMessage(target, WM_STT_RESULT, captured,
-                      reinterpret_cast<LPARAM>(new std::string(std::move(text))));
-    }).detach();
-}
-
-LRESULT CStockView::OnSttResult(WPARAM captured, LPARAM lParam) {
-    std::unique_ptr<std::string> text(reinterpret_cast<std::string*>(lParam));
-    listening_.store(false);
-    if (CWnd* frame = AfxGetMainWnd()) {
-        frame->SetWindowText(savedTitle_);  // drop the "Słucham…" cue
-    }
-    if (captured == 0) {
-        AfxMessageBox(_T("Nie udało się nagrać z mikrofonu. Sprawdź, czy mikrofon jest ")
-                      _T("włączony i dostępny w ustawieniach dźwięku."),
-                      MB_ICONWARNING);
-        return 0;
-    }
-    if (text) {
-        DispatchVoice(*text);
-    }
-    return 0;
-}
-
-void CStockView::DispatchVoice(const std::string& utf8Text) {
-    CWarehouseDoc* doc = GetDocument();
-    if (doc == nullptr) {
-        return;
-    }
-
-    const warehouse::ParsedCommand command = warehouse::parseVoiceCommand(utf8Text);
-    switch (command.kind) {
-        case warehouse::CommandKind::Refresh:
-            doc->Refresh();
-            return;
-        case warehouse::CommandKind::Undo:
-            doc->Undo();
-            return;
-        case warehouse::CommandKind::Redo:
-            doc->Redo();
-            return;
-        case warehouse::CommandKind::ShowLowStock:
-            ShowLowOnly(true);
-            return;
-        case warehouse::CommandKind::RecordMovement:
-            // The parser stays DB-free; resolve the spoken sku to ids from the snapshot.
-            for (const warehouse::StockRow& row : doc->Stock()) {
-                if (row.sku == command.sku) {
-                    doc->ExecuteMovement(warehouse::Movement{row.productId, row.warehouseId,
-                                                             command.qty, command.type});
-                    return;
-                }
-            }
-            AfxMessageBox(FromUtf8("Nie znam artykułu: " + command.sku), MB_ICONWARNING);
-            return;
-        case warehouse::CommandKind::Unknown:
-        default:
-            AfxMessageBox(FromUtf8("Nie rozpoznano polecenia: " + utf8Text), MB_ICONINFORMATION);
-            return;
-    }
 }
 
 // Paint low-stock rows in red (OnHand <= ReorderLevel, per the IsLow flag).

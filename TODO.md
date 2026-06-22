@@ -2,127 +2,67 @@
 
 Single source of truth for open work. Milestones follow `docs/PLAN.md`.
 
-## ⏸ Voice (STT + TTS) ARCHIVED — pivoting away (2026-06-22)
-The voice feature (**M4 TTS** + **M7 offline Polish STT via whisper.cpp**) is **complete and
-verified**, but being **removed from `main`** — it's a lot of moving parts (mic/WASAPI, whisper,
-465 MB model, OS audio-engine quirks) for a portfolio piece, and recognition stays flaky on
-borderline mic input. **Nothing is lost** — the full, working voice state is preserved:
-- branch **`archive/voice-stt-tts`** and tag **`voice-m4-m7-complete`** (commit `07a85aa`).
-- Restore anytime: `git checkout archive/voice-stt-tts`.
-
-What it achieved (for the record): SAPI TTS (Paulina); whisper.cpp `small`+beam STT; a fuzzy,
-TDD'd command parser (ASCII-fold + keyword stems + digit-tail sku); WASAPI capture with
-normalisation; F2 push-to-talk; an e2e harness (`tools/e2e_voice.ps1`, real + Paulina corpora).
-Details + research (base/small/medium, no-warehouse-in-voice limitation) are in the M7 section
-and `[[archive/voice-stt-tts]]`. The next milestone replaces voice with a non-voice "fancy"
-feature (TBD) — see bottom of this file.
+## ⏸ Voice (STT + TTS) — built, evaluated, ARCHIVED off `main` (2026-06-22)
+M4 (SAPI TTS) + M7 (offline Polish STT via whisper.cpp) were fully built and verified, then
+**removed from `main`** — too many moving parts (mic/WASAPI, whisper, 465 MB model, OS
+audio-engine quirks) for a portfolio piece, and recognition stayed flaky on borderline mic
+input. **Nothing is lost** — the complete working voice app is preserved on branch
+**`archive/voice-stt-tts`** (tag **`voice-m4-m7-complete`**, commit `07a85aa`).
+Restore: `git checkout archive/voice-stt-tts`. That branch holds all the detail (WASAPI capture,
+the fuzzy command parser, the model research base/small/medium, the e2e harness, and the
+"voice commands don't name a warehouse" limitation).
 
 ## Done
 - [x] **M0 — Database.** Schema + idempotent seed on LocalDB; `vCurrentStock` and
   `sp_RecordMovement` (IN / OUT / insufficient-stock THROW) verified.
 - [x] **M1 — `core/` (pure C++, TDD).** `StockMath` (onHand, isLow); `Movement` +
-  `compensating`; Command pattern (`ICommand`, `MovementCommand`, `CommandStack`);
-  `VoiceCommandParser`. 48 assertions green (Debug + Release).
+  `compensating`; Command pattern (`ICommand`, `MovementCommand`, `CommandStack`). Catch2,
+  **31 assertions green** (Debug + Release).
 - [x] **M2 — `data/` (ODBC).** `StockRepository` (pImpl): `loadCurrentStock()`,
   `recordMovement()` (calls `sp_RecordMovement`, surfaces THROW as exception),
   implements `IMovementRecorder`. Verified by `tools/data_smoke`.
 - [x] **M3 — MFC UI.** SDI doc/view; `CListView` bound to `vCurrentStock` (low-stock rows
   owner-drawn red); Record-movement dialog (DDX/DDV, product/warehouse/qty); menu Refresh
   (F5) / Przyjmij (IN) / Wydaj (OUT); **Undo/Redo (Ctrl+Z/Ctrl+Y)** via `core/` CommandStack;
-  low-stock filter toggle. Verified through the GUI against LocalDB (record IN 35->42,
-  undo ->35; filter; red rows). Note: the Debug build needs the debug MFC DLLs on PATH to
-  launch outside VS — Release runs standalone.
-
-- [x] **M4 — Voice (TTS).** SAPI, Microsoft Paulina: app speaks Polish confirmations on
-  record/undo/redo. STT (recognition) is M7 below.
-
-- [x] **M5 — Installer.** `installer/warehouse-mfc.iss` (Inno Setup) bundles app + SQL scripts
-  + VC++ runtime + LocalDB MSI, installs runtimes silently. App self-seeds the DB on first run
-  (verified: dropped DB, launched app, DB recreated). Builds `warehouse-mfc-setup.exe`.
+  low-stock filter toggle. Note: the Debug build needs the debug MFC DLLs on PATH to launch
+  outside VS — Release runs standalone.
+- [x] **M5 — Installer.** `installer/warehouse-mfc.iss` (Inno Setup) bundles app + SQL scripts +
+  VC++ runtime + LocalDB MSI, installs runtimes silently. App self-seeds the DB on first run.
+  Builds `warehouse-mfc-setup.exe`.
 - [x] **M6 — Polish.** README screenshots (`docs/screenshots/`), demo-installer + SmartScreen
-  notes, secret scan clean. (Optional: a short screen recording is still a nice-to-have.)
+  notes, secret scan clean.
 
-- [x] **M7 — Offline Polish STT (whisper.cpp).** Real hands-free voice, fully offline (model is
-  a local file, inference local, **no runtime networking** — does not break the ODBC-only rule).
-  - whisper.cpp **v1.9.1** as a git **submodule** (`third_party/whisper.cpp`), built to **static
-    libs** (Release+Debug, OpenMP off) with the VS-bundled cmake+ninja.
-  - `app/MicCapture.*` (**WASAPI** shared-mode capture → downmix + resample to 16 kHz mono,
-    peak-normalised) + `app/Stt.*` (whisper wrapper, `language="pl"`). NB: legacy waveIn does
-    **not** work on this laptop's Intel Smart Sound DMIC array — WASAPI is required.
-    Push-to-talk: **Słuchaj (F2)** menu/hotkey → capture+recognise on a worker thread →
-    `PostMessage(WM_STT_RESULT)` → UI thread (empty capture → "mic unavailable" message).
-  - Recognised text → `warehouse::parseVoiceCommand` (core/) → same doc commands as the menus.
-    Parser is **fuzzy** (TDD, 77 assertions): lower-case + ASCII-fold Polish letters, then match
-    keyword stems (`przyj`/`wyda`/`nisk`/`cofn`+`anul`/`wstecz`/`ponow`/`odsw`). For movements it
-    glues all spoken digits and reads the **4-digit sku off the tail, quantity off the front**, so
-    both "10 sztuk 4 5 2 1" and merged "104521" → qty10 sku4521. Undo also accepts `anuluj`/`wstecz`
-    because whisper-small mangles the short word "cofnij" ("Kompniu"/"Co w niej").
-  - Model **`ggml-small.bin`** (multilingual, 465 MB; much better Polish than base) + **beam
-    search**, loaded next to the exe; shipped in the installer; gitignored locally. **Verified
-    end-to-end on real recordings** through the exact app code (Stt small+beam → parser): 4/5
-    commands mapped correctly incl. the number command; only a fast/unclear "cofnij" take missed.
-    Tools: `tools/record_commands.ps1` (guided recorder), `tools/voice_probe.cpp` (mic self-test).
+*(M4 TTS + M7 STT were done too — now archived, see the banner above.)*
 
-### Gotcha hit during M7: capture failed at the OS level (not an app bug)
-The Windows audio **engine** can land in a broken state where capture won't initialise
-(`waveInOpen` → MMSYSERR_ERROR; WASAPI `Initialize` → `E_HANDLE`, `IsFormatSupported` →
-`REGDB_E_CLASSNOTREG`) while playback still works. Fix: restart the audio engine —
-`tools/mic_fix.ps1` (elevated `Restart-Service AudioEndpointBuilder -Force`) or reboot.
-`tools/voice_probe.cpp` (build via `tools/build_voice_probe.cmd`) isolates mic-capture from
-recognition when diagnosing.
-
-## Done — all milestones (M0–M7) complete
-Press **F2** in the app and speak: "odśwież", "pokaż niskie stany", "cofnij", "ponów",
-"przyjmij 10 4521".
-
-### Known limitations (voice)
-- **Voice movements don't name a warehouse.** A spoken `przyjmij/wydaj <ilość> <sku>` carries
-  quantity + SKU but **no warehouse**, so `DispatchVoice` resolves the SKU to the *first* matching
-  stock row — and every SKU exists in both MAG-A and MAG-B, so the target warehouse is implicit
-  (whichever row comes first). The dialog path (Przyjmij/Wydaj…) is unambiguous; voice is not.
-  Fix later: extend the grammar + parser with a warehouse term (e.g. "…magazyn A") and resolve it
-  in `DispatchVoice`, or default to a currently-selected warehouse.
-- `cofnij` is unreliable on whisper-small (use **anuluj**); `odśwież` mis-recognised on synthetic
-  (Paulina) input — both flagged red in `tools/e2e_voice.ps1`.
-
-### Voice STT model research (decision: stay on `small`)
-Compared via `tools/e2e_voice.ps1` (both corpora) — all multilingual (`.en` can't do Polish):
-- **`ggml-base.bin` (141 MB)** — too weak for Polish ("Cofni", "Pał Now", "mniskie"). Rejected.
-- **`ggml-small.bin` (465 MB)** — **chosen.** Best tradeoff; e2e 9/11.
-- **`ggml-medium.bin` (1.5 GB)** — **tested, net worse: e2e 8/11.** Fixed `cofnij` (real → "Cofnij.")
-  but *broke* `ponów` (→ "PONUF!") and `przyjmij` (dropped the SKU) on real voice, and still misses
-  Paulina `odśwież`. 3× size + ~3× slower CPU inference for a worse score — not worth it. Bigger
-  models just shift *which* words break; recognition is inherently flaky on borderline mic input.
-- Sampling: **beam search > greedy** (fixes spoken numbers), in use. `initial_prompt` biasing
-  **blanks the output** (single_segment quirk) — do not use.
-- The model is loaded **once** and reused (app: lazy-load on first F2 then kept; tools: once per run).
-- `wav_command.exe --model <path>` / `e2e_voice.ps1 -Model <path>` to re-compare models later.
-
-### Possible later polish (not blocking)
-- A brief on-screen "Słucham…"/"Przetwarzam…" status; configurable capture seconds; recognised-text
-  echo in a status bar.
+## Next — M8: modern MFC Feature Pack UI + dashboard
+The strongest *Senior C++/MFC* signal: replace the plain SDI shell with a modern Feature-Pack UI.
+Decisions locked: **full Ribbon + dockable panes + themes**, and a **bar chart of current stock**
+(no time-series).
+- [ ] **Frame upgrade** to the MFC Feature Pack: `CWinAppEx` + `CFrameWndEx`, `CMFCVisualManager`
+  theming with a dark-mode toggle (`#include <afxcontrolbars.h>`).
+- [ ] **Ribbon** (`CMFCRibbonBar`) replacing the menu — tabs *Magazyn* (Refresh / Przyjmij /
+  Wydaj / Filtr) and *Widok* (panes, theme), with a quick-access toolbar.
+- [ ] **Dockable panes** (`CDockablePane`): **Dashboard**, **Movement log** (recent movements),
+  **Details** (selected product).
+- [ ] **Dashboard**: GDI+ owner-drawn **bar chart** of on-hand per product (and/or per
+  warehouse) from `vCurrentStock`, plus KPI tiles (total SKUs, # low-stock, total units).
+  No schema change.
+- [ ] **README** refresh with new screenshots; update `docs/SPEC.md` / `docs/PLAN.md` for M8.
 
 ## Build / test (Windows)
 ```bash
 # DB (once): sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql ; ... -i db\02_seed.sql
-
-# whisper.cpp (once): fetch the submodule, build static libs, download the model
-git submodule update --init --recursive
-cmake -S third_party/whisper.cpp -B third_party/whisper.cpp/build -G "Visual Studio 17 2022" -A x64 \
-      -DBUILD_SHARED_LIBS=OFF -DWHISPER_BUILD_TESTS=OFF -DWHISPER_BUILD_EXAMPLES=OFF -DGGML_OPENMP=OFF
-cmake --build third_party/whisper.cpp/build --config Release --target whisper   # and --config Debug
-# model -> models\ggml-base.bin (from https://huggingface.co/ggerganov/whisper.cpp)
-
 msbuild warehouse-mfc.sln /p:Configuration=Debug /p:Platform=x64
 ./x64/Debug/core_tests.exe     # unit tests (Catch2), exit 0 = green
 ./x64/Debug/data_smoke.exe     # data/ smoke check against LocalDB
-# app -> app\x64\<Config>\app.exe (model auto-copied next to it by a post-build step)
+# app -> app\x64\<Config>\app.exe (Release runs standalone)
 ```
 
 ## Notes for the next session
-- Toolchain installed: VS 2022 Community + C++/MFC v143, SQL Server LocalDB 2022, sqlcmd
-  (go-sqlcmd), ODBC Driver 17. Machine setup history (gitignored): `docs/WINDOWS_SETUP_LOG.md`.
+- Toolchain: VS 2022 Community + C++/MFC v143, SQL Server LocalDB 2022, sqlcmd (go-sqlcmd),
+  ODBC Driver 17. Machine setup history (gitignored): `docs/WINDOWS_SETUP_LOG.md`.
 - go-sqlcmd does **not** resolve `(localdb)\MSSQLLocalDB` — connect via the named pipe
   (`SqlLocalDB.exe info MSSQLLocalDB`). The C++ ODBC layer resolves `(localdb)\` natively.
 - DB product/warehouse IDs are **not** 1..N (IDENTITY climbed across re-seeds) — resolve
   ids from data (Sku/Code), never hardcode them.
+- M8 Feature Pack needs `afxcontrolbars.h` in `framework.h` and the app class on `CWinAppEx`.

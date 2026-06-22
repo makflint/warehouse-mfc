@@ -11,22 +11,17 @@ Portfolio piece for a Senior C++/MFC role. Read `docs/SPEC.md` (design) and `doc
 
 ## Architecture (keep these boundaries)
 - **`core/`** — pure C++ static lib, **no MFC, no ODBC, no Windows headers**. Domain logic:
-  stock math, the Command/undo stack, the voice-command parser (text → Command). Unit-tested.
+  stock math, the Command/undo stack. Unit-tested.
 - **`data/`** — ODBC data access (query `vCurrentStock`, call `sp_RecordMovement`). Thin.
-- **`app/`** — MFC UI (doc/view, dialogs) + SAPI TTS + **offline STT** (`Stt.*` wraps
-  whisper.cpp, `MicCapture.*` is waveIn). Wires `core` + `data`. Recognised speech goes through
-  `core/`'s parser, so the platform/IO stays here and the logic stays testable.
-- **`third_party/whisper.cpp`** — git submodule (offline ASR), built to static libs, linked into
-  `app/`. The ggml model is a local file under `models/` (gitignored) — see `TODO.md`.
+- **`app/`** — MFC UI (doc/view, dialogs). Wires `core` + `data`.
 - Rationale: the testable logic lives in `core/` so we can TDD it without a GUI.
+- *Voice (STT+TTS) was built then archived to branch `archive/voice-stt-tts` — not on `main`.*
 
 ## Conventions
 - **TDD for `core/`**: red → green → refactor. Test framework: **Catch2** (amalgamated header).
 - Clean Code: small functions, meaningful names, no magic numbers, DRY. C++17/20.
 - Patterns the offer asks for: **Command** (undo/redo), RAII, clear ownership.
-- **No networking in C++.** The app uses **ODBC only**. Voice STT (whisper.cpp) is fully
-  **offline** — local model file, local inference — so it keeps this rule; the model download is
-  a one-time build/install step (like `SqlLocalDB.msi`). Data ingestion is out of scope here.
+- **No networking in C++.** The app uses **ODBC only**. Data ingestion is out of scope here.
 
 ## Connection profiles (single switch)
 Connection string chosen at build/config time:

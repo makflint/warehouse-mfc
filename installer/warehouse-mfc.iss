@@ -34,9 +34,6 @@ Name: "desktopicon"; Description: "Utworz skrot na pulpicie"; GroupDescription: 
 
 [Files]
 Source: "..\app\x64\Release\app.exe"; DestDir: "{app}"; Flags: ignoreversion
-; Offline Polish speech model for voice commands (whisper.cpp, ~465 MB). Loaded from
-; next to the exe at runtime; whisper is statically linked, so no extra DLLs ship.
-Source: "..\models\ggml-small.bin"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\db\01_schema.sql"; DestDir: "{app}\db"; Flags: ignoreversion
 Source: "..\db\02_seed.sql"; DestDir: "{app}\db"; Flags: ignoreversion
 Source: "assets\vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall

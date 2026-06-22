@@ -31,14 +31,6 @@ installer/assets/
 # Machine setup log (not part of the portfolio)
 docs/WINDOWS_SETUP_LOG.md
 
-# whisper.cpp offline speech model (downloaded at setup, not committed)
-models/*.bin
-
-# Recorded test audio (voice_probe / record_commands output)
-*.wav
-# ...except the committed e2e voice fixtures (real-recording regression corpus)
-!tests/voice_fixtures/*.wav
-
 # Local DB files / secrets
 *.mdf
 *.ldf

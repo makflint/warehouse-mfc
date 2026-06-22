@@ -40,23 +40,10 @@ void CWarehouseDoc::Refresh() {
     }
 }
 
-int CWarehouseDoc::onHandOf(int productId, int warehouseId) const {
-    for (const warehouse::StockRow& row : stock_) {
-        if (row.productId == productId && row.warehouseId == warehouseId) {
-            return row.onHand;
-        }
-    }
-    return 0;
-}
-
 void CWarehouseDoc::ExecuteMovement(const warehouse::Movement& movement) {
     try {
         commands_.execute(std::make_unique<warehouse::MovementCommand>(movement, repository()));
         Refresh();
-        CString message;
-        message.Format(_T("Zarejestrowano. Nowy stan: %d"),
-                       onHandOf(movement.productId, movement.warehouseId));
-        speech_.Say(message);
     } catch (const std::exception& error) {
         AfxMessageBox(FromUtf8(error.what()), MB_ICONERROR);
     }
@@ -66,7 +53,6 @@ void CWarehouseDoc::Undo() {
     try {
         commands_.undo();
         Refresh();
-        speech_.Say(_T("Cofnięto"));
     } catch (const std::exception& error) {
         AfxMessageBox(FromUtf8(error.what()), MB_ICONERROR);
     }
@@ -76,7 +62,6 @@ void CWarehouseDoc::Redo() {
     try {
         commands_.redo();
         Refresh();
-        speech_.Say(_T("Ponowiono"));
     } catch (const std::exception& error) {
         AfxMessageBox(FromUtf8(error.what()), MB_ICONERROR);
     }

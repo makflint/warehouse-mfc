@@ -1,22 +1,25 @@
 # warehouse-mfc
 
-A small but real **MFC + SQL Server** desktop app: warehouse stock & movements, with
-**hands-free Polish voice control** (offline speech-to-text + TTS) and **undo/redo**
-(Command pattern). Built as a portfolio piece for a *Senior C++ Developer (MFC)* role.
+A small but real **MFC + SQL Server** desktop app: warehouse stock & movements with
+**undo/redo** (Command pattern). Built as a portfolio piece for a *Senior C++ Developer (MFC)*
+role.
 
-> Status: **M0–M7 done** — DB, `core/` (TDD), `data/` (ODBC), MFC UI (undo/redo, low-stock),
-> Polish TTS, one-click installer, and **offline Polish STT via whisper.cpp** (press **F2**,
-> speak a command). Fully offline — no network I/O. Open work and milestone state live in
-> [TODO.md](TODO.md).
+> Status: **M0–M6 done** — DB, `core/` (TDD), `data/` (ODBC), MFC UI (undo/redo, low-stock),
+> one-click installer. **Next (M8): a modern MFC Feature Pack UI** — Ribbon + dockable panes +
+> a themed dashboard with charts. Open work lives in [TODO.md](TODO.md).
+>
+> *An earlier offline-voice experiment (Polish STT via whisper.cpp + SAPI TTS) was built,
+> evaluated, and archived — preserved on branch `archive/voice-stt-tts` (tag
+> `voice-m4-m7-complete`); `git checkout archive/voice-stt-tts` brings it back.*
 
 ## Why this app
-- **MFC**: SDI doc/view, `CMFCListCtrl` grid, dialogs with DDX/DDV — core of the offer.
+- **MFC**: SDI doc/view, list-view grid, dialogs with DDX/DDV — core of the offer.
 - **MS SQL Server**: real schema, a **view** and a **stored procedure with a transaction**.
 - **Design patterns**: **Command** pattern for undo/redo (explicitly requested in the offer).
-- **Creative angle**: hands-free **voice commands** in Polish ("przyjmij 10 4521",
-  "pokaż niskie stany", "cofnij"), justified by the domain — warehouse workers have their
-  hands full. Recognition is **offline** (whisper.cpp, `language="pl"`); the parser that maps
-  text → command lives in the unit-tested `core/`, so no GUI is needed to test it.
+- **Testable core**: domain logic (stock math, the Command/undo stack) lives in a pure C++
+  `core/` static lib with **TDD** (Catch2), verified without a GUI.
+- **Next — modern MFC**: a Feature Pack UI (Ribbon, dockable panes, themed dashboard with a
+  GDI+ stock chart) is the current milestone (M8).
 
 ## Screenshots
 | Stock grid (low-stock in red) | Record movement (DDX/DDV) | Low-stock filter |
@@ -24,29 +27,7 @@ A small but real **MFC + SQL Server** desktop app: warehouse stock & movements, 
 | ![Stock grid](docs/screenshots/01-stock-grid.png) | ![Record dialog](docs/screenshots/02-record-dialog.png) | ![Low-stock filter](docs/screenshots/03-low-stock-filter.png) |
 
 On-hand is summed from the movement log; rows at/below the reorder level are drawn red.
-Recording a movement runs through the **Command** stack (undo/redo, Ctrl+Z/Ctrl+Y) and the
-app speaks a Polish confirmation (SAPI TTS).
-
-## Voice control (offline, Polish)
-Press **F2** ("Słuchaj"), speak one short command, and it runs. Recognition is
-[whisper.cpp](https://github.com/ggml-org/whisper.cpp) (a git submodule, statically linked,
-`language="pl"`) on ~4 s of microphone audio captured off the UI thread — **no network I/O**,
-the model is a local file. Spoken commands (the parser is fuzzy — folds Polish letters and
-matches keyword stems, so near-misses still work):
-
-| say | action |
-|---|---|
-| `odśwież` | reload stock |
-| `pokaż niskie stany` | low-stock filter |
-| `anuluj` (or `cofnij`) | undo |
-| `ponów` | redo |
-| `przyjmij <ilość> <sku>` e.g. *"przyjmij dziesięć cztery pięć dwa jeden"* | record IN |
-| `wydaj <ilość> <sku>` | record OUT |
-
-The 4-digit SKU is read off the tail of the spoken number and the quantity off the front, so
-whisper merging the digits ("przyjmij 104521") still resolves to qty 10 / sku 4521. Why offline
-whisper and not Windows speech: Windows ships **no on-device pl-PL recognizer** (SAPI/WinRT are
-en-US only), and cloud STT would break the no-networking rule — whisper runs the model locally.
+Recording a movement runs through the **Command** stack (undo/redo, Ctrl+Z/Ctrl+Y).
 
 ## Two build profiles (same code, different connection string)
 | | DEMO (for guests) | DEV (for you) |
@@ -61,18 +42,16 @@ No web/HTTP in C++ — the app only talks to SQL Server via **ODBC**.
 1. **Visual Studio Community 2022** → workload *"Desktop development with C++"* + optional
    component **"C++ MFC for latest v143 build tools"**.
 2. **SQL Server 2022 Express** (includes **LocalDB**) + **SSMS**.
-3. For voice: Windows **Polish speech** pack (Settings → Time & Language → Speech).
-4. **Claude Code** for Windows (to continue this project where the toolchain lives).
+3. **Claude Code** for Windows (to continue this project where the toolchain lives).
 
 ## Quickstart (Windows)
 ```powershell
-git clone --recurse-submodules <this repo>   # whisper.cpp is a submodule
+git clone <this repo>
 cd warehouse-mfc
 # 1) create the demo DB in LocalDB and seed it
 sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql
 sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\02_seed.sql
-# 2) build whisper.cpp static libs + fetch the speech model (see TODO.md "Build / test")
-#    then open warehouse-mfc.sln in Claude Code / VS and follow docs/PLAN.md
+# 2) open warehouse-mfc.sln in Claude Code / VS and follow docs/PLAN.md
 ```
 
 ## Demo installer (one-click)
