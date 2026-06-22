@@ -28,6 +28,7 @@ protected:
     afx_msg void OnUpdateEditRedo(CCmdUI* cmdUI);
     afx_msg void OnFilterLow();
     afx_msg void OnUpdateFilterLow(CCmdUI* cmdUI);
+    afx_msg void OnItemChanged(NMHDR* notify, LRESULT* result);
     afx_msg void OnCustomDraw(NMHDR* notify, LRESULT* result);
     DECLARE_MESSAGE_MAP()
 

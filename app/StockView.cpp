@@ -23,6 +23,7 @@ BEGIN_MESSAGE_MAP(CStockView, CListView)
     ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, &CStockView::OnUpdateEditRedo)
     ON_COMMAND(ID_STOCK_FILTER_LOW, &CStockView::OnFilterLow)
     ON_UPDATE_COMMAND_UI(ID_STOCK_FILTER_LOW, &CStockView::OnUpdateFilterLow)
+    ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, &CStockView::OnItemChanged)
     ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, &CStockView::OnCustomDraw)
 END_MESSAGE_MAP()
 
@@ -54,6 +55,9 @@ void CStockView::OnInitialUpdate() {
         list.InsertColumn(kColOnHand, _T("Stan"), LVCFMT_RIGHT, 70);
     }
     CListView::OnInitialUpdate();  // triggers OnUpdate to fill the rows
+    if (list.GetItemCount() > 0) {  // select the first row so the Details pane is populated
+        list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+    }
 }
 
 void CStockView::OnUpdate(CView* /*sender*/, LPARAM /*hint*/, CObject* /*hintObject*/) {
@@ -65,7 +69,9 @@ void CStockView::OnUpdate(CView* /*sender*/, LPARAM /*hint*/, CObject* /*hintObj
     list.DeleteAllItems();
 
     int item = 0;
-    for (const warehouse::StockRow& stock : doc->Stock()) {
+    const std::vector<warehouse::StockRow>& rows = doc->Stock();
+    for (std::size_t idx = 0; idx < rows.size(); ++idx) {
+        const warehouse::StockRow& stock = rows[idx];
         if (showLowOnly_ && !stock.isLow) {
             continue;
         }
@@ -75,7 +81,8 @@ void CStockView::OnUpdate(CView* /*sender*/, LPARAM /*hint*/, CObject* /*hintObj
         CString onHand;
         onHand.Format(_T("%d"), stock.onHand);
         list.SetItemText(item, kColOnHand, onHand);
-        list.SetItemData(item, stock.isLow ? 1 : 0);  // drives the red custom draw
+        // Item data = index into Stock(): drives the red custom-draw and the Details pane.
+        list.SetItemData(item, static_cast<DWORD_PTR>(idx));
         ++item;
     }
 
@@ -154,6 +161,26 @@ void CStockView::OnUpdateFilterLow(CCmdUI* cmdUI) {
     cmdUI->SetCheck(showLowOnly_ ? 1 : 0);
 }
 
+// On row selection, push that product's details into the Details pane.
+void CStockView::OnItemChanged(NMHDR* notify, LRESULT* result) {
+    auto* nm = reinterpret_cast<NMLISTVIEW*>(notify);
+    *result = 0;
+    const bool becameSelected = (nm->uChanged & LVIF_STATE) && (nm->uNewState & LVIS_SELECTED);
+    if (!becameSelected || nm->iItem < 0) {
+        return;
+    }
+    const CWarehouseDoc* doc = GetDocument();
+    if (doc == nullptr) {
+        return;
+    }
+    const std::size_t idx = GetListCtrl().GetItemData(nm->iItem);
+    if (idx < doc->Stock().size()) {
+        if (auto* frame = DYNAMIC_DOWNCAST(CMainFrame, GetParentFrame())) {
+            frame->ShowDetails(doc->Stock()[idx]);
+        }
+    }
+}
+
 // Paint low-stock rows in red (OnHand <= ReorderLevel, per the IsLow flag).
 void CStockView::OnCustomDraw(NMHDR* notify, LRESULT* result) {
     auto* draw = reinterpret_cast<NMLVCUSTOMDRAW*>(notify);
@@ -163,7 +190,9 @@ void CStockView::OnCustomDraw(NMHDR* notify, LRESULT* result) {
             return;
         case CDDS_ITEMPREPAINT: {
             const int row = static_cast<int>(draw->nmcd.dwItemSpec);
-            if (GetListCtrl().GetItemData(row) != 0) {  // 1 == low stock
+            const CWarehouseDoc* doc = GetDocument();
+            const std::size_t idx = GetListCtrl().GetItemData(row);
+            if (doc != nullptr && idx < doc->Stock().size() && doc->Stock()[idx].isLow) {
                 draw->clrText = RGB(192, 0, 0);
             }
             *result = CDRF_DODEFAULT;

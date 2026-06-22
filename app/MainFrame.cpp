@@ -2,6 +2,8 @@
 #include "resource.h"
 
 #include "MainFrame.h"
+#include "TextUtil.h"
+#include "warehouse/stock_repository.hpp"
 
 IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
 
@@ -89,6 +91,26 @@ void CMainFrame::RefreshPanes() {
     if (dashboard_.GetSafeHwnd() != nullptr) {
         dashboard_.Invalidate();
     }
+}
+
+void CMainFrame::ShowDetails(const warehouse::StockRow& row) {
+    CListCtrl& list = details_.List();
+    if (list.GetSafeHwnd() == nullptr) {
+        return;
+    }
+    list.DeleteAllItems();
+    const auto add = [&list](const CString& field, const CString& value) {
+        const int i = list.GetItemCount();
+        list.InsertItem(i, field);
+        list.SetItemText(i, 1, value);
+    };
+    CString onHand;
+    onHand.Format(_T("%d"), row.onHand);
+    add(_T("SKU"), FromUtf8(row.sku));
+    add(_T("Produkt"), FromUtf8(row.productName));
+    add(_T("Magazyn"), FromUtf8(row.warehouseCode + " " + row.warehouseName));
+    add(_T("Stan na rękę"), onHand);
+    add(_T("Niski stan"), row.isLow ? _T("TAK") : _T("nie"));
 }
 
 CDockablePane* CMainFrame::PaneFor(UINT cmdId) {
