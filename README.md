@@ -1,12 +1,12 @@
 # warehouse-mfc
 
-A small but real **MFC + SQL Server** desktop app: warehouse stock & movements with
-**undo/redo** (Command pattern). Built as a portfolio piece for a *Senior C++ Developer (MFC)*
-role.
+A small but real **MFC + SQL Server** desktop app: warehouse stock & movements with a modern
+**MFC Feature Pack** UI (ribbon, dockable panes, themed dashboard) and **undo/redo** (Command
+pattern). Built as a portfolio piece for a *Senior C++ Developer (MFC)* role.
 
-> Status: **M0–M6 done** — DB, `core/` (TDD), `data/` (ODBC), MFC UI (undo/redo, low-stock),
-> one-click installer. **Next (M8): a modern MFC Feature Pack UI** — Ribbon + dockable panes +
-> a themed dashboard with charts. Open work lives in [TODO.md](TODO.md).
+> Status: **M0–M6 + M8 done** — DB, `core/` (TDD), `data/` (ODBC), MFC UI (undo/redo, low-stock),
+> one-click installer, and a **Feature Pack UI**: `CMFCRibbonBar`, dockable panes, dark-mode
+> themes, and an owner-drawn dashboard (KPI tiles + bar chart). Open work lives in [TODO.md](TODO.md).
 >
 > *An earlier offline-voice experiment (Polish STT via whisper.cpp + SAPI TTS) was built,
 > evaluated, and archived — preserved on branch `archive/voice-stt-tts` (tag
@@ -18,16 +18,23 @@ role.
 - **Design patterns**: **Command** pattern for undo/redo (explicitly requested in the offer).
 - **Testable core**: domain logic (stock math, the Command/undo stack) lives in a pure C++
   `core/` static lib with **TDD** (Catch2), verified without a GUI.
-- **Next — modern MFC**: a Feature Pack UI (Ribbon, dockable panes, themed dashboard with a
-  GDI+ stock chart) is the current milestone (M8).
+- **Modern MFC (M8)**: an MFC **Feature Pack** UI — `CMFCRibbonBar`, dockable panes,
+  visual-manager themes (dark mode), and an owner-drawn **dashboard** (KPI tiles + bar chart).
 
 ## Screenshots
-| Stock grid (low-stock in red) | Record movement (DDX/DDV) | Low-stock filter |
-|---|---|---|
-| ![Stock grid](docs/screenshots/01-stock-grid.png) | ![Record dialog](docs/screenshots/02-record-dialog.png) | ![Low-stock filter](docs/screenshots/03-low-stock-filter.png) |
+![Ribbon UI + dashboard](docs/screenshots/01-dashboard.png)
 
-On-hand is summed from the movement log; rows at/below the reorder level are drawn red.
-Recording a movement runs through the **Command** stack (undo/redo, Ctrl+Z/Ctrl+Y).
+The MFC **Feature Pack** UI: a `CMFCRibbonBar` (*Magazyn* / *Widok* tabs), an owner-drawn
+**Pulpit** (dashboard) pane with KPI tiles + an on-hand bar chart, the stock grid with low-stock
+rows in red, and **Szczegóły** / **Dziennik ruchów** dockable panes.
+
+| Dark theme (Widok → Ciemny motyw) | Record movement (DDX/DDV) |
+|---|---|
+| ![Dark theme](docs/screenshots/02-dark-theme.png) | ![Record dialog](docs/screenshots/03-record-dialog.png) |
+
+On-hand is summed from the movement log; rows at/below the reorder level are drawn red. Recording
+a movement runs through the **Command** stack (undo/redo, Ctrl+Z/Ctrl+Y) and the dashboard
+repaints live.
 
 ## Two build profiles (same code, different connection string)
 | | DEMO (for guests) | DEV (for you) |
