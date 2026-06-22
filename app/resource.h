@@ -12,3 +12,11 @@
 #define ID_STOCK_RECORD_OUT 32773
 #define ID_STOCK_FILTER_LOW 32774
 #define ID_VIEW_THEME_DARK  32775
+
+// Dockable panes (control ids) and their Widok-tab show/hide toggles.
+#define IDC_PANE_DASHBOARD  1201
+#define IDC_PANE_MOVEMENTS  1202
+#define IDC_PANE_DETAILS    1203
+#define ID_VIEW_DASHBOARD   32776
+#define ID_VIEW_MOVEMENTS   32777
+#define ID_VIEW_DETAILS     32778

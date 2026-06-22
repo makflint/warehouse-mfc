@@ -9,6 +9,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_WM_CREATE()
     ON_COMMAND(ID_VIEW_THEME_DARK, &CMainFrame::OnViewThemeDark)
     ON_UPDATE_COMMAND_UI(ID_VIEW_THEME_DARK, &CMainFrame::OnUpdateViewThemeDark)
+    ON_COMMAND_RANGE(ID_VIEW_DASHBOARD, ID_VIEW_DETAILS, &CMainFrame::OnViewPane)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_VIEW_DASHBOARD, ID_VIEW_DETAILS, &CMainFrame::OnUpdateViewPane)
 END_MESSAGE_MAP()
 
 CMainFrame::CMainFrame() {}
@@ -19,6 +21,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT createStruct) {
     }
     BuildRibbon();
     SetMenu(nullptr);  // ribbon replaces the classic menu (kept only as the SDI shared menu)
+    CreatePanes();
     return 0;
 }
 
@@ -45,6 +48,62 @@ void CMainFrame::BuildRibbon() {
     CMFCRibbonCategory* widok = ribbon_.AddCategory(_T("Widok"), 0, 0);
     CMFCRibbonPanel* motyw = widok->AddPanel(_T("Motyw"));
     motyw->Add(new CMFCRibbonButton(ID_VIEW_THEME_DARK, _T("Ciemny motyw")));
+
+    CMFCRibbonPanel* panele = widok->AddPanel(_T("Panele"));
+    panele->Add(new CMFCRibbonButton(ID_VIEW_DASHBOARD, _T("Pulpit")));
+    panele->Add(new CMFCRibbonButton(ID_VIEW_MOVEMENTS, _T("Dziennik")));
+    panele->Add(new CMFCRibbonButton(ID_VIEW_DETAILS, _T("Szczegóły")));
+}
+
+// Three docking panels managed by CFrameWndEx: a (custom-drawn) Dashboard on the
+// left, and the Movement-log + Details list panes on the right.
+void CMainFrame::CreatePanes() {
+    CDockingManager::SetDockingMode(DT_SMART);
+    EnableDocking(CBRS_ALIGN_ANY);
+    EnableAutoHidePanes(CBRS_ALIGN_ANY);
+
+    const DWORD style = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_FLOAT_MULTI;
+
+    dashboard_.Create(_T("Pulpit"), this, CRect(0, 0, 280, 240), TRUE, IDC_PANE_DASHBOARD,
+                      style | CBRS_LEFT);
+    dashboard_.EnableDocking(CBRS_ALIGN_ANY);
+    DockPane(&dashboard_);
+
+    movementLog_.Create(_T("Dziennik ruchów"), this, CRect(0, 0, 280, 220), TRUE,
+                        IDC_PANE_MOVEMENTS, style | CBRS_RIGHT);
+    movementLog_.EnableDocking(CBRS_ALIGN_ANY);
+    DockPane(&movementLog_);
+    movementLog_.List().InsertColumn(0, _T("Czas"), LVCFMT_LEFT, 80);
+    movementLog_.List().InsertColumn(1, _T("Ruch"), LVCFMT_LEFT, 60);
+    movementLog_.List().InsertColumn(2, _T("SKU"), LVCFMT_LEFT, 70);
+
+    details_.Create(_T("Szczegóły"), this, CRect(0, 0, 280, 160), TRUE, IDC_PANE_DETAILS,
+                    style | CBRS_RIGHT);
+    details_.EnableDocking(CBRS_ALIGN_ANY);
+    DockPane(&details_);
+    details_.List().InsertColumn(0, _T("Pole"), LVCFMT_LEFT, 110);
+    details_.List().InsertColumn(1, _T("Wartość"), LVCFMT_LEFT, 150);
+}
+
+CDockablePane* CMainFrame::PaneFor(UINT cmdId) {
+    switch (cmdId) {
+        case ID_VIEW_DASHBOARD: return &dashboard_;
+        case ID_VIEW_MOVEMENTS: return &movementLog_;
+        case ID_VIEW_DETAILS:   return &details_;
+        default:                return nullptr;
+    }
+}
+
+void CMainFrame::OnViewPane(UINT cmdId) {
+    if (CDockablePane* pane = PaneFor(cmdId)) {
+        pane->ShowPane(!pane->IsVisible(), FALSE, TRUE);
+        RecalcLayout();
+    }
+}
+
+void CMainFrame::OnUpdateViewPane(CCmdUI* cmdUI) {
+    CDockablePane* pane = PaneFor(cmdUI->m_nID);
+    cmdUI->SetCheck(pane != nullptr && pane->IsVisible());
 }
 
 void CMainFrame::OnViewThemeDark() {
