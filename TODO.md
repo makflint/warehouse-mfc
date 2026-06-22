@@ -2,6 +2,21 @@
 
 Single source of truth for open work. Milestones follow `docs/PLAN.md`.
 
+## ⏸ Voice (STT + TTS) ARCHIVED — pivoting away (2026-06-22)
+The voice feature (**M4 TTS** + **M7 offline Polish STT via whisper.cpp**) is **complete and
+verified**, but being **removed from `main`** — it's a lot of moving parts (mic/WASAPI, whisper,
+465 MB model, OS audio-engine quirks) for a portfolio piece, and recognition stays flaky on
+borderline mic input. **Nothing is lost** — the full, working voice state is preserved:
+- branch **`archive/voice-stt-tts`** and tag **`voice-m4-m7-complete`** (commit `07a85aa`).
+- Restore anytime: `git checkout archive/voice-stt-tts`.
+
+What it achieved (for the record): SAPI TTS (Paulina); whisper.cpp `small`+beam STT; a fuzzy,
+TDD'd command parser (ASCII-fold + keyword stems + digit-tail sku); WASAPI capture with
+normalisation; F2 push-to-talk; an e2e harness (`tools/e2e_voice.ps1`, real + Paulina corpora).
+Details + research (base/small/medium, no-warehouse-in-voice limitation) are in the M7 section
+and `[[archive/voice-stt-tts]]`. The next milestone replaces voice with a non-voice "fancy"
+feature (TBD) — see bottom of this file.
+
 ## Done
 - [x] **M0 — Database.** Schema + idempotent seed on LocalDB; `vCurrentStock` and
   `sp_RecordMovement` (IN / OUT / insufficient-stock THROW) verified.
