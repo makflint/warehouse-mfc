@@ -54,6 +54,9 @@ TEST_CASE("fuzzy match: real whisper near-misses still map to the right command"
     // These are actual recognitions observed for this user's voice (base/small).
     REQUIRE(parseVoiceCommand("Odświesz.").kind == CommandKind::Refresh);   // ż heard as sz
     REQUIRE(parseVoiceCommand("Cofni.").kind == CommandKind::Undo);          // dropped final j
+    // whisper-small mangles "cofnij" badly, but hears these undo synonyms cleanly:
+    REQUIRE(parseVoiceCommand("Anuluj.").kind == CommandKind::Undo);
+    REQUIRE(parseVoiceCommand("wstecz").kind == CommandKind::Undo);
     REQUIRE(parseVoiceCommand("Ponów.").kind == CommandKind::Redo);
     REQUIRE(parseVoiceCommand("Pokaż mniskie stany.").kind == CommandKind::ShowLowStock);
 
@@ -62,7 +65,20 @@ TEST_CASE("fuzzy match: real whisper near-misses still map to the right command"
     REQUIRE(c.kind == CommandKind::RecordMovement);
     REQUIRE(c.type == MovementType::In);
     REQUIRE(c.qty == 10);
-    REQUIRE(c.sku == "4521");  // first number = qty, the rest concatenate into the sku
+    REQUIRE(c.sku == "4521");
+
+    // ...and whisper often MERGES the digits into one number when no "sztuk" is said:
+    // "Przyjmij 104522" / "Wydaj 54523". The 4-digit sku is the tail; qty precedes it.
+    const ParsedCommand merged = parseVoiceCommand("Przyjmij 104522.");
+    REQUIRE(merged.kind == CommandKind::RecordMovement);
+    REQUIRE(merged.qty == 10);
+    REQUIRE(merged.sku == "4522");
+
+    const ParsedCommand outMerged = parseVoiceCommand("Wydaj 54523.");
+    REQUIRE(outMerged.kind == CommandKind::RecordMovement);
+    REQUIRE(outMerged.type == MovementType::Out);
+    REQUIRE(outMerged.qty == 5);
+    REQUIRE(outMerged.sku == "4523");
 }
 
 TEST_CASE("garbage and malformed phrases map to Unknown") {

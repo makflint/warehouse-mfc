@@ -31,10 +31,22 @@ app speaks a Polish confirmation (SAPI TTS).
 Press **F2** ("Słuchaj"), speak one short command, and it runs. Recognition is
 [whisper.cpp](https://github.com/ggml-org/whisper.cpp) (a git submodule, statically linked,
 `language="pl"`) on ~4 s of microphone audio captured off the UI thread — **no network I/O**,
-the model is a local file. Grammar: `przyjmij <n> <sku>`, `wydaj <n> <sku>`,
-`pokaż niskie stany`, `odśwież`, `cofnij`, `ponów`. Why offline whisper and not Windows speech:
-Windows ships **no on-device pl-PL recognizer** (SAPI/WinRT are en-US only), and cloud STT would
-break the no-networking rule — whisper runs the model locally.
+the model is a local file. Spoken commands (the parser is fuzzy — folds Polish letters and
+matches keyword stems, so near-misses still work):
+
+| say | action |
+|---|---|
+| `odśwież` | reload stock |
+| `pokaż niskie stany` | low-stock filter |
+| `anuluj` (or `cofnij`) | undo |
+| `ponów` | redo |
+| `przyjmij <ilość> <sku>` e.g. *"przyjmij dziesięć cztery pięć dwa jeden"* | record IN |
+| `wydaj <ilość> <sku>` | record OUT |
+
+The 4-digit SKU is read off the tail of the spoken number and the quantity off the front, so
+whisper merging the digits ("przyjmij 104521") still resolves to qty 10 / sku 4521. Why offline
+whisper and not Windows speech: Windows ships **no on-device pl-PL recognizer** (SAPI/WinRT are
+en-US only), and cloud STT would break the no-networking rule — whisper runs the model locally.
 
 ## Two build profiles (same code, different connection string)
 | | DEMO (for guests) | DEV (for you) |

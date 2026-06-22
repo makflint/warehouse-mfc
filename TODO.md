@@ -37,10 +37,11 @@ Single source of truth for open work. Milestones follow `docs/PLAN.md`.
     Push-to-talk: **Słuchaj (F2)** menu/hotkey → capture+recognise on a worker thread →
     `PostMessage(WM_STT_RESULT)` → UI thread (empty capture → "mic unavailable" message).
   - Recognised text → `warehouse::parseVoiceCommand` (core/) → same doc commands as the menus.
-    Parser is **fuzzy** (TDD, 68 assertions): lower-case + ASCII-fold Polish letters, then match
-    keyword stems (`przyj`/`wyda`/`nisk`/`cofn`/`ponow`/`odsw`) and pull qty+sku from digit
-    groups — so whisper near-misses still map ("Cofni"→Undo, "Pokaż mniskie stany"→ShowLowStock,
-    "Przyjmij 10 sztuk, 4, 5, 2, 1"→IN qty10 sku4521).
+    Parser is **fuzzy** (TDD, 77 assertions): lower-case + ASCII-fold Polish letters, then match
+    keyword stems (`przyj`/`wyda`/`nisk`/`cofn`+`anul`/`wstecz`/`ponow`/`odsw`). For movements it
+    glues all spoken digits and reads the **4-digit sku off the tail, quantity off the front**, so
+    both "10 sztuk 4 5 2 1" and merged "104521" → qty10 sku4521. Undo also accepts `anuluj`/`wstecz`
+    because whisper-small mangles the short word "cofnij" ("Kompniu"/"Co w niej").
   - Model **`ggml-small.bin`** (multilingual, 465 MB; much better Polish than base) + **beam
     search**, loaded next to the exe; shipped in the installer; gitignored locally. **Verified
     end-to-end on real recordings** through the exact app code (Stt small+beam → parser): 4/5

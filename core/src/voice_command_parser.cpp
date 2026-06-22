@@ -91,21 +91,30 @@ bool parsePositiveInt(const std::string& text, int& out) {
     }
 }
 
-// "przyjmij 10 4521" -> qty from the first number, sku from the rest concatenated
-// ("Przyjmij 10 sztuk, 4, 5, 2, 1" -> qty 10, sku 4521). Needs at least two numbers.
+// Demo SKUs are 4 digits (4521..4525). Whisper renders the spoken number either
+// split ("10 sztuk 4 5 2 1") or merged ("104522") depending on phrasing, so we glue
+// all digits together and read the SKU off the tail and the quantity off the front:
+//   "104521" -> qty 10, sku 4521   |   "54523" -> qty 5, sku 4523
+// Needs at least one quantity digit before the 4 sku digits, and qty > 0.
+constexpr std::size_t kSkuDigits = 4;
+
 ParsedCommand recordMovement(MovementType type, const std::string& text) {
-    const std::vector<std::string> numbers = digitGroups(text);
+    std::string digits;
+    for (const std::string& group : digitGroups(text)) {
+        digits += group;
+    }
+    if (digits.size() <= kSkuDigits) {
+        return ParsedCommand{};  // no quantity, or no full sku
+    }
     int qty = 0;
-    if (numbers.size() < 2 || !parsePositiveInt(numbers[0], qty)) {
+    if (!parsePositiveInt(digits.substr(0, digits.size() - kSkuDigits), qty)) {
         return ParsedCommand{};
     }
     ParsedCommand command;
     command.kind = CommandKind::RecordMovement;
     command.type = type;
     command.qty = qty;
-    for (std::size_t i = 1; i < numbers.size(); ++i) {
-        command.sku += numbers[i];
-    }
+    command.sku = digits.substr(digits.size() - kSkuDigits);
     return command;
 }
 
@@ -121,7 +130,8 @@ ParsedCommand parseVoiceCommand(const std::string& phrase) {
     if (has("wyda")) return recordMovement(MovementType::Out, text);
     if (has("przyj")) return recordMovement(MovementType::In, text);
     if (has("nisk")) return {CommandKind::ShowLowStock};
-    if (has("cofn")) return {CommandKind::Undo};
+    // "cofnij" is short and whisper mangles it; accept reliable undo synonyms too.
+    if (has("cofn") || has("anul") || has("wstecz") || has("odwol")) return {CommandKind::Undo};
     if (has("ponow")) return {CommandKind::Redo};
     if (has("odsw")) return {CommandKind::Refresh};
     return ParsedCommand{};
