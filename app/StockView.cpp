@@ -165,7 +165,7 @@ Stt* CStockView::EnsureStt() {
         std::wstring path(exePath);
         const std::size_t slash = path.find_last_of(L"\\/");
         const std::wstring dir = (slash == std::wstring::npos) ? L"" : path.substr(0, slash + 1);
-        auto stt = std::make_unique<Stt>(dir + L"ggml-base.bin");
+        auto stt = std::make_unique<Stt>(dir + L"ggml-small.bin");
         if (stt->ok()) {
             stt_ = std::move(stt);
         }

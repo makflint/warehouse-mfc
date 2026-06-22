@@ -1,7 +1,5 @@
 #include "warehouse/voice_command_parser.hpp"
 
-#include <cctype>
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -37,37 +35,49 @@ std::string toLower(std::string text) {
     return text;
 }
 
-// Replace ASCII punctuation (whisper adds trailing "." / "!" etc.) with spaces, so
-// tokenisation drops it. UTF-8 letter bytes (>=0x80) are left untouched.
-std::string stripPunctuation(std::string text) {
-    for (char& c : text) {
-        const unsigned char byte = static_cast<unsigned char>(c);
-        if (byte < 0x80 && std::isalnum(byte) == 0) {
-            c = ' ';
+// Fold lower-case Polish letters to their closest ASCII letter, so keyword matching
+// is robust to whisper hearing "odświesz" for "odśwież" etc. Run after toLower.
+std::string asciiFold(std::string text) {
+    static const std::pair<const char*, char> kFold[] = {
+        {"\xC4\x85", 'a'},  // ą
+        {"\xC4\x87", 'c'},  // ć
+        {"\xC4\x99", 'e'},  // ę
+        {"\xC5\x82", 'l'},  // ł
+        {"\xC5\x84", 'n'},  // ń
+        {"\xC3\xB3", 'o'},  // ó
+        {"\xC5\x9B", 's'},  // ś
+        {"\xC5\xBA", 'z'},  // ź
+        {"\xC5\xBC", 'z'},  // ż
+    };
+    for (const auto& [from, to] : kFold) {
+        for (std::size_t at = text.find(from); at != std::string::npos; at = text.find(from, at)) {
+            text.replace(at, 2, 1, to);
         }
     }
     return text;
 }
 
-std::vector<std::string> tokenize(const std::string& phrase) {
-    std::istringstream in(phrase);
-    std::vector<std::string> tokens;
-    std::string token;
-    while (in >> token) {
-        tokens.push_back(token);
+// Digit runs in order, e.g. "10 sztuk 4 5 2 1" -> {"10","4","5","2","1"}.
+std::vector<std::string> digitGroups(const std::string& text) {
+    std::vector<std::string> groups;
+    std::string current;
+    for (const char c : text) {
+        if (c >= '0' && c <= '9') {
+            current += c;
+        } else if (!current.empty()) {
+            groups.push_back(current);
+            current.clear();
+        }
     }
-    return tokens;
+    if (!current.empty()) {
+        groups.push_back(current);
+    }
+    return groups;
 }
 
-// A spoken quantity is a positive whole number ("przyjmij 10 ...").
 bool parsePositiveInt(const std::string& text, int& out) {
     if (text.empty()) {
         return false;
-    }
-    for (const char c : text) {
-        if (c < '0' || c > '9') {
-            return false;
-        }
     }
     try {
         const int value = std::stoi(text);
@@ -81,35 +91,39 @@ bool parsePositiveInt(const std::string& text, int& out) {
     }
 }
 
-ParsedCommand recordMovement(MovementType type, const std::vector<std::string>& tokens) {
+// "przyjmij 10 4521" -> qty from the first number, sku from the rest concatenated
+// ("Przyjmij 10 sztuk, 4, 5, 2, 1" -> qty 10, sku 4521). Needs at least two numbers.
+ParsedCommand recordMovement(MovementType type, const std::string& text) {
+    const std::vector<std::string> numbers = digitGroups(text);
     int qty = 0;
-    if (!parsePositiveInt(tokens[1], qty) || tokens[2].empty()) {
+    if (numbers.size() < 2 || !parsePositiveInt(numbers[0], qty)) {
         return ParsedCommand{};
     }
     ParsedCommand command;
     command.kind = CommandKind::RecordMovement;
     command.type = type;
     command.qty = qty;
-    command.sku = tokens[2];
+    for (std::size_t i = 1; i < numbers.size(); ++i) {
+        command.sku += numbers[i];
+    }
     return command;
 }
 
 }  // namespace
 
+// Command-and-control is forgiving: whisper rarely returns the exact phrase, so we
+// match on ASCII-folded keyword stems rather than exact tokens. Order matters —
+// the movement verbs are checked first because they also carry the numbers.
 ParsedCommand parseVoiceCommand(const std::string& phrase) {
-    const std::vector<std::string> tokens = tokenize(stripPunctuation(toLower(phrase)));
+    const std::string text = asciiFold(toLower(phrase));
+    const auto has = [&text](const char* stem) { return text.find(stem) != std::string::npos; };
 
-    if (tokens.size() == 1) {
-        if (tokens[0] == "odśwież") return {CommandKind::Refresh};
-        if (tokens[0] == "cofnij")  return {CommandKind::Undo};
-        if (tokens[0] == "ponów")   return {CommandKind::Redo};
-    } else if (tokens.size() == 3) {
-        if (tokens[0] == "pokaż" && tokens[1] == "niskie" && tokens[2] == "stany") {
-            return {CommandKind::ShowLowStock};
-        }
-        if (tokens[0] == "przyjmij") return recordMovement(MovementType::In, tokens);
-        if (tokens[0] == "wydaj")    return recordMovement(MovementType::Out, tokens);
-    }
+    if (has("wyda")) return recordMovement(MovementType::Out, text);
+    if (has("przyj")) return recordMovement(MovementType::In, text);
+    if (has("nisk")) return {CommandKind::ShowLowStock};
+    if (has("cofn")) return {CommandKind::Undo};
+    if (has("ponow")) return {CommandKind::Redo};
+    if (has("odsw")) return {CommandKind::Refresh};
     return ParsedCommand{};
 }
 

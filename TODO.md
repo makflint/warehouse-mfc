@@ -37,12 +37,15 @@ Single source of truth for open work. Milestones follow `docs/PLAN.md`.
     Push-to-talk: **Słuchaj (F2)** menu/hotkey → capture+recognise on a worker thread →
     `PostMessage(WM_STT_RESULT)` → UI thread (empty capture → "mic unavailable" message).
   - Recognised text → `warehouse::parseVoiceCommand` (core/) → same doc commands as the menus.
-    Parser gained TDD'd **normalisation** (lower-case incl. Polish letters + strip punctuation)
-    so whisper's "Pokaż niskie stany." matches. 60 assertions green.
-  - Model **`ggml-base.bin`** (multilingual, 141 MB) loaded from next to the exe; shipped in the
-    installer; gitignored locally. Verified end-to-end incl. **live mic**: `tools/voice_probe.cpp`
-    (same MicCapture+Stt) captured real audio (79k samples, peak normalised to 0.5) and whisper
-    recognised the spoken Polish. Final accuracy check = a human at the mic (press **F2**).
+    Parser is **fuzzy** (TDD, 68 assertions): lower-case + ASCII-fold Polish letters, then match
+    keyword stems (`przyj`/`wyda`/`nisk`/`cofn`/`ponow`/`odsw`) and pull qty+sku from digit
+    groups — so whisper near-misses still map ("Cofni"→Undo, "Pokaż mniskie stany"→ShowLowStock,
+    "Przyjmij 10 sztuk, 4, 5, 2, 1"→IN qty10 sku4521).
+  - Model **`ggml-small.bin`** (multilingual, 465 MB; much better Polish than base) + **beam
+    search**, loaded next to the exe; shipped in the installer; gitignored locally. **Verified
+    end-to-end on real recordings** through the exact app code (Stt small+beam → parser): 4/5
+    commands mapped correctly incl. the number command; only a fast/unclear "cofnij" take missed.
+    Tools: `tools/record_commands.ps1` (guided recorder), `tools/voice_probe.cpp` (mic self-test).
 
 ### Gotcha hit during M7: capture failed at the OS level (not an app bug)
 The Windows audio **engine** can land in a broken state where capture won't initialise

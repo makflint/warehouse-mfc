@@ -50,6 +50,21 @@ TEST_CASE("recognised speech is normalised: capitalisation and punctuation toler
     REQUIRE(out.sku == "4521");
 }
 
+TEST_CASE("fuzzy match: real whisper near-misses still map to the right command") {
+    // These are actual recognitions observed for this user's voice (base/small).
+    REQUIRE(parseVoiceCommand("Odświesz.").kind == CommandKind::Refresh);   // ż heard as sz
+    REQUIRE(parseVoiceCommand("Cofni.").kind == CommandKind::Undo);          // dropped final j
+    REQUIRE(parseVoiceCommand("Ponów.").kind == CommandKind::Redo);
+    REQUIRE(parseVoiceCommand("Pokaż mniskie stany.").kind == CommandKind::ShowLowStock);
+
+    // Numbers come back spelled out and split: "Przyjmij 10 sztuk, 4, 5, 2, 1."
+    const ParsedCommand c = parseVoiceCommand("Przyjmij 10 sztuk, 4, 5, 2, 1.");
+    REQUIRE(c.kind == CommandKind::RecordMovement);
+    REQUIRE(c.type == MovementType::In);
+    REQUIRE(c.qty == 10);
+    REQUIRE(c.sku == "4521");  // first number = qty, the rest concatenate into the sku
+}
+
 TEST_CASE("garbage and malformed phrases map to Unknown") {
     REQUIRE(parseVoiceCommand("").kind == CommandKind::Unknown);
     REQUIRE(parseVoiceCommand("zrób mi kawę").kind == CommandKind::Unknown);

@@ -48,7 +48,8 @@ std::string Stt::Transcribe(const std::vector<float>& pcm16k) const {
         return {};
     }
 
-    whisper_full_params params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
+    whisper_full_params params = whisper_full_default_params(WHISPER_SAMPLING_BEAM_SEARCH);
+    params.beam_search.beam_size = 5;  // beam beats greedy on Polish, esp. spoken numbers
     params.language = "pl";
     params.translate = false;
     params.no_timestamps = true;
