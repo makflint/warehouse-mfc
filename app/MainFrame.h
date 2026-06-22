@@ -11,6 +11,9 @@ class CMainFrame : public CFrameWndEx {
 public:
     CMainFrame();
 
+    // Repaint/refresh the docking panes after the stock snapshot changed.
+    void RefreshPanes();
+
 protected:
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
     afx_msg void OnViewThemeDark();

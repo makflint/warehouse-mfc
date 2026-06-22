@@ -9,8 +9,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_WM_CREATE()
     ON_COMMAND(ID_VIEW_THEME_DARK, &CMainFrame::OnViewThemeDark)
     ON_UPDATE_COMMAND_UI(ID_VIEW_THEME_DARK, &CMainFrame::OnUpdateViewThemeDark)
-    ON_COMMAND_RANGE(ID_VIEW_DASHBOARD, ID_VIEW_DETAILS, &CMainFrame::OnViewPane)
-    ON_UPDATE_COMMAND_UI_RANGE(ID_VIEW_DASHBOARD, ID_VIEW_DETAILS, &CMainFrame::OnUpdateViewPane)
+    ON_COMMAND_RANGE(ID_TOGGLE_DASHBOARD, ID_TOGGLE_DETAILS, &CMainFrame::OnViewPane)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_TOGGLE_DASHBOARD, ID_TOGGLE_DETAILS, &CMainFrame::OnUpdateViewPane)
 END_MESSAGE_MAP()
 
 CMainFrame::CMainFrame() {}
@@ -50,9 +50,9 @@ void CMainFrame::BuildRibbon() {
     motyw->Add(new CMFCRibbonButton(ID_VIEW_THEME_DARK, _T("Ciemny motyw")));
 
     CMFCRibbonPanel* panele = widok->AddPanel(_T("Panele"));
-    panele->Add(new CMFCRibbonButton(ID_VIEW_DASHBOARD, _T("Pulpit")));
-    panele->Add(new CMFCRibbonButton(ID_VIEW_MOVEMENTS, _T("Dziennik")));
-    panele->Add(new CMFCRibbonButton(ID_VIEW_DETAILS, _T("Szczegóły")));
+    panele->Add(new CMFCRibbonButton(ID_TOGGLE_DASHBOARD, _T("Pulpit")));
+    panele->Add(new CMFCRibbonButton(ID_TOGGLE_MOVEMENTS, _T("Dziennik")));
+    panele->Add(new CMFCRibbonButton(ID_TOGGLE_DETAILS, _T("Szczegóły")));
 }
 
 // Three docking panels managed by CFrameWndEx: a (custom-drawn) Dashboard on the
@@ -85,12 +85,18 @@ void CMainFrame::CreatePanes() {
     details_.List().InsertColumn(1, _T("Wartość"), LVCFMT_LEFT, 150);
 }
 
+void CMainFrame::RefreshPanes() {
+    if (dashboard_.GetSafeHwnd() != nullptr) {
+        dashboard_.Invalidate();
+    }
+}
+
 CDockablePane* CMainFrame::PaneFor(UINT cmdId) {
     switch (cmdId) {
-        case ID_VIEW_DASHBOARD: return &dashboard_;
-        case ID_VIEW_MOVEMENTS: return &movementLog_;
-        case ID_VIEW_DETAILS:   return &details_;
-        default:                return nullptr;
+        case ID_TOGGLE_DASHBOARD: return &dashboard_;
+        case ID_TOGGLE_MOVEMENTS: return &movementLog_;
+        case ID_TOGGLE_DETAILS:   return &details_;
+        default:                  return nullptr;
     }
 }
 

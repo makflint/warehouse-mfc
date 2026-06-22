@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "MainFrame.h"
 #include "RecordMovementDialog.h"
 #include "StockView.h"
 #include "TextUtil.h"
@@ -76,6 +77,11 @@ void CStockView::OnUpdate(CView* /*sender*/, LPARAM /*hint*/, CObject* /*hintObj
         list.SetItemText(item, kColOnHand, onHand);
         list.SetItemData(item, stock.isLow ? 1 : 0);  // drives the red custom draw
         ++item;
+    }
+
+    // Keep the dashboard chart/KPIs in sync with the grid.
+    if (auto* frame = DYNAMIC_DOWNCAST(CMainFrame, GetParentFrame())) {
+        frame->RefreshPanes();
     }
 }
 
