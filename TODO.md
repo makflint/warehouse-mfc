@@ -31,20 +31,30 @@ Single source of truth for open work. Milestones follow `docs/PLAN.md`.
   a local file, inference local, **no runtime networking** — does not break the ODBC-only rule).
   - whisper.cpp **v1.9.1** as a git **submodule** (`third_party/whisper.cpp`), built to **static
     libs** (Release+Debug, OpenMP off) with the VS-bundled cmake+ninja.
-  - `app/MicCapture.*` (waveIn, 4 s @ 16 kHz mono) + `app/Stt.*` (whisper wrapper, `language="pl"`).
+  - `app/MicCapture.*` (**WASAPI** shared-mode capture → downmix + resample to 16 kHz mono,
+    peak-normalised) + `app/Stt.*` (whisper wrapper, `language="pl"`). NB: legacy waveIn does
+    **not** work on this laptop's Intel Smart Sound DMIC array — WASAPI is required.
     Push-to-talk: **Słuchaj (F2)** menu/hotkey → capture+recognise on a worker thread →
-    `PostMessage(WM_STT_RESULT)` → UI thread.
+    `PostMessage(WM_STT_RESULT)` → UI thread (empty capture → "mic unavailable" message).
   - Recognised text → `warehouse::parseVoiceCommand` (core/) → same doc commands as the menus.
     Parser gained TDD'd **normalisation** (lower-case incl. Polish letters + strip punctuation)
     so whisper's "Pokaż niskie stany." matches. 60 assertions green.
   - Model **`ggml-base.bin`** (multilingual, 141 MB) loaded from next to the exe; shipped in the
-    installer; gitignored locally. Verified: jfk.wav + SAPI-spoken "Pokaż niskie stany" both
-    recognised correctly through our exact libs. (Live mic path is interactive — test with F2.)
+    installer; gitignored locally. Verified end-to-end incl. **live mic**: `tools/voice_probe.cpp`
+    (same MicCapture+Stt) captured real audio (79k samples, peak normalised to 0.5) and whisper
+    recognised the spoken Polish. Final accuracy check = a human at the mic (press **F2**).
+
+### Gotcha hit during M7: capture failed at the OS level (not an app bug)
+The Windows audio **engine** can land in a broken state where capture won't initialise
+(`waveInOpen` → MMSYSERR_ERROR; WASAPI `Initialize` → `E_HANDLE`, `IsFormatSupported` →
+`REGDB_E_CLASSNOTREG`) while playback still works. Fix: restart the audio engine —
+`tools/mic_fix.ps1` (elevated `Restart-Service AudioEndpointBuilder -Force`) or reboot.
+`tools/voice_probe.cpp` (build via `tools/build_voice_probe.cmd`) isolates mic-capture from
+recognition when diagnosing.
 
 ## Done — all milestones (M0–M7) complete
-Working tree: new submodule + app/core/installer/docs changes (commit pending). The **live mic
-→ command** path is the only thing needing a human with a microphone to exercise (press **F2**,
-speak, e.g. "odśwież", "pokaż niskie stany", "cofnij", "przyjmij 10 4521").
+Press **F2** in the app and speak: "odśwież", "pokaż niskie stany", "cofnij", "ponów",
+"przyjmij 10 4521".
 
 ### Possible later polish (not blocking)
 - Larger model (`ggml-small.bin`) if base mis-hears; a brief on-screen "Słucham…" status while

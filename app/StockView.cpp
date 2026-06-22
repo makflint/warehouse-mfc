@@ -191,15 +191,22 @@ void CStockView::OnVoiceListen() {
     Stt* stt = stt_.get();
     std::thread([target, stt]() {
         const std::vector<float> audio = mic::Record(4);
+        const WPARAM captured = audio.empty() ? 0 : 1;  // distinguish a dead mic from silence
         std::string text = stt->Transcribe(audio);
-        ::PostMessage(target, WM_STT_RESULT, 0,
+        ::PostMessage(target, WM_STT_RESULT, captured,
                       reinterpret_cast<LPARAM>(new std::string(std::move(text))));
     }).detach();
 }
 
-LRESULT CStockView::OnSttResult(WPARAM /*wParam*/, LPARAM lParam) {
+LRESULT CStockView::OnSttResult(WPARAM captured, LPARAM lParam) {
     std::unique_ptr<std::string> text(reinterpret_cast<std::string*>(lParam));
     listening_.store(false);
+    if (captured == 0) {
+        AfxMessageBox(_T("Nie udało się nagrać z mikrofonu. Sprawdź, czy mikrofon jest ")
+                      _T("włączony i dostępny w ustawieniach dźwięku."),
+                      MB_ICONWARNING);
+        return 0;
+    }
     if (text) {
         DispatchVoice(*text);
     }
