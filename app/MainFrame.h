@@ -34,7 +34,11 @@ private:
     void CreatePanes();
     CDockablePane* PaneFor(UINT cmdId);
 
+    void CreateStatusBar();
+    void SetStatusPane(UINT id, const CString& text);
+
     CMFCRibbonBar ribbon_;
+    CMFCRibbonStatusBar statusBar_;
     CDashboardPane dashboard_;
     CListPane movementLog_;
     CListPane details_;

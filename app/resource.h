@@ -20,3 +20,14 @@
 #define ID_TOGGLE_DASHBOARD 32776
 #define ID_TOGGLE_MOVEMENTS 32777
 #define ID_TOGGLE_DETAILS   32778
+
+// Ribbon icon strips (16 px small + 32 px large), one per ribbon category.
+#define IDB_RIBBON_MAGAZYN_16 200
+#define IDB_RIBBON_MAGAZYN_32 201
+#define IDB_RIBBON_WIDOK_16   202
+#define IDB_RIBBON_WIDOK_32   203
+
+// Status-bar indicator panes (also their string-table ids, which size each pane).
+#define ID_INDICATOR_ROWS 0xE720
+#define ID_INDICATOR_SKU  0xE721
+#define ID_INDICATOR_DB   0xE722

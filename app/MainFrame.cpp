@@ -24,8 +24,26 @@ int CMainFrame::OnCreate(LPCREATESTRUCT createStruct) {
     }
     BuildRibbon();
     SetMenu(nullptr);  // ribbon replaces the classic menu (kept only as the SDI shared menu)
+    CreateStatusBar();  // reserve the bottom edge before the docking area is laid out
     CreatePanes();
     return 0;
+}
+
+// The ribbon status bar themes with the ribbon. Row count + selected SKU sit on
+// the left; the connection profile is right-aligned as an "extended" element. The
+// label strings double as the pane's sizing hint.
+void CMainFrame::CreateStatusBar() {
+    statusBar_.Create(this);
+    statusBar_.AddElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_ROWS, _T("Indeksy: 0000"), TRUE), _T(""));
+    statusBar_.AddElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_SKU, _T("SKU: —"), TRUE), _T(""));
+    statusBar_.AddExtendedElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_DB, _T("DEMO · LocalDB"), TRUE), _T(""));
+}
+
+void CMainFrame::SetStatusPane(UINT id, const CString& text) {
+    if (auto* pane = DYNAMIC_DOWNCAST(CMFCRibbonStatusBarPane, statusBar_.FindByID(id))) {
+        pane->SetText(text);
+        statusBar_.RecalcLayout();
+    }
 }
 
 // The ribbon replaces the classic menu. Buttons carry the same command IDs the view
@@ -34,28 +52,32 @@ void CMainFrame::BuildRibbon() {
     ribbon_.Create(this);
     ribbon_.EnableToolTips();
 
-    CMFCRibbonCategory* magazyn = ribbon_.AddCategory(_T("Magazyn"), 0, 0);
+    // Each category owns a small (16px) + large (32px) image strip; the button's
+    // image index selects its glyph within that category's strip.
+    CMFCRibbonCategory* magazyn =
+        ribbon_.AddCategory(_T("Magazyn"), IDB_RIBBON_MAGAZYN_16, IDB_RIBBON_MAGAZYN_32);
 
     CMFCRibbonPanel* stany = magazyn->AddPanel(_T("Stany"));
-    stany->Add(new CMFCRibbonButton(ID_STOCK_REFRESH, _T("Odśwież")));
-    stany->Add(new CMFCRibbonButton(ID_STOCK_FILTER_LOW, _T("Tylko niskie")));
+    stany->Add(new CMFCRibbonButton(ID_STOCK_REFRESH, _T("Odśwież"), 0, 0));
+    stany->Add(new CMFCRibbonButton(ID_STOCK_FILTER_LOW, _T("Tylko niskie"), 1, 1));
 
     CMFCRibbonPanel* ruchy = magazyn->AddPanel(_T("Ruchy"));
-    ruchy->Add(new CMFCRibbonButton(ID_STOCK_RECORD_IN, _T("Przyjmij")));
-    ruchy->Add(new CMFCRibbonButton(ID_STOCK_RECORD_OUT, _T("Wydaj")));
+    ruchy->Add(new CMFCRibbonButton(ID_STOCK_RECORD_IN, _T("Przyjmij"), 2, 2));
+    ruchy->Add(new CMFCRibbonButton(ID_STOCK_RECORD_OUT, _T("Wydaj"), 3, 3));
 
     CMFCRibbonPanel* edycja = magazyn->AddPanel(_T("Edycja"));
-    edycja->Add(new CMFCRibbonButton(ID_EDIT_UNDO, _T("Cofnij")));
-    edycja->Add(new CMFCRibbonButton(ID_EDIT_REDO, _T("Ponów")));
+    edycja->Add(new CMFCRibbonButton(ID_EDIT_UNDO, _T("Cofnij"), 4, 4));
+    edycja->Add(new CMFCRibbonButton(ID_EDIT_REDO, _T("Ponów"), 5, 5));
 
-    CMFCRibbonCategory* widok = ribbon_.AddCategory(_T("Widok"), 0, 0);
+    CMFCRibbonCategory* widok =
+        ribbon_.AddCategory(_T("Widok"), IDB_RIBBON_WIDOK_16, IDB_RIBBON_WIDOK_32);
     CMFCRibbonPanel* motyw = widok->AddPanel(_T("Motyw"));
-    motyw->Add(new CMFCRibbonButton(ID_VIEW_THEME_DARK, _T("Ciemny motyw")));
+    motyw->Add(new CMFCRibbonButton(ID_VIEW_THEME_DARK, _T("Ciemny motyw"), 0, 0));
 
     CMFCRibbonPanel* panele = widok->AddPanel(_T("Panele"));
-    panele->Add(new CMFCRibbonButton(ID_TOGGLE_DASHBOARD, _T("Pulpit")));
-    panele->Add(new CMFCRibbonButton(ID_TOGGLE_MOVEMENTS, _T("Dziennik")));
-    panele->Add(new CMFCRibbonButton(ID_TOGGLE_DETAILS, _T("Szczegóły")));
+    panele->Add(new CMFCRibbonButton(ID_TOGGLE_DASHBOARD, _T("Pulpit"), 1, 1));
+    panele->Add(new CMFCRibbonButton(ID_TOGGLE_MOVEMENTS, _T("Dziennik"), 2, 2));
+    panele->Add(new CMFCRibbonButton(ID_TOGGLE_DETAILS, _T("Szczegóły"), 3, 3));
 }
 
 // Three docking panels managed by CFrameWndEx: a (custom-drawn) Dashboard on the
@@ -84,7 +106,11 @@ void CMainFrame::CreatePanes() {
     details_.Create(_T("Szczegóły"), this, CRect(0, 0, 280, 160), TRUE, IDC_PANE_DETAILS,
                     style | CBRS_RIGHT);
     details_.EnableDocking(CBRS_ALIGN_ANY);
-    DockPane(&details_);
+    // Tab Details together with the Movement log instead of stacking a second pane
+    // on the right edge — two same-side panes clip each other when the window is
+    // narrow; a tab group keeps both reachable at any width.
+    CDockablePane* tabbed = nullptr;
+    details_.AttachToTabWnd(&movementLog_, DM_SHOW, TRUE, &tabbed);
     details_.List().InsertColumn(0, _T("Pole"), LVCFMT_LEFT, 110);
     details_.List().InsertColumn(1, _T("Wartość"), LVCFMT_LEFT, 150);
 }
@@ -95,6 +121,12 @@ void CMainFrame::RefreshPanes() {
     }
 
     auto* doc = DYNAMIC_DOWNCAST(CWarehouseDoc, GetActiveDocument());
+    if (doc != nullptr) {
+        CString rows;
+        rows.Format(_T("Indeksy: %d"), static_cast<int>(doc->Stock().size()));
+        SetStatusPane(ID_INDICATOR_ROWS, rows);
+    }
+
     CListCtrl& log = movementLog_.List();
     if (doc != nullptr && log.GetSafeHwnd() != nullptr) {
         log.DeleteAllItems();
@@ -129,6 +161,8 @@ void CMainFrame::ShowDetails(const warehouse::StockRow& row) {
     add(_T("Magazyn"), FromUtf8(row.warehouseCode + " " + row.warehouseName));
     add(_T("Stan na rękę"), onHand);
     add(_T("Niski stan"), row.isLow ? _T("TAK") : _T("nie"));
+
+    SetStatusPane(ID_INDICATOR_SKU, _T("SKU: ") + FromUtf8(row.sku));
 }
 
 CDockablePane* CMainFrame::PaneFor(UINT cmdId) {

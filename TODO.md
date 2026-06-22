@@ -50,9 +50,16 @@ The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Featu
   (`docs/screenshots/01-dashboard`, `02-dark-theme`, `03-record-dialog`).
 - [x] **Panes populated**: Details (selection-driven product info) and Movement log
   (`StockRepository::loadRecentMovements` → recent IN/OUT with timestamps).
-- [ ] *Optional later:* update `docs/SPEC.md` / `docs/PLAN.md`; add icons to the ribbon
-  buttons; the two right-docked panes clip the 2nd when the window is narrow — a nicer
-  default dock layout (e.g. tabbed) would help.
+- [x] **Ribbon icons** — 32-bit ARGB (alpha-blended) glyph strips per category
+  (`app/res/ribbon_*.bmp`, regenerate with `tools/gen_ribbon_icons.ps1`).
+- [x] **Tabbed dock layout** — Szczegóły + Dziennik share one tab group
+  (`AttachToTabWnd`) instead of two same-side panes, so both stay reachable at any
+  width (fixes the earlier narrow-window clipping).
+- [x] **Status bar** (`CMFCRibbonStatusBar`) — row count + selected SKU on the left,
+  connection profile (`DEMO · LocalDB`) right-aligned.
+- [ ] *Optional later:* update `docs/SPEC.md` / `docs/PLAN.md`. Note: the docked list
+  panes + ribbon status bar only paint when the window is foreground-active, so the
+  headless screenshot tooling can't render them — capture the hero shot live.
 
 ## Build / test (Windows)
 ```bash

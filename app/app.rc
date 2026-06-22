@@ -55,6 +55,14 @@ BEGIN
 END
 
 /////////////////////////////////////////////////////////////////////////////
+// Ribbon icon strips (32-bit ARGB, alpha-blended by CMFCToolBarImages)
+
+IDB_RIBBON_MAGAZYN_16 BITMAP "res\\ribbon_magazyn_16.bmp"
+IDB_RIBBON_MAGAZYN_32 BITMAP "res\\ribbon_magazyn_32.bmp"
+IDB_RIBBON_WIDOK_16   BITMAP "res\\ribbon_widok_16.bmp"
+IDB_RIBBON_WIDOK_32   BITMAP "res\\ribbon_widok_32.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
 // String Table
 
 STRINGTABLE
