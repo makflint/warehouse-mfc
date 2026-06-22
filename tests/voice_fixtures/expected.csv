@@ -1,0 +1,6 @@
+file,kind,type,qty,sku
+odswiez.wav,Refresh,,,
+pokaz.wav,ShowLowStock,,,
+cofnij.wav,Undo,,,
+ponow.wav,Redo,,,
+przyjmij.wav,RecordMovement,IN,10,4521
