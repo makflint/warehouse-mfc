@@ -22,11 +22,12 @@ pattern). Built as a portfolio piece for a *Senior C++ Developer (MFC)* role.
   visual-manager themes (dark mode), and an owner-drawn **dashboard** (KPI tiles + bar chart).
 
 ## Screenshots
-![Ribbon UI + dashboard](docs/screenshots/01-dashboard.png)
+![Ribbon UI + dashboard + docked panes](docs/screenshots/04-feature-pack.png)
 
-The MFC **Feature Pack** UI: a `CMFCRibbonBar` (*Magazyn* / *Widok* tabs), an owner-drawn
-**Pulpit** (dashboard) pane with KPI tiles + an on-hand bar chart, the stock grid with low-stock
-rows in red, and **Szczegóły** / **Dziennik ruchów** dockable panes.
+The MFC **Feature Pack** UI: a `CMFCRibbonBar` with icon glyphs (*Magazyn* / *Widok* tabs), an
+owner-drawn **Pulpit** (dashboard) pane with KPI tiles + an on-hand bar chart, the stock grid with
+low-stock rows in red, the **Szczegóły** / **Dziennik ruchów** panes sharing one **tab group**, and
+a `CMFCRibbonStatusBar` (row count · selected SKU · connection profile).
 
 | Dark theme (Widok → Ciemny motyw) | Record movement (DDX/DDV) |
 |---|---|
