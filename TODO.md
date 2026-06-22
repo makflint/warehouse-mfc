@@ -46,8 +46,10 @@ The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Featu
 - [x] **Dashboard** — `CDashboardPane` owner-draws (double-buffered) 3 KPI tiles (SKUs /
   low-stock / total units) + a bar chart of on-hand per SKU from `vCurrentStock`; repaints on
   every grid update (KPIs verified 5 / 7 / 154).
-- [ ] **Polish:** README screenshots + `docs/SPEC.md`/`PLAN.md` for M8; optionally populate the
-  Movement-log & Details panes (currently scaffolded), and add icons to the ribbon buttons.
+- [x] **README + screenshots** refreshed for the Feature Pack UI
+  (`docs/screenshots/01-dashboard`, `02-dark-theme`, `03-record-dialog`).
+- [ ] *Optional later:* update `docs/SPEC.md` / `docs/PLAN.md`; populate the Movement-log &
+  Details panes (currently scaffolded); add icons to the ribbon buttons.
 
 ## Build / test (Windows)
 ```bash
