@@ -55,11 +55,27 @@ The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Featu
 - [x] **Tabbed dock layout** — Szczegóły + Dziennik share one tab group
   (`AttachToTabWnd`) instead of two same-side panes, so both stay reachable at any
   width (fixes the earlier narrow-window clipping).
-- [x] **Status bar** (`CMFCRibbonStatusBar`) — row count + selected SKU on the left,
-  connection profile (`DEMO · LocalDB`) right-aligned.
-- [ ] *Optional later:* update `docs/SPEC.md` / `docs/PLAN.md`. Note: the docked list
-  panes + ribbon status bar only paint when the window is foreground-active, so the
-  headless screenshot tooling can't render them — capture the hero shot live.
+- [x] **Status bar** (`CMFCRibbonStatusBar`) — *Pozycje* (stock rows) + selected SKU on
+  the left, connection profile (`DEMO · LocalDB`) right-aligned.
+- [x] **UX polish round:** Dziennik gained a **Magazyn** column and now shows **local
+  Warsaw time** (`AT TIME ZONE`, DST-aware) instead of UTC; all three list grids share
+  the system UI font (Segoe UI) for a consistent look; the main grid is **sortable** by
+  clicking any header (toggles asc/desc, shows the sort glyph); the dashboard repaints
+  fully on resize (no stale rectangles when dragging the divider).
+- [x] **Polish terminology:** *Asortyment* (distinct items), *Symbol* (item-code column —
+  was "SKU"), *Niskie stany magazynowe*, *Suma sztuk*, *Stan magazynowy* (was the "na
+  rękę" calque), *Pozycje* (status bar).
+- [x] **Dark theme reaches the content:** the stock grid, dock-pane lists and the
+  owner-drawn dashboard now recolour on the *Ciemny motyw* toggle. Standard
+  `SysListView32` controls + the dashboard aren't themed by `CMFCVisualManager`, so
+  `ApplyListTheme` / `CDashboardPane::SetDark` recolour them from the frame. The sort
+  indicator is a ▲/▼ appended to the active header (more reliable than `HDF_SORTUP`).
+  *Known minor:* the list column-header strip (`SysHeader32`) stays light in dark mode
+  (would need an owner-drawn header).
+- [ ] *Optional later:* per-column **filters** on the main grid; update `docs/SPEC.md` /
+  `docs/PLAN.md`. Note: the docked list panes + ribbon status bar only paint when the
+  window is foreground-active, so the headless screenshot tooling can't render them —
+  capture hero shots live.
 
 ## Build / test (Windows)
 ```bash

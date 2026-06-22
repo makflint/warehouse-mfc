@@ -34,8 +34,11 @@ void drawTile(CDC& dc, CRect r, COLORREF fill, const CString& value, const CStri
 
     CRect bottom = r;
     bottom.top = top.bottom;
+    bottom.DeflateRect(3, 0);
     dc.SelectObject(&smallFont);
-    dc.DrawText(label, bottom, DT_CENTER | DT_TOP | DT_SINGLELINE);
+    // Word-break so multi-word labels (e.g. "Niskie stany magazynowe") wrap
+    // instead of clipping inside the narrow tile.
+    dc.DrawText(label, bottom, DT_CENTER | DT_TOP | DT_WORDBREAK);
     dc.SelectObject(old);
 }
 
@@ -44,7 +47,22 @@ void drawTile(CDC& dc, CRect r, COLORREF fill, const CString& value, const CStri
 // --- Dashboard pane --------------------------------------------------------
 BEGIN_MESSAGE_MAP(CDashboardPane, CDockablePane)
     ON_WM_PAINT()
+    ON_WM_SIZE()
+    ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
+
+// Tiles + chart are laid out from the client rect, so a resize (e.g. dragging the
+// dock divider) must repaint the whole pane, not just the newly exposed strip.
+void CDashboardPane::OnSize(UINT type, int cx, int cy) {
+    CDockablePane::OnSize(type, cx, cy);
+    Invalidate(FALSE);
+}
+
+// OnPaint repaints the entire client via a back-buffer, so suppress the default
+// erase to avoid a flicker on resize.
+BOOL CDashboardPane::OnEraseBkgnd(CDC* /*dc*/) {
+    return TRUE;
+}
 
 void CDashboardPane::OnPaint() {
     CPaintDC paint(this);
@@ -57,7 +75,14 @@ void CDashboardPane::OnPaint() {
     CBitmap bmp;
     bmp.CreateCompatibleBitmap(&paint, rc.Width(), rc.Height());
     CBitmap* oldBmp = mem.SelectObject(&bmp);
-    mem.FillSolidRect(rc, RGB(245, 246, 248));
+
+    // The dashboard is owner-drawn, so it follows the theme by hand.
+    const COLORREF bgColor = dark_ ? RGB(37, 37, 38) : RGB(245, 246, 248);
+    const COLORREF fgColor = dark_ ? RGB(215, 215, 215) : RGB(60, 60, 60);
+    const COLORREF axisColor = dark_ ? RGB(90, 90, 90) : RGB(180, 180, 180);
+    const COLORREF barColor = dark_ ? RGB(70, 120, 200) : RGB(40, 86, 150);
+    const COLORREF barLow = dark_ ? RGB(220, 80, 80) : RGB(176, 32, 32);
+    mem.FillSolidRect(rc, bgColor);
 
     CFont fontBig, fontSmall;
     fontBig.CreateFont(30, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
@@ -87,16 +112,17 @@ void CDashboardPane::OnPaint() {
     inner.DeflateRect(margin, margin);
 
     // --- three KPI tiles across the top ---
-    const int tileH = 64;
+    const int tileH = 74;
     const int gap = 8;
     const int tileW = (inner.Width() - 2 * gap) / 3;
     CString s;
     s.Format(_T("%d"), static_cast<int>(bySku.size()));
     drawTile(mem, CRect(inner.left, inner.top, inner.left + tileW, inner.top + tileH),
-             RGB(33, 115, 70), s, _T("Indeksy (SKU)"), fontBig, fontSmall);
+             RGB(33, 115, 70), s, _T("Asortyment"), fontBig, fontSmall);
     s.Format(_T("%d"), lowRows);
     drawTile(mem, CRect(inner.left + tileW + gap, inner.top, inner.left + 2 * tileW + gap, inner.top + tileH),
-             lowRows > 0 ? RGB(176, 32, 32) : RGB(120, 120, 120), s, _T("Niskie stany"), fontBig, fontSmall);
+             lowRows > 0 ? RGB(176, 32, 32) : RGB(120, 120, 120), s, _T("Niskie stany magazynowe"),
+             fontBig, fontSmall);
     s.Format(_T("%lld"), totalUnits);
     drawTile(mem, CRect(inner.left + 2 * tileW + 2 * gap, inner.top, inner.right, inner.top + tileH),
              RGB(40, 86, 150), s, _T("Suma sztuk"), fontBig, fontSmall);
@@ -106,8 +132,8 @@ void CDashboardPane::OnPaint() {
     chart.top += tileH + 16;
     mem.SetBkMode(TRANSPARENT);
     mem.SelectObject(&fontSmall);
-    mem.SetTextColor(RGB(60, 60, 60));
-    mem.DrawText(_T("Stan na rękę wg indeksu"), CRect(chart.left, chart.top, chart.right, chart.top + 16),
+    mem.SetTextColor(fgColor);
+    mem.DrawText(_T("Stan magazynowy wg indeksu"), CRect(chart.left, chart.top, chart.right, chart.top + 16),
                  DT_LEFT | DT_SINGLELINE);
     chart.top += 20;
 
@@ -125,19 +151,19 @@ void CDashboardPane::OnPaint() {
             const int cx = chart.left + slot * i + slot / 2;
             const int h = static_cast<int>(static_cast<long long>(plotH) * kv.second / maxVal);
             CRect bar(cx - barW / 2, axisY - h, cx + barW / 2, axisY);
-            const COLORREF c = lowBySku[kv.first] ? RGB(176, 32, 32) : RGB(40, 86, 150);
+            const COLORREF c = lowBySku[kv.first] ? barLow : barColor;
             mem.FillSolidRect(bar, c);
 
             CString val;
             val.Format(_T("%lld"), kv.second);
-            mem.SetTextColor(RGB(60, 60, 60));
+            mem.SetTextColor(fgColor);
             mem.DrawText(val, CRect(cx - slot / 2, bar.top - 16, cx + slot / 2, bar.top),
                          DT_CENTER | DT_BOTTOM | DT_SINGLELINE);
             mem.DrawText(FromUtf8(kv.first), CRect(cx - slot / 2, axisY + 2, cx + slot / 2, axisY + 18),
                          DT_CENTER | DT_TOP | DT_SINGLELINE);
             ++i;
         }
-        mem.FillSolidRect(chart.left, axisY, chart.Width(), 1, RGB(180, 180, 180));
+        mem.FillSolidRect(chart.left, axisY, chart.Width(), 1, axisColor);
     }
 
     paint.BitBlt(0, 0, rc.Width(), rc.Height(), &mem, 0, 0, SRCCOPY);
@@ -157,6 +183,10 @@ int CListPane::OnCreate(LPCREATESTRUCT createStruct) {
     const DWORD style = WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SHOWSELALWAYS;
     list_.Create(style, CRect(0, 0, 0, 0), this, 1);
     list_.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+    CreateUiFont(uiFont_);  // match the main grid + the rest of the modern UI
+    if (uiFont_.GetSafeHandle() != nullptr) {
+        list_.SetFont(&uiFont_);
+    }
     return 0;
 }
 

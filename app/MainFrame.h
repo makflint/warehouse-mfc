@@ -36,6 +36,7 @@ private:
 
     void CreateStatusBar();
     void SetStatusPane(UINT id, const CString& text);
+    void ApplyContentTheme();  // recolour the (non-Feature-Pack) grids + dashboard
 
     CMFCRibbonBar ribbon_;
     CMFCRibbonStatusBar statusBar_;

@@ -150,9 +150,13 @@ std::vector<MovementRow> StockRepository::loadRecentMovements(int limit) {
     check(SQLAllocHandle(SQL_HANDLE_STMT, impl_->dbc, &stmt), SQL_HANDLE_DBC, impl_->dbc,
           "alloc stmt");
 
+    // CreatedAt is stored UTC (SYSUTCDATETIME); convert to Warsaw local time for
+    // display. AT TIME ZONE handles DST (CEST/CET) and needs SQL Server 2016+.
     const std::wstring sql =
         L"SELECT TOP (" + std::to_wstring(limit) +
-        L") CONVERT(NVARCHAR(19), m.CreatedAt, 120), m.MovementType, p.Sku, w.Code, m.Qty "
+        L") CONVERT(NVARCHAR(19), m.CreatedAt AT TIME ZONE 'UTC' "
+        L"AT TIME ZONE 'Central European Standard Time', 120), "
+        L"m.MovementType, p.Sku, w.Code, m.Qty "
         L"FROM StockMovements m "
         L"JOIN Products p   ON p.ProductId  = m.ProductId "
         L"JOIN Warehouses w ON w.WarehouseId = m.WarehouseId "

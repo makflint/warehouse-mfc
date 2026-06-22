@@ -2,6 +2,7 @@
 #include "resource.h"
 
 #include "MainFrame.h"
+#include "StockView.h"
 #include "TextUtil.h"
 #include "WarehouseDoc.h"
 #include "warehouse/stock_repository.hpp"
@@ -34,8 +35,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT createStruct) {
 // label strings double as the pane's sizing hint.
 void CMainFrame::CreateStatusBar() {
     statusBar_.Create(this);
-    statusBar_.AddElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_ROWS, _T("Indeksy: 0000"), TRUE), _T(""));
-    statusBar_.AddElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_SKU, _T("SKU: —"), TRUE), _T(""));
+    statusBar_.AddElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_ROWS, _T("Pozycje: 0000"), TRUE), _T(""));
+    statusBar_.AddElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_SKU, _T("Symbol: —"), TRUE), _T(""));
     statusBar_.AddExtendedElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_DB, _T("DEMO · LocalDB"), TRUE), _T(""));
 }
 
@@ -98,10 +99,11 @@ void CMainFrame::CreatePanes() {
                         IDC_PANE_MOVEMENTS, style | CBRS_RIGHT);
     movementLog_.EnableDocking(CBRS_ALIGN_ANY);
     DockPane(&movementLog_);
-    movementLog_.List().InsertColumn(0, _T("Czas (UTC)"), LVCFMT_LEFT, 130);
-    movementLog_.List().InsertColumn(1, _T("Ruch"), LVCFMT_LEFT, 44);
-    movementLog_.List().InsertColumn(2, _T("SKU"), LVCFMT_LEFT, 54);
-    movementLog_.List().InsertColumn(3, _T("Ilość"), LVCFMT_RIGHT, 48);
+    movementLog_.List().InsertColumn(0, _T("Czas"), LVCFMT_LEFT, 130);
+    movementLog_.List().InsertColumn(1, _T("Magazyn"), LVCFMT_LEFT, 60);
+    movementLog_.List().InsertColumn(2, _T("Ruch"), LVCFMT_LEFT, 44);
+    movementLog_.List().InsertColumn(3, _T("Symbol"), LVCFMT_LEFT, 60);
+    movementLog_.List().InsertColumn(4, _T("Ilość"), LVCFMT_RIGHT, 48);
 
     details_.Create(_T("Szczegóły"), this, CRect(0, 0, 280, 160), TRUE, IDC_PANE_DETAILS,
                     style | CBRS_RIGHT);
@@ -123,7 +125,7 @@ void CMainFrame::RefreshPanes() {
     auto* doc = DYNAMIC_DOWNCAST(CWarehouseDoc, GetActiveDocument());
     if (doc != nullptr) {
         CString rows;
-        rows.Format(_T("Indeksy: %d"), static_cast<int>(doc->Stock().size()));
+        rows.Format(_T("Pozycje: %d"), static_cast<int>(doc->Stock().size()));
         SetStatusPane(ID_INDICATOR_ROWS, rows);
     }
 
@@ -133,11 +135,12 @@ void CMainFrame::RefreshPanes() {
         int i = 0;
         for (const warehouse::MovementRow& m : doc->Movements()) {
             log.InsertItem(i, FromUtf8(m.createdAt));
-            log.SetItemText(i, 1, FromUtf8(m.type));
-            log.SetItemText(i, 2, FromUtf8(m.sku));
+            log.SetItemText(i, 1, FromUtf8(m.warehouseCode));
+            log.SetItemText(i, 2, FromUtf8(m.type));
+            log.SetItemText(i, 3, FromUtf8(m.sku));
             CString qty;
             qty.Format(_T("%d"), m.qty < 0 ? -m.qty : m.qty);
-            log.SetItemText(i, 3, qty);
+            log.SetItemText(i, 4, qty);
             ++i;
         }
     }
@@ -156,13 +159,13 @@ void CMainFrame::ShowDetails(const warehouse::StockRow& row) {
     };
     CString onHand;
     onHand.Format(_T("%d"), row.onHand);
-    add(_T("SKU"), FromUtf8(row.sku));
+    add(_T("Symbol"), FromUtf8(row.sku));
     add(_T("Produkt"), FromUtf8(row.productName));
     add(_T("Magazyn"), FromUtf8(row.warehouseCode + " " + row.warehouseName));
-    add(_T("Stan na rękę"), onHand);
+    add(_T("Stan magazynowy"), onHand);
     add(_T("Niski stan"), row.isLow ? _T("TAK") : _T("nie"));
 
-    SetStatusPane(ID_INDICATOR_SKU, _T("SKU: ") + FromUtf8(row.sku));
+    SetStatusPane(ID_INDICATOR_SKU, _T("Symbol: ") + FromUtf8(row.sku));
 }
 
 CDockablePane* CMainFrame::PaneFor(UINT cmdId) {
@@ -191,7 +194,20 @@ void CMainFrame::OnViewThemeDark() {
     CMFCVisualManagerOffice2007::SetStyle(dark_ ? CMFCVisualManagerOffice2007::Office2007_ObsidianBlack
                                                 : CMFCVisualManagerOffice2007::Office2007_LunaBlue);
     CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerOffice2007));
+    ApplyContentTheme();  // the standard list controls + dashboard aren't themed by the manager
     RedrawWindow(nullptr, nullptr, RDW_ALLCHILDREN | RDW_INVALIDATE | RDW_UPDATENOW | RDW_FRAME | RDW_ERASE);
+}
+
+// CMFCVisualManager only themes Feature-Pack controls; the stock grid and the
+// dock-pane lists are standard Win32 list controls and the dashboard is owner-drawn,
+// so they're recoloured here to follow the dark/light toggle.
+void CMainFrame::ApplyContentTheme() {
+    dashboard_.SetDark(dark_);
+    ApplyListTheme(movementLog_.List(), dark_);
+    ApplyListTheme(details_.List(), dark_);
+    if (auto* view = DYNAMIC_DOWNCAST(CStockView, GetActiveView())) {
+        view->SetDark(dark_);
+    }
 }
 
 void CMainFrame::OnUpdateViewThemeDark(CCmdUI* cmdUI) {
