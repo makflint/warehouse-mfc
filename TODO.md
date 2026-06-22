@@ -34,20 +34,20 @@ the fuzzy command parser, the model research base/small/medium, the e2e harness,
 
 *(M4 TTS + M7 STT were done too — now archived, see the banner above.)*
 
-## Next — M8: modern MFC Feature Pack UI + dashboard
-The strongest *Senior C++/MFC* signal: replace the plain SDI shell with a modern Feature-Pack UI.
-Decisions locked: **full Ribbon + dockable panes + themes**, and a **bar chart of current stock**
-(no time-series).
-- [ ] **Frame upgrade** to the MFC Feature Pack: `CWinAppEx` + `CFrameWndEx`, `CMFCVisualManager`
-  theming with a dark-mode toggle (`#include <afxcontrolbars.h>`).
-- [ ] **Ribbon** (`CMFCRibbonBar`) replacing the menu — tabs *Magazyn* (Refresh / Przyjmij /
-  Wydaj / Filtr) and *Widok* (panes, theme), with a quick-access toolbar.
-- [ ] **Dockable panes** (`CDockablePane`): **Dashboard**, **Movement log** (recent movements),
-  **Details** (selected product).
-- [ ] **Dashboard**: GDI+ owner-drawn **bar chart** of on-hand per product (and/or per
-  warehouse) from `vCurrentStock`, plus KPI tiles (total SKUs, # low-stock, total units).
-  No schema change.
-- [ ] **README** refresh with new screenshots; update `docs/SPEC.md` / `docs/PLAN.md` for M8.
+## M8 — modern MFC Feature Pack UI + dashboard  (core DONE)
+The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Feature-Pack UI.
+- [x] **Frame upgrade** — `CWinAppEx` + `CFrameWndEx`, `CMFCVisualManager` (Office2007) with a
+  dark-mode toggle; `<afxcontrolbars.h>`.
+- [x] **Ribbon** (`CMFCRibbonBar`) replaces the menu — *Magazyn* tab (Stany / Ruchy / Edycja
+  panels on the existing command ids) + *Widok* tab (theme + pane toggles). The IDR_MAINFRAME
+  menu is kept as the SDI shared menu but hidden via `SetMenu(nullptr)`.
+- [x] **Dockable panes** (`CDockablePane`, `DockPanes.*`): **Pulpit/Dashboard**, **Dziennik
+  ruchów** (Movement log), **Szczegóły** (Details), toggled from the Widok tab.
+- [x] **Dashboard** — `CDashboardPane` owner-draws (double-buffered) 3 KPI tiles (SKUs /
+  low-stock / total units) + a bar chart of on-hand per SKU from `vCurrentStock`; repaints on
+  every grid update (KPIs verified 5 / 7 / 154).
+- [ ] **Polish:** README screenshots + `docs/SPEC.md`/`PLAN.md` for M8; optionally populate the
+  Movement-log & Details panes (currently scaffolded), and add icons to the ribbon buttons.
 
 ## Build / test (Windows)
 ```bash
