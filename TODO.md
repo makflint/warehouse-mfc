@@ -60,9 +60,19 @@ recognition when diagnosing.
 Press **F2** in the app and speak: "odśwież", "pokaż niskie stany", "cofnij", "ponów",
 "przyjmij 10 4521".
 
+### Known limitations (voice)
+- **Voice movements don't name a warehouse.** A spoken `przyjmij/wydaj <ilość> <sku>` carries
+  quantity + SKU but **no warehouse**, so `DispatchVoice` resolves the SKU to the *first* matching
+  stock row — and every SKU exists in both MAG-A and MAG-B, so the target warehouse is implicit
+  (whichever row comes first). The dialog path (Przyjmij/Wydaj…) is unambiguous; voice is not.
+  Fix later: extend the grammar + parser with a warehouse term (e.g. "…magazyn A") and resolve it
+  in `DispatchVoice`, or default to a currently-selected warehouse.
+- `cofnij` is unreliable on whisper-small (use **anuluj**); `odśwież` mis-recognised on synthetic
+  (Paulina) input — both flagged red in `tools/e2e_voice.ps1`, candidates for the `medium` model.
+
 ### Possible later polish (not blocking)
-- Larger model (`ggml-small.bin`) if base mis-hears; a brief on-screen "Słucham…" status while
-  capturing; configurable capture seconds; recognised-text echo in the status bar.
+- A brief on-screen "Słucham…"/"Przetwarzam…" status; configurable capture seconds; recognised-text
+  echo in a status bar; try `ggml-medium.bin` for the stubborn words.
 
 ## Build / test (Windows)
 ```bash

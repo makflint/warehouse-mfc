@@ -3,8 +3,8 @@
 # Two corpora:
 #   - real    : your recordings in tests\voice_fixtures\ (manifest expected.csv) = the
 #               truthful accuracy measure.
-#   - paulina : SAPI-synthesised phrases = a stable fixture for pipeline wiring, but
-#               whisper mis-hears synthetic speech, so a FAIL is often a TTS artifact.
+#   - paulina : SAPI-synthesised phrases treated as clean GROUND-TRUTH input. A FAIL
+#               here is a real STT/parser failure, flagged like any other (no excuse).
 # Usage:  powershell -ExecutionPolicy Bypass -File tools\e2e_voice.ps1 [-Corpus both|real|paulina]
 param([ValidateSet('both','real','paulina')] [string]$Corpus = 'both')
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
