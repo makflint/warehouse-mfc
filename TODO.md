@@ -48,8 +48,11 @@ The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Featu
   every grid update (KPIs verified 5 / 7 / 154).
 - [x] **README + screenshots** refreshed for the Feature Pack UI
   (`docs/screenshots/01-dashboard`, `02-dark-theme`, `03-record-dialog`).
-- [ ] *Optional later:* update `docs/SPEC.md` / `docs/PLAN.md`; populate the Movement-log &
-  Details panes (currently scaffolded); add icons to the ribbon buttons.
+- [x] **Panes populated**: Details (selection-driven product info) and Movement log
+  (`StockRepository::loadRecentMovements` → recent IN/OUT with timestamps).
+- [ ] *Optional later:* update `docs/SPEC.md` / `docs/PLAN.md`; add icons to the ribbon
+  buttons; the two right-docked panes clip the 2nd when the window is narrow — a nicer
+  default dock layout (e.g. tabbed) would help.
 
 ## Build / test (Windows)
 ```bash
