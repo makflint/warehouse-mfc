@@ -198,6 +198,7 @@ void CMovementLogList::SetDark(bool dark) {
     SetTextBkColor(bg);
     const DWORD ex = GetExtendedStyle();
     SetExtendedStyle(dark ? (ex & ~LVS_EX_GRIDLINES) : (ex | LVS_EX_GRIDLINES));
+    EnableMarkSortedColumn(!dark, FALSE);  // light sort-column mark clashes on dark
     Invalidate();
 }
 

@@ -71,6 +71,9 @@ void CStockGrid::SetDark(bool dark) {
     // dark to match the clean property grid, keep them on light for scanning.
     const DWORD ex = GetExtendedStyle();
     SetExtendedStyle(dark ? (ex & ~LVS_EX_GRIDLINES) : (ex | LVS_EX_GRIDLINES));
+    // The light sort-column mark leaves a stray light strip on dark; the header
+    // arrow already indicates the sort, so disable the mark in dark.
+    EnableMarkSortedColumn(!dark, FALSE);
     Invalidate();
 }
 
