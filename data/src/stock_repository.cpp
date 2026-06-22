@@ -142,6 +142,46 @@ std::vector<StockRow> StockRepository::loadCurrentStock() {
     return rows;
 }
 
+std::vector<MovementRow> StockRepository::loadRecentMovements(int limit) {
+    if (limit < 1) limit = 1;
+    if (limit > 1000) limit = 1000;
+
+    SQLHSTMT stmt = SQL_NULL_HSTMT;
+    check(SQLAllocHandle(SQL_HANDLE_STMT, impl_->dbc, &stmt), SQL_HANDLE_DBC, impl_->dbc,
+          "alloc stmt");
+
+    const std::wstring sql =
+        L"SELECT TOP (" + std::to_wstring(limit) +
+        L") CONVERT(NVARCHAR(19), m.CreatedAt, 120), m.MovementType, p.Sku, w.Code, m.Qty "
+        L"FROM StockMovements m "
+        L"JOIN Products p   ON p.ProductId  = m.ProductId "
+        L"JOIN Warehouses w ON w.WarehouseId = m.WarehouseId "
+        L"ORDER BY m.MovementId DESC";
+
+    std::vector<MovementRow> rows;
+    try {
+        check(SQLExecDirectW(stmt, const_cast<SQLWCHAR*>(reinterpret_cast<const SQLWCHAR*>(sql.c_str())),
+                             SQL_NTS),
+              SQL_HANDLE_STMT, stmt, "select recent movements");
+        SQLRETURN rc;
+        while ((rc = SQLFetch(stmt)) != SQL_NO_DATA) {
+            check(rc, SQL_HANDLE_STMT, stmt, "fetch");
+            MovementRow row;
+            row.createdAt = getString(stmt, 1);
+            row.type = getString(stmt, 2);
+            row.sku = getString(stmt, 3);
+            row.warehouseCode = getString(stmt, 4);
+            row.qty = getInt(stmt, 5);
+            rows.push_back(std::move(row));
+        }
+    } catch (...) {
+        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        throw;
+    }
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    return rows;
+}
+
 int StockRepository::recordMovement(const Movement& movement) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
     check(SQLAllocHandle(SQL_HANDLE_STMT, impl_->dbc, &stmt), SQL_HANDLE_DBC, impl_->dbc,

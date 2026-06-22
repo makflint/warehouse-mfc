@@ -34,6 +34,7 @@ BOOL CWarehouseDoc::OnNewDocument() {
 void CWarehouseDoc::Refresh() {
     try {
         stock_ = repository().loadCurrentStock();
+        movements_ = repository().loadRecentMovements();
         UpdateAllViews(nullptr);
     } catch (const std::exception& error) {
         AfxMessageBox(FromUtf8(error.what()), MB_ICONERROR);

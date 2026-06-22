@@ -17,6 +17,7 @@ public:
     CWarehouseDoc();
 
     const std::vector<warehouse::StockRow>& Stock() const { return stock_; }
+    const std::vector<warehouse::MovementRow>& Movements() const { return movements_; }
 
     // Reload vCurrentStock from the database and refresh the views.
     void Refresh();
@@ -37,5 +38,6 @@ private:
 
     std::unique_ptr<warehouse::StockRepository> repo_;
     std::vector<warehouse::StockRow> stock_;
+    std::vector<warehouse::MovementRow> movements_;
     warehouse::CommandStack commands_;
 };

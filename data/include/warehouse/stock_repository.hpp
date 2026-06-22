@@ -24,6 +24,15 @@ struct StockRow {
     bool isLow = false;
 };
 
+// One entry of the append-only StockMovements log (most recent first).
+struct MovementRow {
+    std::string createdAt;      // "YYYY-MM-DD HH:MM:SS" (UTC)
+    std::string type;           // "IN" / "OUT"
+    std::string sku;
+    std::string warehouseCode;
+    int qty = 0;                // signed: + receive / - ship
+};
+
 // ODBC-backed access to the Warehouse database. Implements IMovementRecorder so
 // MovementCommand/CommandStack record through the same path as direct calls.
 // ODBC headers stay hidden behind a pImpl so this header is MFC/Windows-clean.
@@ -36,6 +45,9 @@ public:
     StockRepository& operator=(const StockRepository&) = delete;
 
     std::vector<StockRow> loadCurrentStock();
+
+    // The most recent movements (newest first), joined to sku + warehouse code.
+    std::vector<MovementRow> loadRecentMovements(int limit = 50);
 
     // Calls sp_RecordMovement and returns the new on-hand. Throws std::runtime_error
     // if the proc rejects the movement (insufficient stock -> THROW 50001).

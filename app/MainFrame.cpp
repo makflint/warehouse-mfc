@@ -3,6 +3,7 @@
 
 #include "MainFrame.h"
 #include "TextUtil.h"
+#include "WarehouseDoc.h"
 #include "warehouse/stock_repository.hpp"
 
 IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
@@ -71,13 +72,14 @@ void CMainFrame::CreatePanes() {
     dashboard_.EnableDocking(CBRS_ALIGN_ANY);
     DockPane(&dashboard_);
 
-    movementLog_.Create(_T("Dziennik ruchów"), this, CRect(0, 0, 280, 220), TRUE,
+    movementLog_.Create(_T("Dziennik ruchów"), this, CRect(0, 0, 300, 220), TRUE,
                         IDC_PANE_MOVEMENTS, style | CBRS_RIGHT);
     movementLog_.EnableDocking(CBRS_ALIGN_ANY);
     DockPane(&movementLog_);
-    movementLog_.List().InsertColumn(0, _T("Czas"), LVCFMT_LEFT, 80);
-    movementLog_.List().InsertColumn(1, _T("Ruch"), LVCFMT_LEFT, 60);
-    movementLog_.List().InsertColumn(2, _T("SKU"), LVCFMT_LEFT, 70);
+    movementLog_.List().InsertColumn(0, _T("Czas (UTC)"), LVCFMT_LEFT, 130);
+    movementLog_.List().InsertColumn(1, _T("Ruch"), LVCFMT_LEFT, 44);
+    movementLog_.List().InsertColumn(2, _T("SKU"), LVCFMT_LEFT, 54);
+    movementLog_.List().InsertColumn(3, _T("Ilość"), LVCFMT_RIGHT, 48);
 
     details_.Create(_T("Szczegóły"), this, CRect(0, 0, 280, 160), TRUE, IDC_PANE_DETAILS,
                     style | CBRS_RIGHT);
@@ -90,6 +92,22 @@ void CMainFrame::CreatePanes() {
 void CMainFrame::RefreshPanes() {
     if (dashboard_.GetSafeHwnd() != nullptr) {
         dashboard_.Invalidate();
+    }
+
+    auto* doc = DYNAMIC_DOWNCAST(CWarehouseDoc, GetActiveDocument());
+    CListCtrl& log = movementLog_.List();
+    if (doc != nullptr && log.GetSafeHwnd() != nullptr) {
+        log.DeleteAllItems();
+        int i = 0;
+        for (const warehouse::MovementRow& m : doc->Movements()) {
+            log.InsertItem(i, FromUtf8(m.createdAt));
+            log.SetItemText(i, 1, FromUtf8(m.type));
+            log.SetItemText(i, 2, FromUtf8(m.sku));
+            CString qty;
+            qty.Format(_T("%d"), m.qty < 0 ? -m.qty : m.qty);
+            log.SetItemText(i, 3, qty);
+            ++i;
+        }
     }
 }
 
