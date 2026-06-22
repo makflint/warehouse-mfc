@@ -178,19 +178,24 @@ void CStockView::OnVoiceListen() {
         return;  // a capture is already in flight
     }
     if (EnsureStt() == nullptr) {
-        AfxMessageBox(_T("Model głosowy (ggml-base.bin) niedostępny obok aplikacji."),
+        AfxMessageBox(_T("Model głosowy (ggml-small.bin) niedostępny obok aplikacji."),
                       MB_ICONWARNING);
         return;
     }
 
     listening_.store(true);
-    MessageBeep(MB_OK);  // audible cue: start speaking now
+    // Visible cue so the user knows exactly when to speak (a bare beep was too subtle).
+    if (CWnd* frame = AfxGetMainWnd()) {
+        frame->GetWindowText(savedTitle_);
+        frame->SetWindowText(_T("● Słucham — mów teraz…"));
+    }
+    MessageBeep(MB_OK);
 
     // Capture + recognise off the UI thread, then post the text back to ourselves.
     const HWND target = GetSafeHwnd();
     Stt* stt = stt_.get();
     std::thread([target, stt]() {
-        const std::vector<float> audio = mic::Record(4);
+        const std::vector<float> audio = mic::Record(6);  // long enough for "przyjmij <n> <sku>"
         const WPARAM captured = audio.empty() ? 0 : 1;  // distinguish a dead mic from silence
         std::string text = stt->Transcribe(audio);
         ::PostMessage(target, WM_STT_RESULT, captured,
@@ -201,6 +206,9 @@ void CStockView::OnVoiceListen() {
 LRESULT CStockView::OnSttResult(WPARAM captured, LPARAM lParam) {
     std::unique_ptr<std::string> text(reinterpret_cast<std::string*>(lParam));
     listening_.store(false);
+    if (CWnd* frame = AfxGetMainWnd()) {
+        frame->SetWindowText(savedTitle_);  // drop the "Słucham…" cue
+    }
     if (captured == 0) {
         AfxMessageBox(_T("Nie udało się nagrać z mikrofonu. Sprawdź, czy mikrofon jest ")
                       _T("włączony i dostępny w ustawieniach dźwięku."),

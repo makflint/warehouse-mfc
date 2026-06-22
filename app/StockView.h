@@ -52,4 +52,5 @@ private:
     bool sttLoadTried_ = false;
     std::unique_ptr<Stt> stt_;
     std::atomic<bool> listening_{false};
+    CString savedTitle_;  // frame title restored after the "Słucham…" cue
 };
