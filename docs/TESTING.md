@@ -110,6 +110,26 @@ the harness works around (process DPI-awareness, `HWND_TOP` vs `HWND_TOPMOST`, r
 the window size after activation, driving ribbon popups via the keyboard, `PrintWindow`
 caveats).
 
+## 4. Static analysis
+
+Two static gates back the test layers:
+
+- **Warnings-as-errors** — `core/`, `data/` and `app/` compile at **`/W4 /WX`** (Debug + Release).
+  The MFC app would otherwise drown in Feature-Pack-header warnings, so angle-bracket includes are
+  treated as **external** (`TreatAngleIncludesAsExternal` + `ExternalWarningLevel=TurnOffAllWarnings`)
+  — `/W4` gates *our* code while MFC/SDK headers stay quiet. The build is clean; a new warning now
+  breaks it.
+- **clang-tidy** — a curated check set (`.clang-tidy` at the repo root: `bugprone`, `performance`,
+  `modernize`, `readability`, `cppcoreguidelines`, minus the noisy/opinionated ones). Scoped to the
+  portable C++ in `core/` (and `data/`, which also parses); `app/` is not a clang-tidy target (it
+  leans on MSVC + the Feature Pack — the `/W4 /WX` gate covers it). Run:
+  ```powershell
+  $ct = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin\clang-tidy.exe"
+  & $ct core\src\*.cpp --quiet -- -std=c++17 -Icore\include      # 0 diagnostics = clean
+  & $ct data\src\*.cpp --quiet -- -std=c++17 -Idata\include -Icore\include -DUNICODE -D_UNICODE
+  ```
+  (needs the *C++ Clang tools for Windows* VS component.)
+
 ## Not automated (and why)
 - **No CI** — the build needs Windows + Visual Studio + MFC + LocalDB, which is out of scope
   for a portfolio demo. `core_tests` is the gate that matters and runs anywhere; the `tests/ui`

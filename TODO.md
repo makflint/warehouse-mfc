@@ -141,7 +141,9 @@ The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Featu
 - [ ] *(nice)* a guided **project tour**.
 
 ### Engineering hygiene
-- [ ] **Warnings-as-errors** (`/WX`) + a **clang-tidy / `/analyze`** pass.
+- [x] **Warnings-as-errors** — `core/` + `data/` + `app/` at **`/W4 /WX`** (MFC headers external-
+  silenced); **clang-tidy** curated set (`.clang-tidy`) clean on `core/` + `data/`. See
+  `docs/TESTING.md` → *Static analysis*.
 - [ ] Clean-code sweep.
 
 ## Build / test (Windows)

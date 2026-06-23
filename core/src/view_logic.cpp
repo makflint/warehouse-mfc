@@ -3,7 +3,15 @@
 namespace warehouse {
 namespace {
 
-int cmp(int a, int b) { return a < b ? -1 : (a > b ? 1 : 0); }
+int cmp(int a, int b) {
+    if (a < b) {
+        return -1;
+    }
+    if (a > b) {
+        return 1;
+    }
+    return 0;
+}
 
 int absValue(int x) { return x < 0 ? -x : x; }
 

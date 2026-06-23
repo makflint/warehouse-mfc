@@ -1,0 +1,24 @@
+# clang-tidy config for warehouse-mfc.
+#
+# Scoped at the portable C++ in core/ (and data/ where it parses) — the bug-catching and
+# clean-code checks that matter, minus the opinionated/noisy ones. The MFC app/ is not a
+# clang-tidy target (it leans on MSVC + the Feature Pack headers); its hygiene is the /W4 /WX
+# gate instead.
+#
+#   run: see docs/TESTING.md ("Static analysis")
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  modernize-*,
+  readability-*,
+  cppcoreguidelines-*,
+  -modernize-use-trailing-return-type,
+  -modernize-use-nodiscard,
+  -readability-magic-numbers,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -readability-identifier-length,
+  -llvmlibc-*
+
+WarningsAsErrors: ''
+HeaderFilterRegex: 'core[\\/]include[\\/]warehouse[\\/].*'

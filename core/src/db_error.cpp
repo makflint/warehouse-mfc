@@ -8,10 +8,10 @@ namespace {
 std::string trimmed(const std::string& s) {
     std::size_t begin = 0;
     std::size_t end = s.size();
-    while (begin < end && std::isspace(static_cast<unsigned char>(s[begin]))) {
+    while (begin < end && std::isspace(static_cast<unsigned char>(s[begin])) != 0) {
         ++begin;
     }
-    while (end > begin && std::isspace(static_cast<unsigned char>(s[end - 1]))) {
+    while (end > begin && std::isspace(static_cast<unsigned char>(s[end - 1])) != 0) {
         --end;
     }
     return s.substr(begin, end - begin);

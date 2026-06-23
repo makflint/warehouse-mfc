@@ -39,7 +39,12 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
+      <!-- /W4 on our code, but treat angle-bracket (MFC/SDK) headers as external and
+           silence their warnings, so /WX gates *our* code without MFC-header noise. -->
+      <TreatAngleIncludesAsExternal>true</TreatAngleIncludesAsExternal>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\core\include;$(ProjectDir)..\data\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
