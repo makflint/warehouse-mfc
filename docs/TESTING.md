@@ -47,19 +47,30 @@ complementary layers cover it, both driving the *running* app with real mouse/ke
 **UI Automation** (PowerShell):
 
 **3a. Assertion suite — [`tests/ui/`](../tests/ui/) (Pester).** Machine-verifiable checks
-that read **control state via UIA** (not pixels), so they pass/fail on their own with no human
-in the loop. Currently the record-movement dialog: that the combos *follow the selected grid
-row* (the end-to-end proof of the pre-select wiring — the decision itself, `selectedIndexForId`,
-is unit-tested in `core/`) and that an out-of-range quantity is rejected. Every case cancels
-out, so nothing is recorded and the suite is repeatable.
+that read **control state** (not pixels), so they pass/fail on their own with no human in the
+loop. State comes from **UIA** for what the framework exposes (dialog combos, the quantity
+field, top-level windows) and from **cross-process Win32 messages** for the stock grid, which
+the Feature-Pack list does *not* expose to UIA (`gridreader.ps1` — a `VirtualAllocEx` reader,
+entirely in the harness, no hooks in the app). Async changes are awaited with `Wait-Until`
+(poll), not fixed sleeps, so the checks don't race the UI thread. Covered:
+
+- **Dialog** — pre-select *follows the selected grid row* (the end-to-end proof of the wiring;
+  the decision `selectedIndexForId` is unit-tested in `core/`); out-of-range quantity rejected.
+- **Grid** — Stan sorts numerically, text columns ordinally; the filter narrows to low rows and
+  restores; selection tracked; a recorded movement changes on-hand and **undo/redo** restores it.
+- **Window** — the OUT dialog opens titled *Wydanie*; a dockable pane hide/show reflows the grid;
+  an extreme resize doesn't crash.
+
+The movement case records then undoes (net-zero, restored in a `finally`); dialog cases cancel —
+so the demo DB is unchanged and the suite repeats.
 
 ```powershell
 powershell -File tests\ui\Run.ps1      # exit code = failed-test count (0 = green)
 ```
 
-This layer can't reach everything: the MFC Feature-Pack **grids expose only bare panes to
-UIA** (no readable rows), and theme colours / the owner-drawn dashboard are inherently visual.
-Those stay with the exploratory harness below.
+Two things still resist assertion: the **sort arrow** (owner-drawn by `CMFCHeaderCtrl`, not a
+header flag — we assert the ordering instead) and theme colours / the owner-drawn dashboard
+(no readable state). Those stay with the exploratory harness below.
 
 **3b. Exploratory harness — [`tests/manual/`](../tests/manual/).** A scripted manual harness
 that drives the app and screenshots each step for a visual check — for corner-case sweeps and
@@ -67,11 +78,11 @@ the genuinely visual cases (theming, owner-draw, no-clipping-on-resize).
 
 ### Cases covered (happy path + corners)
 - **Selection** — left-click, right-click and keyboard arrows update the Details pane and
-  the status bar.
+  the status bar. *(selection tracking asserted in `tests/ui`.)*
 - **Sorting** — every column sorts in both grids; the sort arrow shows from startup (main
   grid by Magazyn ↑, Dziennik by Czas ↓); numeric columns sort numerically; the selection
-  is preserved across a re-sort.
-- **Filter** — "Tylko niskie" narrows the grid to low-stock rows.
+  is preserved across a re-sort. *(ordering asserted in `tests/ui`; the arrow stays visual.)*
+- **Filter** — "Tylko niskie" narrows the grid to low-stock rows. *(asserted in `tests/ui`.)*
 - **Record dialog (DDX/DDV)** — quantity is numeric-only and range-validated (1–1 000 000);
   empty / zero / over-max are rejected with a titled Polish message; Cancel is a no-op.
   *(zero-rejection and pre-select-follows-row are also asserted in `tests/ui`.)*
@@ -79,11 +90,12 @@ the genuinely visual cases (theming, owner-draw, no-clipping-on-resize).
   *(asserted in `tests/ui`.)*
 - **Overdraw** — issuing more than on-hand is rejected by the stored proc; stock unchanged.
 - **Undo / redo** — data and dashboard restore; correct enable/disable; persists to the DB.
+  *(on-hand restore asserted in `tests/ui`.)*
 - **Themes** — switch across all visual managers incl. the custom dark theme; chrome, grids,
-  dashboard and status bar all recolour.
-- **Panes** — hide/show via the ribbon; the central grid reflows.
+  dashboard and status bar all recolour. *(visual only.)*
+- **Panes** — hide/show via the ribbon; the central grid reflows. *(reflow asserted in `tests/ui`.)*
 - **Right-click menus** — the ribbon QAT and dockable-pane context menus (localized Polish).
-- **Robustness** — extreme window resize (no clipping or crash).
+- **Robustness** — extreme window resize (no clipping or crash). *(no-crash asserted in `tests/ui`.)*
 
 ### Run
 ```powershell

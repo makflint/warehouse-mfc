@@ -7,6 +7,7 @@ Add-Type -AssemblyName UIAutomationTypes
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName System.Windows.Forms
 
+if (-not ([System.Management.Automation.PSTypeName]'Native').Type) {
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
@@ -25,6 +26,7 @@ public class Native {
     public const uint MOUSEEVENTF_RIGHTDOWN = 0x0008, MOUSEEVENTF_RIGHTUP = 0x0010;
 }
 "@
+}
 
 [void][Native]::SetProcessDPIAware()  # one physical-pixel space for rect/mouse/screenshot/UIA
 
@@ -182,6 +184,18 @@ function Read-DlgField {
         [System.Windows.Automation.AutomationElement]::AutomationIdProperty, $AutomationId)
     $el = $d.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cond)
     if ($el) { return $el.Current.Name } else { return $null }
+}
+
+# Poll until a condition holds (or time out) — replaces fixed sleeps so assertions don't race
+# the UI thread. Returns $true if the condition became true, $false on timeout.
+function Wait-Until {
+    param([scriptblock]$Condition, [int]$TimeoutMs = 4000, [int]$PollMs = 150)
+    $deadline = (Get-Date).AddMilliseconds($TimeoutMs)
+    do {
+        if (& $Condition) { return $true }
+        Start-Sleep -Milliseconds $PollMs
+    } while ((Get-Date) -lt $deadline)
+    return $false
 }
 
 function Open-RecordIn { Click-Point $RecordInPoint[0] $RecordInPoint[1]; Start-Sleep -Milliseconds 500 }
