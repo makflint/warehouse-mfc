@@ -31,6 +31,15 @@ Describe "Window and panes" {
         Click-Point 104 50                        # back to Magazyn
     }
 
+    It "F1 opens the About dialog" {
+        Send-Key "{F1}"
+        $find = { $a = Find-El "O programie" "Window"; if (-not $a) { $a = Find-El "About" "Window" }; $a }
+        [void](Wait-Until { $null -ne (& $find) })
+        (& $find) | Should Not BeNullOrEmpty
+        Send-Key "{ENTER}"                        # close (OK)
+        [void](Wait-Until { $null -eq (& $find) })
+    }
+
     It "survives an extreme resize without crashing" {
         $h = Get-AppHwnd
         [void][Native]::SetWindowPos($h, [IntPtr]::Zero, 0, 0, 720, 480, 0x0050)

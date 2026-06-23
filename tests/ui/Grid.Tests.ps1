@@ -66,6 +66,25 @@ Describe "Stock grid" {
         ((Grid-Selected $g) -ge 0) | Should Be $true
     }
 
+    It "double-clicking a row opens the record dialog" {
+        Close-Dialog
+        DblClick-Point 450 212
+        [void](Wait-Until { Test-RecordDialogOpen })
+        Test-RecordDialogOpen | Should Be $true
+        Close-Dialog                       # cancel — nothing recorded
+        Test-RecordDialogOpen | Should Be $false
+    }
+
+    It "right-clicking a row shows a context menu" {
+        Close-Dialog
+        Click-Point 450 212 -Right
+        [void](Wait-Until { Test-ContextMenuOpen })
+        Test-ContextMenuOpen | Should Be $true
+        Send-Key "{ESC}"                   # dismiss
+        [void](Wait-Until { -not (Test-ContextMenuOpen) })
+        Test-ContextMenuOpen | Should Be $false
+    }
+
     It "applies a movement to on-hand and undo/redo restores it" {
         Click-Point 450 212                       # select a row
         $sel = Grid-Selected $g

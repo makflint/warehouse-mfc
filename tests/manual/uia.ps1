@@ -30,6 +30,24 @@ public class Native {
 
 [void][Native]::SetProcessDPIAware()  # one physical-pixel space for rect/mouse/screenshot/UIA
 
+if (-not ([System.Management.Automation.PSTypeName]'PopupMenu').Type) {
+Add-Type @"
+using System; using System.Text; using System.Runtime.InteropServices;
+public class PopupMenu {  // detect a tracking context menu (a visible #32768 window)
+    [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc cb, IntPtr l);
+    [DllImport("user32.dll")] static extern int GetClassName(IntPtr h, StringBuilder s, int n);
+    [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
+    delegate bool EnumProc(IntPtr h, IntPtr l);
+    static int _count; static EnumProc _cb = Cb;
+    static bool Cb(IntPtr h, IntPtr l) {
+        if (IsWindowVisible(h)) { var c = new StringBuilder(64); GetClassName(h, c, 64); if (c.ToString() == "#32768") _count++; }
+        return true;
+    }
+    public static int Count() { _count = 0; EnumWindows(_cb, IntPtr.Zero); return _count; }
+}
+"@
+}
+
 $global:AppRoot = "C:\Users\synap\Claude\warehouse-mfc"
 $global:ShotDir = "$AppRoot\tests\manual\shots"
 
@@ -121,6 +139,15 @@ function Click-Point { param([int]$X,[int]$Y,[switch]$Right)
 
 function Click-El { param($El,[switch]$Right) $p = Center-Of $El; Click-Point $p[0] $p[1] -Right:$Right }
 
+# Fast double-click (two clicks inside the system double-click time) at a screen point.
+function DblClick-Point { param([int]$X,[int]$Y)
+    [void][Native]::SetCursorPos($X,$Y); Start-Sleep -Milliseconds 90
+    [Native]::mouse_event([Native]::MOUSEEVENTF_LEFTDOWN,0,0,0,[UIntPtr]::Zero); [Native]::mouse_event([Native]::MOUSEEVENTF_LEFTUP,0,0,0,[UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 70
+    [Native]::mouse_event([Native]::MOUSEEVENTF_LEFTDOWN,0,0,0,[UIntPtr]::Zero); [Native]::mouse_event([Native]::MOUSEEVENTF_LEFTUP,0,0,0,[UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 350
+}
+
 function Invoke-El { param($El)
     try { $p=$El.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern); $p.Invoke(); Start-Sleep -Milliseconds 350; return $true } catch { return $false }
 }
@@ -177,6 +204,9 @@ function Find-RecordDialog {
 }
 
 function Test-RecordDialogOpen { return ($null -ne (Find-RecordDialog)) }
+
+# True while a context (popup) menu is on screen.
+function Test-ContextMenuOpen { return ([PopupMenu]::Count() -gt 0) }
 
 # Read a dialog control's text (a combo's selected item, or the quantity) by automation id.
 function Read-DlgField {
