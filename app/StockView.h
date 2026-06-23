@@ -71,6 +71,8 @@ protected:
 private:
     void RecordMovement(warehouse::MovementType type);
     void ShowLowOnly(bool on);
+    std::size_t SelectedStockIndex();           // Stock() index of the selected row (or none)
+    void SelectStockRow(std::size_t stockIdx);  // re-select by Stock() index; refreshes Details
 
     CStockGrid grid_;
     CFont uiFont_;

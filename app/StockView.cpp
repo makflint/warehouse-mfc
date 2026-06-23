@@ -19,6 +19,7 @@ constexpr int kColSku = 1;
 constexpr int kColProduct = 2;
 constexpr int kColOnHand = 3;
 constexpr UINT kGridId = 1;  // child id of the embedded grid
+constexpr std::size_t kNoSelection = static_cast<std::size_t>(-1);
 }  // namespace
 
 // --- CStockGrid (Feature-Pack list) ----------------------------------------
@@ -152,6 +153,10 @@ void CStockView::OnUpdate(CView* /*sender*/, LPARAM /*hint*/, CObject* /*hintObj
     if (doc == nullptr || grid_.GetSafeHwnd() == nullptr) {
         return;
     }
+    // DeleteAllItems clears the selection, so remember which row was selected and restore
+    // it after the reload — otherwise the Details pane keeps the pre-reload value (stale).
+    const std::size_t selectedStockIdx = SelectedStockIndex();
+
     const std::vector<warehouse::StockRow>& rows = doc->Stock();
     grid_.SetRows(&rows);
     grid_.DeleteAllItems();
@@ -173,6 +178,7 @@ void CStockView::OnUpdate(CView* /*sender*/, LPARAM /*hint*/, CObject* /*hintObj
         ++item;
     }
     grid_.Resort();  // keep the active sort after a data reload
+    SelectStockRow(selectedStockIdx);  // restore selection -> refreshes the Details pane
 
     // Keep the dashboard chart/KPIs in sync with the grid, and the status-bar row count
     // in sync with what's actually shown (visible vs total when filtered).
@@ -262,6 +268,27 @@ void CStockView::ShowLowOnly(bool on) {
 
 void CStockView::OnUpdateFilterLow(CCmdUI* cmdUI) {
     cmdUI->SetCheck(showLowOnly_ ? 1 : 0);
+}
+
+// Stock() index of the currently selected grid row, or kNoSelection if nothing is selected.
+std::size_t CStockView::SelectedStockIndex() {
+    const int sel = grid_.GetNextItem(-1, LVNI_SELECTED);
+    return (sel >= 0) ? static_cast<std::size_t>(grid_.GetItemData(sel)) : kNoSelection;
+}
+
+// Re-select the grid row carrying this Stock() index. Setting the selected state fires
+// LVN_ITEMCHANGED, so OnItemChanged repopulates the Details pane with the current data.
+void CStockView::SelectStockRow(std::size_t stockIdx) {
+    if (stockIdx == kNoSelection) {
+        return;
+    }
+    for (int i = 0; i < grid_.GetItemCount(); ++i) {
+        if (static_cast<std::size_t>(grid_.GetItemData(i)) == stockIdx) {
+            grid_.SetItemState(i, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+            grid_.EnsureVisible(i, FALSE);
+            return;
+        }
+    }
 }
 
 // On row selection, push that product's details into the Details pane.
