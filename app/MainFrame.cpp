@@ -21,11 +21,12 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_WM_CREATE()
     ON_COMMAND_RANGE(ID_THEME_OFFICE_BLUE, ID_THEME_DARK, &CMainFrame::OnTheme)
     ON_UPDATE_COMMAND_UI_RANGE(ID_THEME_OFFICE_BLUE, ID_THEME_DARK, &CMainFrame::OnUpdateTheme)
-    ON_UPDATE_COMMAND_UI(ID_THEME_MENU, &CMainFrame::OnUpdateThemeMenu)
+    ON_UPDATE_COMMAND_UI(ID_THEME_MENU, &CMainFrame::OnUpdateMenuButton)
     ON_COMMAND_RANGE(ID_TOGGLE_DASHBOARD, ID_TOGGLE_DETAILS, &CMainFrame::OnViewPane)
     ON_UPDATE_COMMAND_UI_RANGE(ID_TOGGLE_DASHBOARD, ID_TOGGLE_DETAILS, &CMainFrame::OnUpdateViewPane)
     ON_COMMAND_RANGE(ID_LANG_POLISH, ID_LANG_ENGLISH, &CMainFrame::OnLanguage)
     ON_UPDATE_COMMAND_UI_RANGE(ID_LANG_POLISH, ID_LANG_ENGLISH, &CMainFrame::OnUpdateLanguage)
+    ON_UPDATE_COMMAND_UI(ID_LANG_MENU, &CMainFrame::OnUpdateMenuButton)
 END_MESSAGE_MAP()
 
 CMainFrame::CMainFrame() {}
@@ -110,7 +111,8 @@ void CMainFrame::BuildRibbon() {
     panele->Add(new CMFCRibbonButton(ID_TOGGLE_DETAILS, T(i18n::BtnDetails), 3, 3));
 
     CMFCRibbonPanel* jezyk = widok->AddPanel(T(i18n::PanelLanguage));
-    auto* langMenu = new CMFCRibbonButton(ID_LANG_MENU, T(i18n::BtnLanguage), 0, 0);
+    // No icon (the Widok image strip has no language glyph) — text-only avoids the wrong moon.
+    auto* langMenu = new CMFCRibbonButton(ID_LANG_MENU, T(i18n::BtnLanguage), -1, -1);
     langMenu->SetDefaultCommand(FALSE);
     langMenu->AddSubItem(new CMFCRibbonButton(ID_LANG_POLISH, T(i18n::LangPolish)));
     langMenu->AddSubItem(new CMFCRibbonButton(ID_LANG_ENGLISH, T(i18n::LangEnglish)));
@@ -296,8 +298,8 @@ void CMainFrame::OnUpdateTheme(CCmdUI* cmdUI) {
     cmdUI->SetRadio(cmdUI->m_nID == currentTheme_);  // dot the active theme
 }
 
-// The drop-down container has no command of its own; keep it enabled so its menu opens
-// (MFC would otherwise auto-disable a command with no ON_COMMAND handler).
-void CMainFrame::OnUpdateThemeMenu(CCmdUI* cmdUI) {
+// A drop-down container button (Motyw, Język) has no command of its own; keep it enabled so
+// its menu opens (MFC would otherwise auto-disable a command with no ON_COMMAND handler).
+void CMainFrame::OnUpdateMenuButton(CCmdUI* cmdUI) {
     cmdUI->Enable(TRUE);
 }

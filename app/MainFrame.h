@@ -30,7 +30,7 @@ protected:
     void OnUpdateFrameTitle(BOOL bAddToTitle) override;  // fixed product caption (no slug)
     afx_msg void OnTheme(UINT cmdId);
     afx_msg void OnUpdateTheme(CCmdUI* cmdUI);
-    afx_msg void OnUpdateThemeMenu(CCmdUI* cmdUI);
+    afx_msg void OnUpdateMenuButton(CCmdUI* cmdUI);  // keep Motyw/Język drop-downs enabled
     afx_msg void OnViewPane(UINT cmdId);
     afx_msg void OnUpdateViewPane(CCmdUI* cmdUI);
     afx_msg void OnLanguage(UINT cmdId);
