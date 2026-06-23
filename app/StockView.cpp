@@ -120,7 +120,7 @@ int CStockView::OnCreate(LPCREATESTRUCT createStruct) {
     grid_.InsertColumn(kColWarehouse, i18n::T(i18n::ColWarehouse), LVCFMT_LEFT, 105);  // fits EN "Warehouse" + sort arrow
     grid_.InsertColumn(kColSku, i18n::T(i18n::ColSku), LVCFMT_LEFT, 70);
     grid_.InsertColumn(kColProduct, i18n::T(i18n::ColProduct), LVCFMT_LEFT, 220);
-    grid_.InsertColumn(kColOnHand, i18n::T(i18n::ColOnHand), LVCFMT_RIGHT, 70);
+    grid_.InsertColumn(kColOnHand, i18n::T(i18n::ColOnHand), LVCFMT_RIGHT, 88);  // fits EN "On hand" + sort arrow
     CreateUiFont(uiFont_);
     if (uiFont_.GetSafeHandle() != nullptr) {
         grid_.SetFont(&uiFont_);
