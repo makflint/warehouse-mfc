@@ -20,16 +20,20 @@ pattern). Built as a portfolio piece for a *Senior C++ Developer (MFC)* role.
   `core/` static lib with **TDD** (Catch2), verified without a GUI.
 - **Modern MFC (M8)**: an MFC **Feature Pack** UI — `CMFCRibbonBar`, dockable panes,
   visual-manager themes (dark mode), and an owner-drawn **dashboard** (KPI tiles + bar chart).
+- **Localized & Unicode-correct**: Polish UI *and* data with full diacritics end-to-end —
+  UTF-8 `.cpp`/`.rc` resources (incl. the localized Feature Pack context menus) and wide ODBC
+  (`SQLExecDirectW`, `N'…'` literals, `NVARCHAR`). The seed names (*Młotek*, *Wkrętarka*,
+  *Śruba*…) and SQL Server error messages round-trip cleanly to the UI.
 
 ## Screenshots
 ![Ribbon UI + dashboard + docked panes](docs/screenshots/04-feature-pack.png)
 
 The MFC **Feature Pack** UI: a `CMFCRibbonBar` with icon glyphs (*Magazyn* / *Widok* tabs), an
-owner-drawn **Pulpit** (dashboard) pane with KPI tiles + an on-hand bar chart, the stock grid with
-low-stock rows in red, the **Szczegóły** / **Dziennik ruchów** panes sharing one **tab group**, and
-a `CMFCRibbonStatusBar` (row count · selected SKU · connection profile).
+owner-drawn **Pulpit** (dashboard) pane with KPI tiles + an on-hand bar chart, the stock grid (with
+low-stock rows in red and proper Polish names), the **Szczegóły** / **Dziennik ruchów** panes sharing
+one **tab group**, and a `CMFCRibbonStatusBar` (row count · selected symbol · connection profile).
 
-| Dark theme (Widok → Ciemny motyw) | Record movement (DDX/DDV) |
+| Dark theme (Widok → Motyw → Ciemny) | Record movement (DDX/DDV) |
 |---|---|
 | ![Dark theme](docs/screenshots/02-dark-theme.png) | ![Record dialog](docs/screenshots/03-record-dialog.png) |
 
@@ -56,10 +60,30 @@ No web/HTTP in C++ — the app only talks to SQL Server via **ODBC**.
 ```powershell
 git clone <this repo>
 cd warehouse-mfc
-# 1) create the demo DB in LocalDB and seed it
+# 1) create the demo DB in LocalDB and seed it (optional — the app self-seeds on first run)
 sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql
 sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\02_seed.sql
 # 2) open warehouse-mfc.sln in Claude Code / VS and follow docs/PLAN.md
+```
+> The SQL scripts are **UTF-8** (Polish names with diacritics). The app's first-run self-seed
+> (`SQLExecDirectW`) and the modern `sqlcmd` handle this natively; the classic SQL-tools
+> `sqlcmd` needs `-f 65001`.
+
+## Testing
+- **Unit tests (`core/`)** — stock math and the Command/undo stack are TDD'd with **Catch2**;
+  build `core_tests` and run `x64\Debug\core_tests.exe` (exit `0` = green).
+- **Manual UI harness** — [`tests/manual/`](tests/manual/) drives the *running* app with real
+  mouse/keyboard + **UI Automation** (PowerShell) and screenshots each step, for exploratory
+  end-to-end checks beyond the happy path: right-click context menus, invalid/boundary quantity,
+  stock overdraw (rejected by the stored proc), undo/redo, theme switching, tiny-window resize.
+  See [its README](tests/manual/README.md) for the Windows DPI/timing quirks it works around.
+
+```powershell
+# unit tests
+msbuild warehouse-mfc.sln /p:Configuration=Debug /p:Platform=x64 /t:core_tests
+x64\Debug\core_tests.exe
+# manual UI pass (app must be built)
+. tests\manual\uia.ps1   # then: Pin-App; Click-Point ...; Shot-App 01
 ```
 
 ## Demo installer (one-click)
