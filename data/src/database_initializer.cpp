@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <string>
 #include <vector>
 
 #pragma comment(lib, "odbc32.lib")
@@ -22,9 +23,30 @@ std::string readFile(const std::string& path) {
     if (!file) {
         return {};
     }
-    std::ostringstream content;
-    content << file.rdbuf();
-    return content.str();
+    std::ostringstream stream;
+    stream << file.rdbuf();
+    std::string content = stream.str();
+    // Strip a leading UTF-8 BOM so it doesn't end up as U+FEFF at the start of the batch.
+    if (content.size() >= 3 && static_cast<unsigned char>(content[0]) == 0xEF &&
+        static_cast<unsigned char>(content[1]) == 0xBB &&
+        static_cast<unsigned char>(content[2]) == 0xBF) {
+        content.erase(0, 3);
+    }
+    return content;
+}
+
+// The .sql scripts are UTF-8; widen so SQLExecDirectW preserves Polish in N'...' literals
+// (SQLExecDirectA would reinterpret the bytes in the client ANSI code page and mangle them).
+std::wstring toWide(const std::string& utf8) {
+    if (utf8.empty()) {
+        return {};
+    }
+    const int length =
+        ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(), static_cast<int>(utf8.size()), nullptr, 0);
+    std::wstring wide(length, L'\0');
+    ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(), static_cast<int>(utf8.size()), wide.data(),
+                          length);
+    return wide;
 }
 
 std::string trim(const std::string& line) {
@@ -82,7 +104,9 @@ void runScript(SQLHDBC dbc, const std::string& script) {
         if (failed(SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt))) {
             continue;
         }
-        SQLExecDirectA(stmt, reinterpret_cast<SQLCHAR*>(const_cast<char*>(batch.c_str())), SQL_NTS);
+        std::wstring wide = toWide(batch);
+        SQLExecDirectW(stmt, reinterpret_cast<SQLWCHAR*>(const_cast<wchar_t*>(wide.c_str())),
+                       SQL_NTS);
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
     }
 }

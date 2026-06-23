@@ -79,7 +79,7 @@ BEGIN
         IF (@current + @signed < 0)
         BEGIN
             ROLLBACK TRAN;
-            THROW 50001, N'Brak wystarczajacego stanu dla wydania (OUT).', 1;
+            THROW 50001, N'Brak wystarczającego stanu dla wydania (OUT).', 1;
         END
 
         INSERT INTO StockMovements (ProductId, WarehouseId, Qty, MovementType, Note)

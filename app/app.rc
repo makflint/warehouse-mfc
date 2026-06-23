@@ -1,4 +1,4 @@
-#include "resource.h"
+﻿#include "resource.h"
 #include <afxres.h>
 #include <afxribbonres.h>   // IDs for the framework's ribbon/pane context-menu strings
 
@@ -11,16 +11,16 @@ IDR_MAINFRAME MENU
 BEGIN
     POPUP "&Plik"
     BEGIN
-        MENUITEM "Za&koncz",                    ID_APP_EXIT
+        MENUITEM "Za&kończ",                    ID_APP_EXIT
     END
     POPUP "&Edycja"
     BEGIN
         MENUITEM "&Cofnij\tCtrl+Z",             ID_EDIT_UNDO
-        MENUITEM "&Ponow\tCtrl+Y",              ID_EDIT_REDO
+        MENUITEM "&Ponów\tCtrl+Y",              ID_EDIT_REDO
     END
     POPUP "&Magazyn"
     BEGIN
-        MENUITEM "&Odswiez\tF5",                ID_STOCK_REFRESH
+        MENUITEM "&Odśwież\tF5",                ID_STOCK_REFRESH
         MENUITEM SEPARATOR
         MENUITEM "Przyjmij (&IN)...",           ID_STOCK_RECORD_IN
         MENUITEM "Wydaj (&OUT)...",             ID_STOCK_RECORD_OUT
@@ -71,10 +71,10 @@ IDB_RIBBON_WIDOK_32   BITMAP "res\\ribbon_widok_32.bmp"
 STRINGTABLE
 BEGIN
     IDR_MAINFRAME           "warehouse-mfc\n\nWarehouse\n\n\nWarehouse.Document\nWarehouse Document"
-    ID_STOCK_REFRESH        "Przeladuj biezace stany z bazy\nOdswiez"
-    ID_STOCK_RECORD_IN      "Zarejestruj przyjecie (IN)\nPrzyjmij"
+    ID_STOCK_REFRESH        "Przeładuj bieżące stany z bazy\nOdśwież"
+    ID_STOCK_RECORD_IN      "Zarejestruj przyjęcie (IN)\nPrzyjmij"
     ID_STOCK_RECORD_OUT     "Zarejestruj wydanie (OUT)\nWydaj"
-    ID_STOCK_FILTER_LOW     "Pokaz tylko pozycje ponizej progu\nFiltr niskich stanow"
+    ID_STOCK_FILTER_LOW     "Pokaż tylko pozycje poniżej progu\nFiltr niskich stanów"
     ID_THEME_MENU           "Wybierz motyw kolorystyczny\nMotyw"
 END
 
