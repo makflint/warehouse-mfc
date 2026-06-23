@@ -10,11 +10,21 @@ back by eye. The captures land in `shots/` (git-ignored).
 
 ## Files
 - `uia.ps1` — driver library (dot-source it). Helpers: `Pin-App`, `Fix-Size`,
-  `Find-El`, `Click-Point [-Right]`, `Send-Key`, `Shot-App`, `Shot-Screen`, `Dump-Tree`.
+  `Find-El`, `Click-Point [-Right]`, `Send-Key`, `Shot-App`, `Shot-Screen`, `Dump-Tree`,
+  plus assertion readers (`Read-DlgField`, `Test-RecordDialogOpen`, …) shared with `tests/ui`.
+- `sweep.ps1` — **codified exploratory sweep**: one command walks a full scenario (sort every
+  column, filter, both record dialogs, quantity validation, undo/redo, dark/light theme, pane
+  hide/show, extreme resize) and captures ~21 screenshots into `shots/` for a by-eye review.
+  The capture is repeatable; the assessment stays visual. The undo/redo cycle records then
+  immediately undoes (net-zero), so the demo DB is left unchanged.
 - `shot.ps1` — standalone foreground window-capture (`-Name app -Out file.png`).
 
 ## Usage
 ```powershell
+# whole sweep in one go:
+powershell -File tests\manual\sweep.ps1
+
+# or drive it by hand:
 . .\tests\manual\uia.ps1
 Pin-App                       # launch must be running; pins to 1280x1015 on-screen
 Click-Point 158 110           # e.g. the Przyjmij ribbon button
@@ -31,5 +41,8 @@ Shot-App 01-dialog            # -> tests/manual/shots/01-dialog.png
 - Synthetic `mouse_event` clicks land on ribbon buttons, grid rows, headers and dialog
   buttons, but **not** on ribbon popup menus or dock-pane tab strips — drive those with
   the keyboard (`{END}{ENTER}`) instead.
+- The ribbon **Cofnij/Ponów** (undo/redo) buttons enable a frame after a movement is
+  recorded, so an immediate pixel click can miss — drive undo/redo via the `^z` / `^y`
+  accelerators, which always route regardless of button state.
 - `PrintWindow` flag 2 (`PW_RENDERFULLCONTENT`) renders list controls too tall and is
   misleading — use flag 0 or `CopyFromScreen`.
