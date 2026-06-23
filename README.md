@@ -70,20 +70,14 @@ sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\02_seed.sql
 > `sqlcmd` needs `-f 65001`.
 
 ## Testing
-- **Unit tests (`core/`)** — stock math and the Command/undo stack are TDD'd with **Catch2**;
-  build `core_tests` and run `x64\Debug\core_tests.exe` (exit `0` = green).
-- **Manual UI harness** — [`tests/manual/`](tests/manual/) drives the *running* app with real
-  mouse/keyboard + **UI Automation** (PowerShell) and screenshots each step, for exploratory
-  end-to-end checks beyond the happy path: right-click context menus, invalid/boundary quantity,
-  stock overdraw (rejected by the stored proc), undo/redo, theme switching, tiny-window resize.
-  See [its README](tests/manual/README.md) for the Windows DPI/timing quirks it works around.
+Two layers: **unit tests** for the GUI-free `core/` (TDD, Catch2) and a **manual UI harness**
+([`tests/manual/`](tests/manual/)) that drives the running app via UI Automation for
+exploratory end-to-end checks (right-click menus, invalid/boundary input, overdraw, undo,
+themes, resize). Full methodology + case list: **[docs/TESTING.md](docs/TESTING.md)**.
 
 ```powershell
-# unit tests
 msbuild warehouse-mfc.sln /p:Configuration=Debug /p:Platform=x64 /t:core_tests
-x64\Debug\core_tests.exe
-# manual UI pass (app must be built)
-. tests\manual\uia.ps1   # then: Pin-App; Click-Point ...; Shot-App 01
+x64\Debug\core_tests.exe        # exit 0 = green
 ```
 
 ## Demo installer (one-click)
