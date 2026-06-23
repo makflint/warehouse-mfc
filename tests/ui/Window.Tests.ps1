@@ -8,7 +8,7 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Describe "Window and panes" {
 
-    Ensure-App; Send-Key "{ESC}"; Click-Point 60 50; Pin-App   # Magazyn tab
+    Ensure-App; Send-Key "{ESC}"; Click-Point 104 50; Pin-App   # Magazyn tab
     $g = Get-MainGrid
 
     It "opens the OUT dialog titled Wydanie" {
@@ -21,14 +21,14 @@ Describe "Window and panes" {
 
     It "hides and restores a dockable pane; the centre grid reflows" {
         $w0 = Grid-Width $g
-        Click-Point 127 50                        # Widok tab
+        Click-Point 178 50                        # Widok tab
         Click-Point 110 110                       # toggle Pulpit (left pane) off
         [void](Wait-Until { (Grid-Width $g) -ne $w0 })
         ((Grid-Width $g) -gt $w0) | Should Be $true   # grid widened into the freed space
         Click-Point 110 110                       # restore
         [void](Wait-Until { (Grid-Width $g) -eq $w0 })
         ((Grid-Width $g) -eq $w0) | Should Be $true
-        Click-Point 60 50                         # back to Magazyn
+        Click-Point 104 50                        # back to Magazyn
     }
 
     It "survives an extreme resize without crashing" {

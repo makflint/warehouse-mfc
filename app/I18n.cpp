@@ -88,6 +88,7 @@ const LPCTSTR kCatalog[Tx::Count][2] = {
                             _T("The language change will take effect after you restart the app.")},
     /* MsgResetLayout   */ {_T("Przywrócić domyślny układ paneli? Aplikacja zostanie uruchomiona ponownie."),
                             _T("Restore the default pane layout? The app will restart.")},
+    /* MenuExit         */ {_T("Zakończ"), _T("Exit")},
 };
 
 }  // namespace

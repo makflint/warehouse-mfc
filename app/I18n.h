@@ -53,6 +53,9 @@ enum Tx {
     // Messages
     MsgRestart, MsgResetLayout,
 
+    // Application-button menu
+    MenuExit,
+
     Count
 };
 

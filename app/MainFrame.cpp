@@ -77,6 +77,13 @@ void CMainFrame::BuildRibbon() {
     ribbon_.Create(this);
     ribbon_.EnableToolTips();
 
+    // Round application button (top-left of the caption) carrying the app icon — the
+    // Office-style way to show the app's icon in a ribbon title bar. Its menu holds Exit.
+    ribbon_.SetApplicationButton(new CMFCRibbonApplicationButton(IDB_APPBTN), CSize(45, 45));
+    CMFCRibbonMainPanel* mainPanel =
+        ribbon_.AddMainCategory(T(i18n::AppTitle), IDB_RIBBON_MAGAZYN_16, IDB_RIBBON_MAGAZYN_32);
+    mainPanel->Add(new CMFCRibbonButton(ID_APP_EXIT, T(i18n::MenuExit), -1, -1));
+
     // Each category owns a small (16px) + large (32px) image strip; the button's
     // image index selects its glyph within that category's strip.
     CMFCRibbonCategory* magazyn =

@@ -29,7 +29,7 @@ function Is-NonDecreasingText($vals) {
 
 Describe "Stock grid" {
 
-    Ensure-App; Send-Key "{ESC}"; Click-Point 60 50; Pin-App   # Magazyn tab
+    Ensure-App; Send-Key "{ESC}"; Click-Point 104 50; Pin-App   # Magazyn tab
     $g = Get-MainGrid
 
     It "is populated" {

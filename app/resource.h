@@ -50,6 +50,7 @@
 #define IDB_RIBBON_MAGAZYN_32 201
 #define IDB_RIBBON_WIDOK_16   202
 #define IDB_RIBBON_WIDOK_32   203
+#define IDB_APPBTN            204  // ribbon application-button (round orb) image
 
 // Status-bar indicator panes (also their string-table ids, which size each pane).
 #define ID_INDICATOR_ROWS 0xE720

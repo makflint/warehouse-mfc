@@ -27,7 +27,7 @@ if ($Lang) {
 
 # Ribbon/grid hit points in pinned-window (1280-wide) pixel coordinates. UIA can't see the
 # MFC ribbon or grid rows, so these are read from screenshots (re-probe if the layout changes).
-$TabMagazyn = @(60, 50);   $TabWidok = @(127, 50)
+$TabMagazyn = @(104, 50);  $TabWidok = @(178, 50)   # shifted right by the ribbon application button
 $Odswiez = @(38, 100); $TylkoNiskie = @(102, 100); $Przyjmij = @(158, 108); $Wydaj = @(207, 100)
 $Cofnij = @(270, 100); $Ponow = @(320, 100)
 $Motyw = @(40, 105); $TogglePulpit = @(110, 110); $ToggleDziennik = @(155, 110); $ToggleSzczegoly = @(210, 110)
