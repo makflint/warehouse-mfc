@@ -70,7 +70,7 @@ IDB_RIBBON_WIDOK_32   BITMAP "res\\ribbon_widok_32.bmp"
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "warehouse-mfc\n\nWarehouse\n\n\nWarehouse.Document\nWarehouse Document"
+    IDR_MAINFRAME           "Stany Magazynowe\n\nWarehouse\n\n\nWarehouse.Document\nWarehouse Document"
     ID_STOCK_REFRESH        "Przeładuj bieżące stany z bazy\nOdśwież"
     ID_STOCK_RECORD_IN      "Zarejestruj przyjęcie (IN)\nPrzyjmij"
     ID_STOCK_RECORD_OUT     "Zarejestruj wydanie (OUT)\nWydaj"

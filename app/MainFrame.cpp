@@ -39,6 +39,13 @@ int CMainFrame::OnCreate(LPCREATESTRUCT createStruct) {
 // The ribbon status bar themes with the ribbon. Row count + selected SKU sit on
 // the left; the connection profile is right-aligned as an "extended" element. The
 // label strings double as the pane's sizing hint.
+// Show just the product title (the IDR_MAINFRAME window title, now "Stany Magazynowe").
+// Passing FALSE suppresses MFC's "{doc title} - " prefix; going through the framework
+// method (not a raw SetWindowText) also refreshes the themed CFrameWndEx caption.
+void CMainFrame::OnUpdateFrameTitle(BOOL /*bAddToTitle*/) {
+    CFrameWndEx::OnUpdateFrameTitle(FALSE);
+}
+
 void CMainFrame::CreateStatusBar() {
     statusBar_.Create(this);
     statusBar_.AddElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_ROWS, _T("Pozycje: 0000"), TRUE), _T(""));
@@ -145,7 +152,7 @@ void CMainFrame::RefreshPanes() {
 
     CListCtrl& log = movementLog_.List();
     if (doc != nullptr && log.GetSafeHwnd() != nullptr) {
-        movementLog_.SetRows(&doc->Movements());  // backs the Czas-column sort
+        movementLog_.SetRows(&doc->Movements());  // backs the column sort
         log.DeleteAllItems();
         int i = 0;
         for (const warehouse::MovementRow& m : doc->Movements()) {
@@ -159,6 +166,7 @@ void CMainFrame::RefreshPanes() {
             log.SetItemData(i, static_cast<DWORD_PTR>(i));  // index into Movements()
             ++i;
         }
+        movementLog_.Resort();  // keep the active sort (default: Czas descending) after reload
     }
 }
 

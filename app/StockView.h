@@ -31,8 +31,8 @@ protected:
 private:
     const std::vector<warehouse::StockRow>* rows_ = nullptr;
     bool dark_ = false;
-    int sortColumn_ = -1;
-    BOOL ascending_ = TRUE;
+    int sortColumn_ = 0;       // default sort: Magazyn...
+    BOOL ascending_ = TRUE;    // ...ascending (matches the SQL ORDER BY); shows the arrow on load
 };
 
 // The view hosts the grid (a CView, not a CListView, so it can own a CMFCListCtrl).

@@ -29,12 +29,18 @@ private:
     bool dark_ = false;
 };
 
-// Movement-log list: a Feature-Pack list that sorts on the Czas column only
-// (the other columns aren't meaningful to sort by).
+// Movement-log list: a Feature-Pack list where every column sorts (consistent with the
+// main grid). Starts sorted by Czas descending (newest first), so the sort arrow is
+// visible from the start.
 class CMovementLogList : public CMFCListCtrl {
 public:
     void SetRows(const std::vector<warehouse::MovementRow>* rows) { rows_ = rows; }
     void SetDark(bool dark);
+    void Resort() {  // re-apply the active sort after the log is repopulated
+        if (sortColumn_ >= 0) {
+            Sort(sortColumn_, ascending_);
+        }
+    }
 
 protected:
     int OnCompareItems(LPARAM lParam1, LPARAM lParam2, int column) override;
@@ -45,6 +51,8 @@ protected:
 private:
     const std::vector<warehouse::MovementRow>* rows_ = nullptr;
     bool dark_ = false;
+    int sortColumn_ = 0;       // default sort: Czas...
+    BOOL ascending_ = FALSE;   // ...descending (newest first)
 };
 
 // Movement-log pane hosting the list above.
@@ -53,6 +61,7 @@ public:
     CMFCListCtrl& List() { return list_; }
     void SetRows(const std::vector<warehouse::MovementRow>* rows) { list_.SetRows(rows); }
     void SetDark(bool dark) { list_.SetDark(dark); }
+    void Resort() { list_.Resort(); }  // keep the active sort after a repopulate
 
 protected:
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);

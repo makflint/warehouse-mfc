@@ -169,9 +169,11 @@ void CDashboardPane::OnPaint() {
     mem.SelectObject(oldBmp);
 }
 
-// --- Movement-log list (Czas-only sort) ------------------------------------
+// --- Movement-log list (every column sorts) --------------------------------
+// Items carry their Movements() index as item data, so each column compares the
+// underlying field (numeric for Ilość, text otherwise) rather than the cell strings.
 int CMovementLogList::OnCompareItems(LPARAM lParam1, LPARAM lParam2, int column) {
-    if (rows_ == nullptr || column != 0) {  // only the Czas column sorts
+    if (rows_ == nullptr) {
         return 0;
     }
     const std::size_t a = static_cast<std::size_t>(lParam1);
@@ -179,13 +181,27 @@ int CMovementLogList::OnCompareItems(LPARAM lParam1, LPARAM lParam2, int column)
     if (a >= rows_->size() || b >= rows_->size()) {
         return 0;
     }
-    return (*rows_)[a].createdAt.compare((*rows_)[b].createdAt);  // ISO text = chronological
+    const warehouse::MovementRow& ra = (*rows_)[a];
+    const warehouse::MovementRow& rb = (*rows_)[b];
+    switch (column) {
+        case 0: return ra.createdAt.compare(rb.createdAt);          // Czas (ISO text = chronological)
+        case 1: return ra.warehouseCode.compare(rb.warehouseCode);  // Magazyn
+        case 2: return ra.type.compare(rb.type);                    // Ruch (IN/OUT)
+        case 3: return ra.sku.compare(rb.sku);                      // Symbol
+        case 4: {                                                   // Ilość, by the displayed |qty|
+            const int qa = ra.qty < 0 ? -ra.qty : ra.qty;
+            const int qb = rb.qty < 0 ? -rb.qty : rb.qty;
+            return qa - qb;
+        }
+        default: return 0;
+    }
 }
 
+// Capture the active sort column/direction so Resort() can re-apply it after a reload.
 void CMovementLogList::Sort(int column, BOOL ascending, BOOL add) {
-    if (column == 0) {  // ignore clicks on the other columns (no arrow, no reorder)
-        CMFCListCtrl::Sort(column, ascending, add);
-    }
+    sortColumn_ = column;
+    ascending_ = ascending;
+    CMFCListCtrl::Sort(column, ascending, add);
 }
 
 void CMovementLogList::SetDark(bool dark) {

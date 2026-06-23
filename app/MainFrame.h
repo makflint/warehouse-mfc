@@ -24,6 +24,7 @@ public:
 
 protected:
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
+    void OnUpdateFrameTitle(BOOL bAddToTitle) override;  // fixed product caption (no slug)
     afx_msg void OnTheme(UINT cmdId);
     afx_msg void OnUpdateTheme(CCmdUI* cmdUI);
     afx_msg void OnUpdateThemeMenu(CCmdUI* cmdUI);
