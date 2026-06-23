@@ -7,6 +7,7 @@
 
 #include "MainFrame.h"
 #include "RecordMovementDialog.h"
+#include "I18n.h"
 #include "StockView.h"
 #include "TextUtil.h"
 #include "WarehouseDoc.h"
@@ -17,7 +18,6 @@ constexpr int kColWarehouse = 0;
 constexpr int kColSku = 1;
 constexpr int kColProduct = 2;
 constexpr int kColOnHand = 3;
-const LPCTSTR kColumnTitles[] = {_T("Magazyn"), _T("Symbol"), _T("Produkt"), _T("Stan")};
 constexpr UINT kGridId = 1;  // child id of the embedded grid
 }  // namespace
 
@@ -114,10 +114,10 @@ int CStockView::OnCreate(LPCREATESTRUCT createStruct) {
     grid_.Create(style, CRect(0, 0, 0, 0), this, kGridId);
     grid_.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
     grid_.EnableMarkSortedColumn(TRUE);  // highlight + arrow on the sorted column
-    grid_.InsertColumn(kColWarehouse, kColumnTitles[kColWarehouse], LVCFMT_LEFT, 90);
-    grid_.InsertColumn(kColSku, kColumnTitles[kColSku], LVCFMT_LEFT, 70);
-    grid_.InsertColumn(kColProduct, kColumnTitles[kColProduct], LVCFMT_LEFT, 220);
-    grid_.InsertColumn(kColOnHand, kColumnTitles[kColOnHand], LVCFMT_RIGHT, 70);
+    grid_.InsertColumn(kColWarehouse, i18n::T(i18n::ColWarehouse), LVCFMT_LEFT, 90);
+    grid_.InsertColumn(kColSku, i18n::T(i18n::ColSku), LVCFMT_LEFT, 70);
+    grid_.InsertColumn(kColProduct, i18n::T(i18n::ColProduct), LVCFMT_LEFT, 220);
+    grid_.InsertColumn(kColOnHand, i18n::T(i18n::ColOnHand), LVCFMT_RIGHT, 70);
     CreateUiFont(uiFont_);
     if (uiFont_.GetSafeHandle() != nullptr) {
         grid_.SetFont(&uiFont_);

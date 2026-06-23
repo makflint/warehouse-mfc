@@ -4,10 +4,6 @@
 
 #include "framework.h"
 
-// Caption for the app's message boxes — AfxMessageBox would otherwise title them
-// with the exe name ("app"). Use as the explicit caption in MessageBox() calls.
-constexpr LPCTSTR kAppTitle = _T("Stany magazynowe");
-
 // Convert a UTF-8 std::string (as produced by the data layer) to a CString.
 // The build is Unicode, so CString is wide; a plain CString(const char*) would
 // reinterpret the bytes in the ANSI code page and mangle Polish characters.

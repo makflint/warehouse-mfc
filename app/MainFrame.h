@@ -33,6 +33,8 @@ protected:
     afx_msg void OnUpdateThemeMenu(CCmdUI* cmdUI);
     afx_msg void OnViewPane(UINT cmdId);
     afx_msg void OnUpdateViewPane(CCmdUI* cmdUI);
+    afx_msg void OnLanguage(UINT cmdId);
+    afx_msg void OnUpdateLanguage(CCmdUI* cmdUI);
     DECLARE_MESSAGE_MAP()
 
 private:

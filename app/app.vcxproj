@@ -72,6 +72,7 @@
     <ClInclude Include="RecordMovementDialog.h" />
     <ClInclude Include="DockPanes.h" />
     <ClInclude Include="DarkVisualManager.h" />
+    <ClInclude Include="I18n.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WarehouseApp.cpp" />
@@ -81,6 +82,7 @@
     <ClCompile Include="RecordMovementDialog.cpp" />
     <ClCompile Include="DockPanes.cpp" />
     <ClCompile Include="DarkVisualManager.cpp" />
+    <ClCompile Include="I18n.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />

@@ -4,6 +4,7 @@
 #include <exception>
 #include <memory>
 
+#include "I18n.h"
 #include "TextUtil.h"
 #include "WarehouseDoc.h"
 #include "warehouse/connection_profiles.hpp"
@@ -22,9 +23,9 @@ void CWarehouseDoc::ShowError(const std::exception& error) {
     // so only the SQL Server RAISERROR text reaches the user.
     const CString message = FromUtf8(warehouse::cleanDbError(error.what()));
     if (CWnd* main = AfxGetMainWnd()) {
-        main->MessageBox(message, kAppTitle, MB_ICONERROR | MB_OK);
+        main->MessageBox(message, i18n::T(i18n::AppTitle), MB_ICONERROR | MB_OK);
     } else {
-        ::MessageBox(nullptr, message, kAppTitle, MB_ICONERROR | MB_OK);
+        ::MessageBox(nullptr, message, i18n::T(i18n::AppTitle), MB_ICONERROR | MB_OK);
     }
 }
 
@@ -39,7 +40,7 @@ BOOL CWarehouseDoc::OnNewDocument() {
     if (!CDocument::OnNewDocument()) {
         return FALSE;
     }
-    SetTitle(_T("Stany magazynowe"));  // window title, instead of the default "Untitled"
+    SetTitle(i18n::T(i18n::AppTitle));  // window title, instead of the default "Untitled"
     Refresh();
     return TRUE;
 }

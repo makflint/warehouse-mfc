@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "I18n.h"
 #include "WarehouseApp.h"
 #include "MainFrame.h"
 #include "StockView.h"
@@ -33,6 +34,7 @@ BOOL CWarehouseApp::InitInstance() {
 
     // MFC Feature Pack: persist docking/toolbar layout under HKCU, and theme the UI.
     SetRegistryKey(_T("warehouse-mfc"));
+    i18n::Init();  // pick the UI language (saved choice, else the Windows UI language)
     InitContextMenuManager();
     InitKeyboardManager();
     CMFCVisualManagerOffice2007::SetStyle(CMFCVisualManagerOffice2007::Office2007_LunaBlue);

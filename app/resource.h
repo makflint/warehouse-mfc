@@ -6,6 +6,10 @@
 #define IDC_PRODUCT   1001
 #define IDC_WAREHOUSE 1002
 #define IDC_QTY       1003
+// Unique ids for the dialog's static labels, so each can be localised at runtime.
+#define IDC_LBL_PRODUCT   1010
+#define IDC_LBL_WAREHOUSE 1011
+#define IDC_LBL_QTY       1012
 
 #define ID_STOCK_REFRESH    32771
 #define ID_STOCK_RECORD_IN  32772
@@ -31,6 +35,12 @@
 #define ID_TOGGLE_DASHBOARD 32776
 #define ID_TOGGLE_MOVEMENTS 32777
 #define ID_TOGGLE_DETAILS   32778
+
+// Language picker (Widok tab). Applied-language ids stay contiguous for ON_COMMAND_RANGE;
+// ID_LANG_MENU is the drop-down container.
+#define ID_LANG_POLISH  32780
+#define ID_LANG_ENGLISH 32781
+#define ID_LANG_MENU    32782
 
 // Ribbon icon strips (16 px small + 32 px large), one per ribbon category.
 #define IDB_RIBBON_MAGAZYN_16 200

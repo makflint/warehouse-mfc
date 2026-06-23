@@ -3,10 +3,13 @@
 #include <dwmapi.h>
 #pragma comment(lib, "dwmapi.lib")
 
+#include "I18n.h"
 #include "MainFrame.h"
 #include "RecordMovementDialog.h"
 #include "TextUtil.h"
 #include "warehouse/view_logic.hpp"
+
+using i18n::T;
 
 BEGIN_MESSAGE_MAP(CRecordMovementDialog, CDialogEx)
     ON_WM_CTLCOLOR()
@@ -64,8 +67,14 @@ BOOL CRecordMovementDialog::OnInitDialog() {
         constexpr DWORD kImmersiveDarkMode = 20;  // DWMWA_USE_IMMERSIVE_DARK_MODE
         ::DwmSetWindowAttribute(GetSafeHwnd(), kImmersiveDarkMode, &useDark, sizeof(useDark));
     }
-    SetWindowText(type_ == warehouse::MovementType::In ? _T("Przyjęcie (IN)")
-                                                       : _T("Wydanie (OUT)"));
+    SetWindowText(T(type_ == warehouse::MovementType::In ? i18n::DlgReceiveTitle
+                                                         : i18n::DlgIssueTitle));
+    // Localise the static labels (unique ids) and the buttons for the active language.
+    SetDlgItemText(IDC_LBL_PRODUCT, T(i18n::LblProduct));
+    SetDlgItemText(IDC_LBL_WAREHOUSE, T(i18n::LblWarehouse));
+    SetDlgItemText(IDC_LBL_QTY, T(i18n::LblQty));
+    SetDlgItemText(IDOK, T(i18n::BtnOK));
+    SetDlgItemText(IDCANCEL, T(i18n::BtnCancel));
     fill(productCombo_, products_, initialProductId_);
     fill(warehouseCombo_, warehouses_, initialWarehouseId_);
     SetDlgItemInt(IDC_QTY, qty_, FALSE);  // default quantity (unsigned: the field is ES_NUMBER)
@@ -80,7 +89,7 @@ void CRecordMovementDialog::OnOK() {
     const int product = productCombo_.GetCurSel();
     const int warehouse = warehouseCombo_.GetCurSel();
     if (product == CB_ERR || warehouse == CB_ERR) {
-        MessageBox(_T("Wybierz produkt i magazyn."), kAppTitle, MB_ICONWARNING);
+        MessageBox(T(i18n::MsgSelectBoth), T(i18n::AppTitle), MB_ICONWARNING);
         return;
     }
 
@@ -88,8 +97,8 @@ void CRecordMovementDialog::OnOK() {
     const int qty = static_cast<int>(GetDlgItemInt(IDC_QTY, &parsed, FALSE));  // FALSE: unsigned
     if (!parsed || qty < kMinQty || qty > kMaxQty) {
         CString message;
-        message.Format(_T("Podaj ilość z zakresu od %d do %d."), kMinQty, kMaxQty);
-        MessageBox(message, kAppTitle, MB_ICONWARNING);
+        message.Format(T(i18n::MsgQtyRangeFmt), kMinQty, kMaxQty);
+        MessageBox(message, T(i18n::AppTitle), MB_ICONWARNING);
         GotoDlgCtrl(GetDlgItem(IDC_QTY));
         return;
     }

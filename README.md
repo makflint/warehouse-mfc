@@ -20,10 +20,12 @@ pattern). Built as a portfolio piece for a *Senior C++ Developer (MFC)* role.
   `core/` static lib with **TDD** (Catch2), verified without a GUI.
 - **Modern MFC (M8)**: an MFC **Feature Pack** UI — `CMFCRibbonBar`, dockable panes,
   visual-manager themes (dark mode), and an owner-drawn **dashboard** (KPI tiles + bar chart).
-- **Localized & Unicode-correct**: Polish UI *and* data with full diacritics end-to-end —
-  UTF-8 `.cpp`/`.rc` resources (incl. the localized Feature Pack context menus) and wide ODBC
-  (`SQLExecDirectW`, `N'…'` literals, `NVARCHAR`). The seed names (*Młotek*, *Wkrętarka*,
-  *Śruba*…) and SQL Server error messages round-trip cleanly to the UI.
+- **Bilingual & Unicode-correct**: the UI ships in **Polish *and* English**. A small string
+  catalog (`I18n`) picks the language from the **Windows UI language** on first run, with a
+  **Język / Language** toggle in the ribbon (applied on restart). Data (product/warehouse names)
+  and the SQL Server error text stay Polish by design. Full diacritics end-to-end: UTF-8
+  `.cpp`/`.rc` resources and wide ODBC (`SQLExecDirectW`, `N'…'` literals, `NVARCHAR`); the seed
+  names (*Młotek*, *Wkrętarka*, *Śruba*…) round-trip cleanly to the UI.
 
 ## Screenshots
 ![Ribbon UI + dashboard + docked panes](docs/screenshots/04-feature-pack.png)

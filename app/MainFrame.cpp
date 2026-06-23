@@ -6,11 +6,14 @@
 #include <afxvisualmanagerwindows7.h>
 
 #include "DarkVisualManager.h"
+#include "I18n.h"
 #include "MainFrame.h"
 #include "StockView.h"
 #include "TextUtil.h"
 #include "WarehouseDoc.h"
 #include "warehouse/stock_repository.hpp"
+
+using i18n::T;
 
 IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
 
@@ -21,6 +24,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_UPDATE_COMMAND_UI(ID_THEME_MENU, &CMainFrame::OnUpdateThemeMenu)
     ON_COMMAND_RANGE(ID_TOGGLE_DASHBOARD, ID_TOGGLE_DETAILS, &CMainFrame::OnViewPane)
     ON_UPDATE_COMMAND_UI_RANGE(ID_TOGGLE_DASHBOARD, ID_TOGGLE_DETAILS, &CMainFrame::OnUpdateViewPane)
+    ON_COMMAND_RANGE(ID_LANG_POLISH, ID_LANG_ENGLISH, &CMainFrame::OnLanguage)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_LANG_POLISH, ID_LANG_ENGLISH, &CMainFrame::OnUpdateLanguage)
 END_MESSAGE_MAP()
 
 CMainFrame::CMainFrame() {}
@@ -43,13 +48,14 @@ int CMainFrame::OnCreate(LPCREATESTRUCT createStruct) {
 // Passing FALSE suppresses MFC's "{doc title} - " prefix; going through the framework
 // method (not a raw SetWindowText) also refreshes the themed CFrameWndEx caption.
 void CMainFrame::OnUpdateFrameTitle(BOOL /*bAddToTitle*/) {
+    SetTitle(T(i18n::AppTitle));  // localise the caption (m_strTitle defaults to the PL resource)
     CFrameWndEx::OnUpdateFrameTitle(FALSE);
 }
 
 void CMainFrame::CreateStatusBar() {
     statusBar_.Create(this);
-    statusBar_.AddElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_ROWS, _T("Pozycje: 0000"), TRUE), _T(""));
-    statusBar_.AddElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_SKU, _T("Symbol: —"), TRUE), _T(""));
+    statusBar_.AddElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_ROWS, T(i18n::StRowsSizing), TRUE), _T(""));
+    statusBar_.AddElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_SKU, T(i18n::StSkuEmpty), TRUE), _T(""));
     statusBar_.AddExtendedElement(new CMFCRibbonStatusBarPane(ID_INDICATOR_DB, _T("DEMO · LocalDB"), TRUE), _T(""));
 }
 
@@ -69,39 +75,46 @@ void CMainFrame::BuildRibbon() {
     // Each category owns a small (16px) + large (32px) image strip; the button's
     // image index selects its glyph within that category's strip.
     CMFCRibbonCategory* magazyn =
-        ribbon_.AddCategory(_T("Magazyn"), IDB_RIBBON_MAGAZYN_16, IDB_RIBBON_MAGAZYN_32);
+        ribbon_.AddCategory(T(i18n::TabStock), IDB_RIBBON_MAGAZYN_16, IDB_RIBBON_MAGAZYN_32);
 
-    CMFCRibbonPanel* stany = magazyn->AddPanel(_T("Stany"));
-    stany->Add(new CMFCRibbonButton(ID_STOCK_REFRESH, _T("Odśwież"), 0, 0));
-    stany->Add(new CMFCRibbonButton(ID_STOCK_FILTER_LOW, _T("Tylko niskie"), 1, 1));
+    CMFCRibbonPanel* stany = magazyn->AddPanel(T(i18n::PanelStock));
+    stany->Add(new CMFCRibbonButton(ID_STOCK_REFRESH, T(i18n::BtnRefresh), 0, 0));
+    stany->Add(new CMFCRibbonButton(ID_STOCK_FILTER_LOW, T(i18n::BtnLowOnly), 1, 1));
 
-    CMFCRibbonPanel* ruchy = magazyn->AddPanel(_T("Ruchy"));
-    ruchy->Add(new CMFCRibbonButton(ID_STOCK_RECORD_IN, _T("Przyjmij"), 2, 2));
-    ruchy->Add(new CMFCRibbonButton(ID_STOCK_RECORD_OUT, _T("Wydaj"), 3, 3));
+    CMFCRibbonPanel* ruchy = magazyn->AddPanel(T(i18n::PanelMovements));
+    ruchy->Add(new CMFCRibbonButton(ID_STOCK_RECORD_IN, T(i18n::BtnReceive), 2, 2));
+    ruchy->Add(new CMFCRibbonButton(ID_STOCK_RECORD_OUT, T(i18n::BtnIssue), 3, 3));
 
-    CMFCRibbonPanel* edycja = magazyn->AddPanel(_T("Edycja"));
-    edycja->Add(new CMFCRibbonButton(ID_EDIT_UNDO, _T("Cofnij"), 4, 4));
-    edycja->Add(new CMFCRibbonButton(ID_EDIT_REDO, _T("Ponów"), 5, 5));
+    CMFCRibbonPanel* edycja = magazyn->AddPanel(T(i18n::PanelEdit));
+    edycja->Add(new CMFCRibbonButton(ID_EDIT_UNDO, T(i18n::BtnUndo), 4, 4));
+    edycja->Add(new CMFCRibbonButton(ID_EDIT_REDO, T(i18n::BtnRedo), 5, 5));
 
     CMFCRibbonCategory* widok =
-        ribbon_.AddCategory(_T("Widok"), IDB_RIBBON_WIDOK_16, IDB_RIBBON_WIDOK_32);
-    CMFCRibbonPanel* motyw = widok->AddPanel(_T("Motyw"));
-    auto* themeMenu = new CMFCRibbonButton(ID_THEME_MENU, _T("Motyw"), 0, 0);
+        ribbon_.AddCategory(T(i18n::TabView), IDB_RIBBON_WIDOK_16, IDB_RIBBON_WIDOK_32);
+    CMFCRibbonPanel* motyw = widok->AddPanel(T(i18n::PanelTheme));
+    auto* themeMenu = new CMFCRibbonButton(ID_THEME_MENU, T(i18n::BtnTheme), 0, 0);
     themeMenu->SetDefaultCommand(FALSE);  // whole button opens the menu (not a split button)
-    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_BLUE, _T("Office 2007 — niebieski")));
-    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_BLACK, _T("Office 2007 — czarny")));
-    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_SILVER, _T("Office 2007 — srebrny")));
-    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_AQUA, _T("Office 2007 — aqua")));
-    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE2003, _T("Office 2003")));
-    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_VS2008, _T("Visual Studio 2008")));
-    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_WINDOWS7, _T("Windows 7")));
-    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_DARK, _T("Ciemny (pełny)")));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_BLUE, T(i18n::ThemeOfficeBlue)));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_BLACK, T(i18n::ThemeOfficeBlack)));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_SILVER, T(i18n::ThemeOfficeSilver)));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE_AQUA, T(i18n::ThemeOfficeAqua)));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_OFFICE2003, T(i18n::ThemeOffice2003)));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_VS2008, T(i18n::ThemeVS2008)));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_WINDOWS7, T(i18n::ThemeWindows7)));
+    themeMenu->AddSubItem(new CMFCRibbonButton(ID_THEME_DARK, T(i18n::ThemeDark)));
     motyw->Add(themeMenu);
 
-    CMFCRibbonPanel* panele = widok->AddPanel(_T("Panele"));
-    panele->Add(new CMFCRibbonButton(ID_TOGGLE_DASHBOARD, _T("Pulpit"), 1, 1));
-    panele->Add(new CMFCRibbonButton(ID_TOGGLE_MOVEMENTS, _T("Dziennik"), 2, 2));
-    panele->Add(new CMFCRibbonButton(ID_TOGGLE_DETAILS, _T("Szczegóły"), 3, 3));
+    CMFCRibbonPanel* panele = widok->AddPanel(T(i18n::PanelPanes));
+    panele->Add(new CMFCRibbonButton(ID_TOGGLE_DASHBOARD, T(i18n::BtnDashboard), 1, 1));
+    panele->Add(new CMFCRibbonButton(ID_TOGGLE_MOVEMENTS, T(i18n::BtnJournal), 2, 2));
+    panele->Add(new CMFCRibbonButton(ID_TOGGLE_DETAILS, T(i18n::BtnDetails), 3, 3));
+
+    CMFCRibbonPanel* jezyk = widok->AddPanel(T(i18n::PanelLanguage));
+    auto* langMenu = new CMFCRibbonButton(ID_LANG_MENU, T(i18n::BtnLanguage), 0, 0);
+    langMenu->SetDefaultCommand(FALSE);
+    langMenu->AddSubItem(new CMFCRibbonButton(ID_LANG_POLISH, T(i18n::LangPolish)));
+    langMenu->AddSubItem(new CMFCRibbonButton(ID_LANG_ENGLISH, T(i18n::LangEnglish)));
+    jezyk->Add(langMenu);
 }
 
 // Three docking panels managed by CFrameWndEx: a (custom-drawn) Dashboard on the
@@ -113,24 +126,24 @@ void CMainFrame::CreatePanes() {
 
     const DWORD style = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_FLOAT_MULTI;
 
-    dashboard_.Create(_T("Pulpit"), this, CRect(0, 0, 280, 240), TRUE, IDC_PANE_DASHBOARD,
+    dashboard_.Create(T(i18n::PaneDashboard), this, CRect(0, 0, 280, 240), TRUE, IDC_PANE_DASHBOARD,
                       style | CBRS_LEFT);
     dashboard_.EnableDocking(CBRS_ALIGN_ANY);
     DockPane(&dashboard_);
 
     // Wide enough for all five auto-sized columns (incl. the full "YYYY-MM-DD HH:MM:SS"
     // timestamp and the vertical scrollbar) to show without a horizontal scrollbar.
-    movementLog_.Create(_T("Dziennik ruchów"), this, CRect(0, 0, 384, 220), TRUE,
+    movementLog_.Create(T(i18n::PaneMovements), this, CRect(0, 0, 384, 220), TRUE,
                         IDC_PANE_MOVEMENTS, style | CBRS_RIGHT);
     movementLog_.EnableDocking(CBRS_ALIGN_ANY);
     DockPane(&movementLog_);
-    movementLog_.List().InsertColumn(0, _T("Czas"), LVCFMT_LEFT, 130);
-    movementLog_.List().InsertColumn(1, _T("Magazyn"), LVCFMT_LEFT, 60);
-    movementLog_.List().InsertColumn(2, _T("Ruch"), LVCFMT_LEFT, 44);
-    movementLog_.List().InsertColumn(3, _T("Symbol"), LVCFMT_LEFT, 60);
-    movementLog_.List().InsertColumn(4, _T("Ilość"), LVCFMT_RIGHT, 48);
+    movementLog_.List().InsertColumn(0, T(i18n::ColTime), LVCFMT_LEFT, 130);
+    movementLog_.List().InsertColumn(1, T(i18n::ColWarehouse), LVCFMT_LEFT, 60);
+    movementLog_.List().InsertColumn(2, T(i18n::ColMoveType), LVCFMT_LEFT, 44);
+    movementLog_.List().InsertColumn(3, T(i18n::ColSku), LVCFMT_LEFT, 60);
+    movementLog_.List().InsertColumn(4, T(i18n::ColQty), LVCFMT_RIGHT, 48);
 
-    details_.Create(_T("Szczegóły"), this, CRect(0, 0, 280, 160), TRUE, IDC_PANE_DETAILS,
+    details_.Create(T(i18n::PaneDetails), this, CRect(0, 0, 280, 160), TRUE, IDC_PANE_DETAILS,
                     style | CBRS_RIGHT);
     details_.EnableDocking(CBRS_ALIGN_ANY);
     // Tab Details together with the Movement log instead of stacking a second pane
@@ -148,7 +161,7 @@ void CMainFrame::RefreshPanes() {
     auto* doc = DYNAMIC_DOWNCAST(CWarehouseDoc, GetActiveDocument());
     if (doc != nullptr) {
         CString rows;
-        rows.Format(_T("Pozycje: %d"), static_cast<int>(doc->Stock().size()));
+        rows.Format(T(i18n::StRowsFmt), static_cast<int>(doc->Stock().size()));
         SetStatusPane(ID_INDICATOR_ROWS, rows);
     }
 
@@ -180,7 +193,7 @@ void CMainFrame::RefreshPanes() {
 
 void CMainFrame::ShowDetails(const warehouse::StockRow& row) {
     details_.Show(row);
-    SetStatusPane(ID_INDICATOR_SKU, _T("Symbol: ") + FromUtf8(row.sku));
+    SetStatusPane(ID_INDICATOR_SKU, CString(T(i18n::StSkuPrefix)) + FromUtf8(row.sku));
 }
 
 CDockablePane* CMainFrame::PaneFor(UINT cmdId) {
@@ -202,6 +215,24 @@ void CMainFrame::OnViewPane(UINT cmdId) {
 void CMainFrame::OnUpdateViewPane(CCmdUI* cmdUI) {
     CDockablePane* pane = PaneFor(cmdUI->m_nID);
     cmdUI->SetCheck(pane != nullptr && pane->IsVisible());
+}
+
+// The whole UI is built in the chosen language at startup, so a switch only records the
+// choice and asks the user to restart (no live re-translation of the ribbon/panes).
+void CMainFrame::OnLanguage(UINT cmdId) {
+    const i18n::Lang lang =
+        (cmdId == ID_LANG_ENGLISH) ? i18n::Lang::English : i18n::Lang::Polish;
+    if (lang == i18n::Current()) {
+        return;
+    }
+    i18n::Persist(lang);
+    MessageBox(T(i18n::MsgRestart), T(i18n::AppTitle), MB_ICONINFORMATION | MB_OK);
+}
+
+void CMainFrame::OnUpdateLanguage(CCmdUI* cmdUI) {
+    const i18n::Lang lang =
+        (cmdUI->m_nID == ID_LANG_ENGLISH) ? i18n::Lang::English : i18n::Lang::Polish;
+    cmdUI->SetCheck(lang == i18n::Current() ? 1 : 0);
 }
 
 // Apply one of the built-in MFC visual managers. The Office 2007 manager needs its

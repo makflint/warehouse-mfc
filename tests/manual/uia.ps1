@@ -166,11 +166,14 @@ function Ensure-App {
     Pin-App
 }
 
-# The modal record-movement dialog ("Przyjęcie (IN)" / "Wydanie (OUT)"), or $null.
+# The modal record-movement dialog, or $null. Matches either language's title
+# (PL "Przyjęcie (IN)" / "Wydanie (OUT)", EN "Receipt (IN)" / "Issue (OUT)").
 function Find-RecordDialog {
-    $d = Find-El "Przyj" "Window"
-    if (-not $d) { $d = Find-El "Wydanie" "Window" }
-    return $d
+    foreach ($title in @("Przyj", "Wydanie", "Receipt", "Issue")) {
+        $d = Find-El $title "Window"
+        if ($d) { return $d }
+    }
+    return $null
 }
 
 function Test-RecordDialogOpen { return ($null -ne (Find-RecordDialog)) }

@@ -6,9 +6,12 @@
 #include <vector>
 
 #include "DockPanes.h"
+#include "I18n.h"
 #include "TextUtil.h"
 #include "WarehouseDoc.h"
 #include "warehouse/view_logic.hpp"
+
+using i18n::T;
 
 namespace {
 
@@ -118,14 +121,14 @@ void CDashboardPane::OnPaint() {
     CString s;
     s.Format(_T("%d"), static_cast<int>(bySku.size()));
     drawTile(mem, CRect(inner.left, inner.top, inner.left + tileW, inner.top + tileH),
-             RGB(33, 115, 70), s, _T("Asortyment"), fontBig, fontSmall);
+             RGB(33, 115, 70), s, T(i18n::KpiAssortment), fontBig, fontSmall);
     s.Format(_T("%d"), lowRows);
     drawTile(mem, CRect(inner.left + tileW + gap, inner.top, inner.left + 2 * tileW + gap, inner.top + tileH),
-             lowRows > 0 ? RGB(176, 32, 32) : RGB(120, 120, 120), s, _T("Niskie stany magazynowe"),
+             lowRows > 0 ? RGB(176, 32, 32) : RGB(120, 120, 120), s, T(i18n::KpiLowStock),
              fontBig, fontSmall);
     s.Format(_T("%lld"), totalUnits);
     drawTile(mem, CRect(inner.left + 2 * tileW + 2 * gap, inner.top, inner.right, inner.top + tileH),
-             RGB(40, 86, 150), s, _T("Suma sztuk"), fontBig, fontSmall);
+             RGB(40, 86, 150), s, T(i18n::KpiTotalUnits), fontBig, fontSmall);
 
     // --- bar chart of on-hand per SKU ---
     CRect chart = inner;
@@ -133,7 +136,7 @@ void CDashboardPane::OnPaint() {
     mem.SetBkMode(TRANSPARENT);
     mem.SelectObject(&fontSmall);
     mem.SetTextColor(fgColor);
-    mem.DrawText(_T("Stan magazynowy wg indeksu"), CRect(chart.left, chart.top, chart.right, chart.top + 16),
+    mem.DrawText(T(i18n::ChartTitle), CRect(chart.left, chart.top, chart.right, chart.top + 16),
                  DT_LEFT | DT_SINGLELINE);
     chart.top += 20;
 
@@ -254,7 +257,7 @@ int CDetailsPane::OnCreate(LPCREATESTRUCT createStruct) {
         return -1;
     }
     grid_.Create(WS_VISIBLE | WS_CHILD, CRect(0, 0, 0, 0), this, 1);
-    grid_.EnableHeaderCtrl(TRUE, _T("Pole"), _T("Wartość"));
+    grid_.EnableHeaderCtrl(TRUE, T(i18n::HdrField), T(i18n::HdrValue));
     grid_.EnableDescriptionArea(FALSE);  // no room is needed for a flat detail list
     grid_.SetVSDotNetLook();
     grid_.MarkModifiedProperties(FALSE);
@@ -280,11 +283,11 @@ void CDetailsPane::Show(const warehouse::StockRow& row) {
     };
     CString onHand;
     onHand.Format(_T("%d"), row.onHand);
-    add(_T("Symbol"), FromUtf8(row.sku));
-    add(_T("Produkt"), FromUtf8(row.productName));
-    add(_T("Magazyn"), FromUtf8(row.warehouseCode + " " + row.warehouseName));
-    add(_T("Stan magazynowy"), onHand);
-    add(_T("Niski stan"), row.isLow ? _T("TAK") : _T("nie"));
+    add(T(i18n::ColSku), FromUtf8(row.sku));
+    add(T(i18n::ColProduct), FromUtf8(row.productName));
+    add(T(i18n::ColWarehouse), FromUtf8(row.warehouseCode + " " + row.warehouseName));
+    add(T(i18n::DtOnHand), onHand);
+    add(T(i18n::DtLow), row.isLow ? T(i18n::YesValue) : T(i18n::NoValue));
     grid_.AdjustLayout();
 }
 
