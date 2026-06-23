@@ -58,6 +58,8 @@
     <ClInclude Include="include\warehouse\command.hpp" />
     <ClInclude Include="include\warehouse\movement_command.hpp" />
     <ClInclude Include="include\warehouse\db_error.hpp" />
+    <ClInclude Include="include\warehouse\stock_row.hpp" />
+    <ClInclude Include="include\warehouse\view_logic.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stock_math.cpp" />
@@ -65,6 +67,7 @@
     <ClCompile Include="src\movement_command.cpp" />
     <ClCompile Include="src\command_stack.cpp" />
     <ClCompile Include="src\db_error.cpp" />
+    <ClCompile Include="src\view_logic.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

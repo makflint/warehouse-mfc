@@ -2,24 +2,24 @@
 
 #include "RecordMovementDialog.h"
 #include "TextUtil.h"
+#include "warehouse/view_logic.hpp"
 
 namespace {
 constexpr int kMinQty = 1;
 constexpr int kMaxQty = 1000000;
 
 // Fill a combo and pre-select the option whose id matches selectedId (the grid's current
-// row); falls back to the first item when there's no match.
+// row); selectedIndexForId (core, unit-tested) falls back to the first item when none matches.
 void fill(CComboBox& combo, const std::vector<ComboOption>& options, int selectedId) {
-    int selected = 0;
-    for (std::size_t i = 0; i < options.size(); ++i) {
-        const int index = combo.AddString(options[i].label);
-        combo.SetItemData(index, static_cast<DWORD_PTR>(options[i].id));
-        if (options[i].id == selectedId) {
-            selected = index;
-        }
+    std::vector<int> ids;
+    ids.reserve(options.size());
+    for (const ComboOption& option : options) {
+        const int index = combo.AddString(option.label);
+        combo.SetItemData(index, static_cast<DWORD_PTR>(option.id));
+        ids.push_back(option.id);
     }
     if (!options.empty()) {
-        combo.SetCurSel(selected);
+        combo.SetCurSel(warehouse::selectedIndexForId(ids, selectedId));
     }
 }
 }  // namespace

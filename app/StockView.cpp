@@ -10,6 +10,7 @@
 #include "StockView.h"
 #include "TextUtil.h"
 #include "WarehouseDoc.h"
+#include "warehouse/view_logic.hpp"
 
 namespace {
 constexpr int kColWarehouse = 0;
@@ -35,13 +36,7 @@ int CStockGrid::OnCompareItems(LPARAM lParam1, LPARAM lParam2, int column) {
     }
     const warehouse::StockRow& ra = (*rows_)[a];
     const warehouse::StockRow& rb = (*rows_)[b];
-    switch (column) {
-        case kColWarehouse: return ra.warehouseCode.compare(rb.warehouseCode);
-        case kColSku:       return ra.sku.compare(rb.sku);
-        case kColProduct:   return ra.productName.compare(rb.productName);
-        case kColOnHand:    return ra.onHand - rb.onHand;
-        default:            return 0;
-    }
+    return warehouse::compareStock(ra, rb, static_cast<warehouse::StockColumn>(column));
 }
 
 COLORREF CStockGrid::OnGetCellTextColor(int row, int column) {

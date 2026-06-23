@@ -8,6 +8,7 @@
 #include "DockPanes.h"
 #include "TextUtil.h"
 #include "WarehouseDoc.h"
+#include "warehouse/view_logic.hpp"
 
 namespace {
 
@@ -183,18 +184,7 @@ int CMovementLogList::OnCompareItems(LPARAM lParam1, LPARAM lParam2, int column)
     }
     const warehouse::MovementRow& ra = (*rows_)[a];
     const warehouse::MovementRow& rb = (*rows_)[b];
-    switch (column) {
-        case 0: return ra.createdAt.compare(rb.createdAt);          // Czas (ISO text = chronological)
-        case 1: return ra.warehouseCode.compare(rb.warehouseCode);  // Magazyn
-        case 2: return ra.type.compare(rb.type);                    // Ruch (IN/OUT)
-        case 3: return ra.sku.compare(rb.sku);                      // Symbol
-        case 4: {                                                   // Ilość, by the displayed |qty|
-            const int qa = ra.qty < 0 ? -ra.qty : ra.qty;
-            const int qb = rb.qty < 0 ? -rb.qty : rb.qty;
-            return qa - qb;
-        }
-        default: return 0;
-    }
+    return warehouse::compareMovement(ra, rb, static_cast<warehouse::MovementColumn>(column));
 }
 
 // Capture the active sort column/direction so Resort() can re-apply it after a reload.

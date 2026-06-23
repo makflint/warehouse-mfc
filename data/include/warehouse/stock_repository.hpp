@@ -7,31 +7,9 @@
 
 #include "warehouse/movement.hpp"
 #include "warehouse/movement_command.hpp"  // IMovementRecorder
+#include "warehouse/stock_row.hpp"         // StockRow, MovementRow (pure domain rows)
 
 namespace warehouse {
-
-// One row of vCurrentStock: a product x warehouse on-hand with the low-stock flag.
-struct StockRow {
-    int productId = 0;
-    std::string sku;
-    std::string productName;
-    std::string unit;
-    int reorderLevel = 0;
-    int warehouseId = 0;
-    std::string warehouseCode;
-    std::string warehouseName;
-    int onHand = 0;
-    bool isLow = false;
-};
-
-// One entry of the append-only StockMovements log (most recent first).
-struct MovementRow {
-    std::string createdAt;      // "YYYY-MM-DD HH:MM:SS" (UTC)
-    std::string type;           // "IN" / "OUT"
-    std::string sku;
-    std::string warehouseCode;
-    int qty = 0;                // signed: + receive / - ship
-};
 
 // ODBC-backed access to the Warehouse database. Implements IMovementRecorder so
 // MovementCommand/CommandStack record through the same path as direct calls.
