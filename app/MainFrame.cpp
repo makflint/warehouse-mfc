@@ -118,7 +118,9 @@ void CMainFrame::CreatePanes() {
     dashboard_.EnableDocking(CBRS_ALIGN_ANY);
     DockPane(&dashboard_);
 
-    movementLog_.Create(_T("Dziennik ruchów"), this, CRect(0, 0, 300, 220), TRUE,
+    // Wide enough for all five auto-sized columns (incl. the full "YYYY-MM-DD HH:MM:SS"
+    // timestamp and the vertical scrollbar) to show without a horizontal scrollbar.
+    movementLog_.Create(_T("Dziennik ruchów"), this, CRect(0, 0, 384, 220), TRUE,
                         IDC_PANE_MOVEMENTS, style | CBRS_RIGHT);
     movementLog_.EnableDocking(CBRS_ALIGN_ANY);
     DockPane(&movementLog_);
@@ -167,6 +169,12 @@ void CMainFrame::RefreshPanes() {
             ++i;
         }
         movementLog_.Resort();  // keep the active sort (default: Czas descending) after reload
+        // Fit every column to its widest value (and header) so the log is readable on first
+        // sight — no dragging column borders to reveal the timestamp / values.
+        constexpr int kMovementColumns = 5;
+        for (int col = 0; col < kMovementColumns; ++col) {
+            log.SetColumnWidth(col, LVSCW_AUTOSIZE_USEHEADER);
+        }
     }
 }
 
