@@ -1,8 +1,13 @@
 #include "framework.h"
 
+#include "DarkVisualManager.h"
 #include "RecordMovementDialog.h"
 #include "TextUtil.h"
 #include "warehouse/view_logic.hpp"
+
+BEGIN_MESSAGE_MAP(CRecordMovementDialog, CDialogEx)
+    ON_WM_CTLCOLOR()
+END_MESSAGE_MAP()
 
 namespace {
 constexpr int kMinQty = 1;
@@ -28,13 +33,13 @@ CRecordMovementDialog::CRecordMovementDialog(warehouse::MovementType type,
                                              std::vector<ComboOption> products,
                                              std::vector<ComboOption> warehouses,
                                              CWnd* parent)
-    : CDialog(IDD_RECORD_MOVEMENT, parent),
+    : CDialogEx(IDD_RECORD_MOVEMENT, parent),
       type_(type),
       products_(std::move(products)),
       warehouses_(std::move(warehouses)) {}
 
 void CRecordMovementDialog::DoDataExchange(CDataExchange* dx) {
-    CDialog::DoDataExchange(dx);
+    CDialogEx::DoDataExchange(dx);
     DDX_Control(dx, IDC_PRODUCT, productCombo_);
     DDX_Control(dx, IDC_WAREHOUSE, warehouseCombo_);
     // Quantity is validated by hand in OnOK so the range error is Polish and titled,
@@ -42,7 +47,13 @@ void CRecordMovementDialog::DoDataExchange(CDataExchange* dx) {
 }
 
 BOOL CRecordMovementDialog::OnInitDialog() {
-    CDialog::OnInitDialog();
+    CDialogEx::OnInitDialog();
+    // Match the app's active theme: under the custom dark visual manager, paint the dialog
+    // background dark (CDialogEx fills it + tints the static labels via OnCtlColor below).
+    dark_ = CMFCVisualManager::GetInstance()->IsKindOf(RUNTIME_CLASS(CDarkVisualManager)) != FALSE;
+    if (dark_) {
+        SetBackgroundColor(ThemeColorsFor(true).background);
+    }
     SetWindowText(type_ == warehouse::MovementType::In ? _T("Przyjęcie (IN)")
                                                        : _T("Wydanie (OUT)"));
     fill(productCombo_, products_, initialProductId_);
@@ -76,5 +87,16 @@ void CRecordMovementDialog::OnOK() {
     qty_ = qty;
     productId_ = static_cast<int>(productCombo_.GetItemData(product));
     warehouseId_ = static_cast<int>(warehouseCombo_.GetItemData(warehouse));
-    CDialog::OnOK();
+    CDialogEx::OnOK();
+}
+
+// In dark mode, draw the static labels' text light over the dark dialog background
+// (CDialogEx already returns the matching background brush for the controls).
+HBRUSH CRecordMovementDialog::OnCtlColor(CDC* dc, CWnd* wnd, UINT type) {
+    HBRUSH brush = CDialogEx::OnCtlColor(dc, wnd, type);
+    if (dark_ && type == CTLCOLOR_STATIC) {
+        dc->SetTextColor(ThemeColorsFor(true).text);
+        dc->SetBkMode(TRANSPARENT);
+    }
+    return brush;
 }

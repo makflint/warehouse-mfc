@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include <afxdialogex.h>
+
 #include "framework.h"
 #include "resource.h"
 #include "warehouse/movement.hpp"
@@ -14,7 +16,8 @@ struct ComboOption {
 
 // Modal dialog to capture a stock movement: product, warehouse and quantity.
 // The direction (IN/OUT) is fixed by the command that opened the dialog.
-class CRecordMovementDialog : public CDialog {
+// CDialogEx (+ visual-manager style) so it adopts the app's active theme, incl. dark.
+class CRecordMovementDialog : public CDialogEx {
 public:
     CRecordMovementDialog(warehouse::MovementType type,
                           std::vector<ComboOption> products,
@@ -35,9 +38,12 @@ protected:
     BOOL OnInitDialog() override;
     void DoDataExchange(CDataExchange* dx) override;
     void OnOK() override;
+    afx_msg HBRUSH OnCtlColor(CDC* dc, CWnd* wnd, UINT type);
+    DECLARE_MESSAGE_MAP()
 
 private:
     warehouse::MovementType type_;
+    bool dark_ = false;  // active visual manager is the custom dark one
     std::vector<ComboOption> products_;
     std::vector<ComboOption> warehouses_;
     CComboBox productCombo_;
