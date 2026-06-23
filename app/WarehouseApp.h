@@ -7,6 +7,11 @@
 class CWarehouseApp : public CWinAppEx {
 public:
     BOOL InitInstance() override;
+
+    // Stop the Feature Pack from writing the current docking/window layout on exit
+    // (used by "Reset layout", which clears the saved state and restarts). m_bSaveState
+    // is protected on CWinAppEx, so it's exposed here.
+    void SkipStateSaveOnExit() { m_bSaveState = FALSE; }
 };
 
 extern CWarehouseApp theApp;

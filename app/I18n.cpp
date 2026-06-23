@@ -30,6 +30,7 @@ const LPCTSTR kCatalog[Tx::Count][2] = {
     /* BtnDashboard    */ {_T("Pulpit"), _T("Dashboard")},
     /* BtnJournal      */ {_T("Dziennik"), _T("Journal")},
     /* BtnDetails      */ {_T("Szczegóły"), _T("Details")},
+    /* BtnResetLayout  */ {_T("Resetuj układ"), _T("Reset layout")},
     /* BtnLanguage     */ {_T("Język"), _T("Language")},
     /* LangPolish      */ {_T("Polski"), _T("Polish")},
     /* LangEnglish     */ {_T("Angielski"), _T("English")},
@@ -77,13 +78,16 @@ const LPCTSTR kCatalog[Tx::Count][2] = {
     /* MsgSelectBoth   */ {_T("Wybierz produkt i magazyn."), _T("Select a product and a warehouse.")},
     /* MsgQtyRangeFmt  */ {_T("Podaj ilość z zakresu od %d do %d."), _T("Enter a quantity between %d and %d.")},
 
-    /* StRowsFmt       */ {_T("Pozycje: %d"), _T("Items: %d")},
-    /* StRowsSizing    */ {_T("Pozycje: 0000"), _T("Items: 0000")},
-    /* StSkuPrefix     */ {_T("Symbol: "), _T("SKU: ")},
-    /* StSkuEmpty      */ {_T("Symbol: —"), _T("SKU: —")},
+    /* StRowsFmt        */ {_T("Pozycje: %d"), _T("Items: %d")},
+    /* StRowsFilteredFmt*/ {_T("Pozycje: %d z %d"), _T("Items: %d of %d")},
+    /* StRowsSizing     */ {_T("Pozycje: 000 z 000"), _T("Items: 000 of 000")},
+    /* StSkuPrefix      */ {_T("Symbol: "), _T("SKU: ")},
+    /* StSkuEmpty       */ {_T("Symbol: —"), _T("SKU: —")},
 
-    /* MsgRestart      */ {_T("Zmiana języka zostanie zastosowana po ponownym uruchomieniu aplikacji."),
-                           _T("The language change will take effect after you restart the app.")},
+    /* MsgRestart       */ {_T("Zmiana języka zostanie zastosowana po ponownym uruchomieniu aplikacji."),
+                            _T("The language change will take effect after you restart the app.")},
+    /* MsgResetLayout   */ {_T("Przywrócić domyślny układ paneli? Aplikacja zostanie uruchomiona ponownie."),
+                            _T("Restore the default pane layout? The app will restart.")},
 };
 
 }  // namespace

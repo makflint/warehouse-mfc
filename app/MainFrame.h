@@ -19,6 +19,9 @@ public:
     // Repaint/refresh the docking panes after the stock snapshot changed.
     void RefreshPanes();
 
+    // Update the status-bar row count (visible / total + whether the low-stock filter is on).
+    void SetRowCount(int visible, int total, bool filtered);
+
     // Fill the Details pane with the selected stock row.
     void ShowDetails(const warehouse::StockRow& row);
 
@@ -35,6 +38,7 @@ protected:
     afx_msg void OnUpdateViewPane(CCmdUI* cmdUI);
     afx_msg void OnLanguage(UINT cmdId);
     afx_msg void OnUpdateLanguage(CCmdUI* cmdUI);
+    afx_msg void OnResetLayout();
     DECLARE_MESSAGE_MAP()
 
 private:

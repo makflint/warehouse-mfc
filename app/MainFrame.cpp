@@ -1,6 +1,8 @@
 #include "framework.h"
 #include "resource.h"
 
+#include <shellapi.h>  // ShellExecute (restart on layout reset)
+
 #include <afxvisualmanageroffice2003.h>
 #include <afxvisualmanagervs2008.h>
 #include <afxvisualmanagerwindows7.h>
@@ -9,6 +11,7 @@
 #include "I18n.h"
 #include "MainFrame.h"
 #include "StockView.h"
+#include "WarehouseApp.h"
 #include "TextUtil.h"
 #include "WarehouseDoc.h"
 #include "warehouse/stock_repository.hpp"
@@ -27,6 +30,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_COMMAND_RANGE(ID_LANG_POLISH, ID_LANG_ENGLISH, &CMainFrame::OnLanguage)
     ON_UPDATE_COMMAND_UI_RANGE(ID_LANG_POLISH, ID_LANG_ENGLISH, &CMainFrame::OnUpdateLanguage)
     ON_UPDATE_COMMAND_UI(ID_LANG_MENU, &CMainFrame::OnUpdateMenuButton)
+    ON_COMMAND(ID_VIEW_RESET_LAYOUT, &CMainFrame::OnResetLayout)
 END_MESSAGE_MAP()
 
 CMainFrame::CMainFrame() {}
@@ -109,6 +113,7 @@ void CMainFrame::BuildRibbon() {
     panele->Add(new CMFCRibbonButton(ID_TOGGLE_DASHBOARD, T(i18n::BtnDashboard), 1, 1));
     panele->Add(new CMFCRibbonButton(ID_TOGGLE_MOVEMENTS, T(i18n::BtnJournal), 2, 2));
     panele->Add(new CMFCRibbonButton(ID_TOGGLE_DETAILS, T(i18n::BtnDetails), 3, 3));
+    panele->Add(new CMFCRibbonButton(ID_VIEW_RESET_LAYOUT, T(i18n::BtnResetLayout), -1, -1));
 
     CMFCRibbonPanel* jezyk = widok->AddPanel(T(i18n::PanelLanguage));
     // Image index 4 = the globe glyph appended to the Widok strip (slots 0-3 are the existing icons).
@@ -161,12 +166,6 @@ void CMainFrame::RefreshPanes() {
     }
 
     auto* doc = DYNAMIC_DOWNCAST(CWarehouseDoc, GetActiveDocument());
-    if (doc != nullptr) {
-        CString rows;
-        rows.Format(T(i18n::StRowsFmt), static_cast<int>(doc->Stock().size()));
-        SetStatusPane(ID_INDICATOR_ROWS, rows);
-    }
-
     CListCtrl& log = movementLog_.List();
     if (doc != nullptr && log.GetSafeHwnd() != nullptr) {
         movementLog_.SetRows(&doc->Movements());  // backs the column sort
@@ -191,6 +190,18 @@ void CMainFrame::RefreshPanes() {
             log.SetColumnWidth(col, LVSCW_AUTOSIZE_USEHEADER);
         }
     }
+}
+
+// Row count in the status bar. When the grid is filtered, show "shown z all" so the count
+// isn't read as inconsistent with the visibly shorter grid; otherwise just the total.
+void CMainFrame::SetRowCount(int visible, int total, bool filtered) {
+    CString text;
+    if (filtered) {
+        text.Format(T(i18n::StRowsFilteredFmt), visible, total);
+    } else {
+        text.Format(T(i18n::StRowsFmt), total);
+    }
+    SetStatusPane(ID_INDICATOR_ROWS, text);
 }
 
 void CMainFrame::ShowDetails(const warehouse::StockRow& row) {
@@ -235,6 +246,25 @@ void CMainFrame::OnUpdateLanguage(CCmdUI* cmdUI) {
     const i18n::Lang lang =
         (cmdUI->m_nID == ID_LANG_ENGLISH) ? i18n::Lang::English : i18n::Lang::Polish;
     cmdUI->SetCheck(lang == i18n::Current() ? 1 : 0);
+}
+
+// Restore the default pane layout. The Feature Pack persists docking/window state to the
+// registry, so a user can strand themselves (a floated/hidden/off-screen pane that survives
+// restarts). This drops the saved state and relaunches into the built-in default layout.
+void CMainFrame::OnResetLayout() {
+    if (MessageBox(T(i18n::MsgResetLayout), T(i18n::AppTitle), MB_ICONQUESTION | MB_YESNO) != IDYES) {
+        return;
+    }
+    auto* app = static_cast<CWarehouseApp*>(AfxGetApp());
+    app->SkipStateSaveOnExit();  // don't write the current (confusing) layout back on exit
+    CString workspace;
+    workspace.Format(_T("Software\\%s\\%s\\Workspace"), app->m_pszRegistryKey, app->m_pszProfileName);
+    ::RegDeleteTree(HKEY_CURRENT_USER, workspace);  // remove the previously saved layout too
+
+    TCHAR exe[MAX_PATH] = {};
+    ::GetModuleFileName(nullptr, exe, MAX_PATH);
+    ::ShellExecute(nullptr, nullptr, exe, nullptr, nullptr, SW_SHOWNORMAL);  // launch a fresh instance
+    PostMessage(WM_CLOSE);
 }
 
 // Apply one of the built-in MFC visual managers. The Office 2007 manager needs its

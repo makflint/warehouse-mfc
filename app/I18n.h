@@ -23,7 +23,7 @@ enum Tx {
     PanelStock, PanelMovements, PanelEdit, PanelTheme, PanelPanes, PanelLanguage,
     // Ribbon — buttons
     BtnRefresh, BtnLowOnly, BtnReceive, BtnIssue, BtnUndo, BtnRedo,
-    BtnTheme, BtnDashboard, BtnJournal, BtnDetails, BtnLanguage,
+    BtnTheme, BtnDashboard, BtnJournal, BtnDetails, BtnResetLayout, BtnLanguage,
     LangPolish, LangEnglish,
     // Theme menu items
     ThemeOfficeBlue, ThemeOfficeBlack, ThemeOfficeSilver, ThemeOfficeAqua,
@@ -48,10 +48,10 @@ enum Tx {
     MsgSelectBoth, MsgQtyRangeFmt,
 
     // Status bar
-    StRowsFmt, StRowsSizing, StSkuPrefix, StSkuEmpty,
+    StRowsFmt, StRowsFilteredFmt, StRowsSizing, StSkuPrefix, StSkuEmpty,
 
-    // Language switch
-    MsgRestart,
+    // Messages
+    MsgRestart, MsgResetLayout,
 
     Count
 };

@@ -172,9 +172,11 @@ void CStockView::OnUpdate(CView* /*sender*/, LPARAM /*hint*/, CObject* /*hintObj
     }
     grid_.Resort();  // keep the active sort after a data reload
 
-    // Keep the dashboard chart/KPIs in sync with the grid.
+    // Keep the dashboard chart/KPIs in sync with the grid, and the status-bar row count
+    // in sync with what's actually shown (visible vs total when filtered).
     if (auto* frame = DYNAMIC_DOWNCAST(CMainFrame, GetParentFrame())) {
         frame->RefreshPanes();
+        frame->SetRowCount(grid_.GetItemCount(), static_cast<int>(rows.size()), showLowOnly_);
     }
 }
 

@@ -42,6 +42,9 @@
 #define ID_LANG_ENGLISH 32781
 #define ID_LANG_MENU    32782
 
+// Restore the default docking layout (clears saved state, restarts).
+#define ID_VIEW_RESET_LAYOUT 32784
+
 // Ribbon icon strips (16 px small + 32 px large), one per ribbon category.
 #define IDB_RIBBON_MAGAZYN_16 200
 #define IDB_RIBBON_MAGAZYN_32 201
