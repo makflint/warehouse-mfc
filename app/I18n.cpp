@@ -7,8 +7,9 @@ namespace {
 
 Lang g_lang = Lang::Polish;
 
-// [Tx][Polish, English]. Order must match enum Tx exactly.
-const LPCTSTR kCatalog[Tx::Count][2] = {
+// [Tx][Polish, English]. Order must match enum Tx exactly. Size is *deduced* (not Tx::Count)
+// so the static_assert below fails the build if a Tx key has no catalog row (or vice versa).
+const LPCTSTR kCatalog[][2] = {
     /* AppTitle        */ {_T("Stany Magazynowe"), _T("Warehouse Stock")},
 
     /* TabStock        */ {_T("Magazyn"), _T("Stock")},
@@ -99,11 +100,28 @@ const LPCTSTR kCatalog[Tx::Count][2] = {
                             _T("Shortcuts: F5 — refresh · Ctrl+Z / Ctrl+Y — undo / redo · F1 — help")},
 };
 
+// Consistency check #1 (compile time): every Tx key has exactly one catalog row.
+static_assert(sizeof(kCatalog) / sizeof(kCatalog[0]) == static_cast<size_t>(Tx::Count),
+              "I18n catalog and the Tx enum are out of sync — add/remove a kCatalog row");
+
+#ifdef _DEBUG
+// Consistency check #2 (debug, at startup): both languages are present and non-empty.
+void VerifyCatalog() {
+    for (int i = 0; i < Tx::Count; ++i) {
+        ASSERT(kCatalog[i][0] != nullptr && kCatalog[i][0][0] != _T('\0'));  // Polish
+        ASSERT(kCatalog[i][1] != nullptr && kCatalog[i][1][0] != _T('\0'));  // English
+    }
+}
+#endif
+
 }  // namespace
 
 Lang Current() { return g_lang; }
 
 void Init() {
+#ifdef _DEBUG
+    VerifyCatalog();  // every string present in both languages (debug builds only)
+#endif
     const int saved = AfxGetApp()->GetProfileInt(_T("Settings"), _T("Language"), -1);
     if (saved == static_cast<int>(Lang::Polish) || saved == static_cast<int>(Lang::English)) {
         g_lang = static_cast<Lang>(saved);
