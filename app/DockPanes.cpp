@@ -46,6 +46,124 @@ void drawTile(CDC& dc, CRect r, COLORREF fill, const CString& value, const CStri
     dc.SelectObject(old);
 }
 
+// The dashboard is owner-drawn, so the visual manager can't theme it — name both palettes here.
+struct DashboardColors {
+    COLORREF background, foreground, axis, bar, barLow;
+};
+DashboardColors dashboardColors(bool dark) {
+    if (dark) {
+        return {RGB(30, 30, 30), RGB(215, 215, 215), RGB(90, 90, 90), RGB(70, 120, 200), RGB(220, 80, 80)};
+    }
+    return {RGB(245, 246, 248), RGB(60, 60, 60), RGB(180, 180, 180), RGB(40, 86, 150), RGB(176, 32, 32)};
+}
+
+// KPI tile fills carry their own contrast, so they're theme-independent.
+constexpr COLORREF kAssortmentFill = RGB(33, 115, 70);
+constexpr COLORREF kLowStockFill = RGB(176, 32, 32);
+constexpr COLORREF kLowStockEmptyFill = RGB(120, 120, 120);  // grey when nothing is low
+constexpr COLORREF kTotalUnitsFill = RGB(40, 86, 150);
+
+// Layout metrics (client-pixel units), all measured from the deflated inner rect.
+constexpr int kMargin = 10;
+constexpr int kTileHeight = 74;
+constexpr int kTileGap = 8;
+constexpr int kTilesToChartGap = 16;
+constexpr int kChartTitleHeight = 16;
+constexpr int kChartTitleToPlotGap = 20;
+constexpr int kSkuLabelBand = 18;     // strip under the axis for SKU labels
+constexpr int kBarValueHeight = 16;   // value label above each bar
+constexpr int kMaxBarWidth = 48;
+constexpr int kBigFontHeight = 30;    // KPI tile value
+constexpr int kSmallFontHeight = 14;  // labels, chart text
+
+void createDashboardFonts(CFont& bigFont, CFont& smallFont) {
+    bigFont.CreateFont(kBigFontHeight, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                       OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH, _T("Segoe UI"));
+    smallFont.CreateFont(kSmallFontHeight, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                         OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH, _T("Segoe UI"));
+}
+
+// The figures behind the tiles + chart, aggregated per SKU across warehouses.
+struct StockKpis {
+    std::map<std::string, long long> onHandBySku;
+    std::map<std::string, bool> lowBySku;
+    long long totalUnits = 0;
+    int lowRows = 0;
+};
+StockKpis computeKpis(const std::vector<warehouse::StockRow>& stock) {
+    StockKpis kpis;
+    for (const warehouse::StockRow& row : stock) {
+        kpis.onHandBySku[row.sku] += row.onHand;
+        kpis.lowBySku[row.sku] = kpis.lowBySku[row.sku] || row.isLow;
+        kpis.totalUnits += row.onHand;
+        if (row.isLow) {
+            ++kpis.lowRows;
+        }
+    }
+    return kpis;
+}
+
+// Three KPI tiles across the top of the inner rect.
+void drawKpiTiles(CDC& dc, CRect inner, const StockKpis& kpis, CFont& bigFont, CFont& smallFont) {
+    const int tileW = (inner.Width() - 2 * kTileGap) / 3;
+    CString value;
+
+    value.Format(_T("%d"), static_cast<int>(kpis.onHandBySku.size()));
+    drawTile(dc, CRect(inner.left, inner.top, inner.left + tileW, inner.top + kTileHeight),
+             kAssortmentFill, value, T(i18n::KpiAssortment), bigFont, smallFont);
+
+    value.Format(_T("%d"), kpis.lowRows);
+    drawTile(dc, CRect(inner.left + tileW + kTileGap, inner.top, inner.left + 2 * tileW + kTileGap, inner.top + kTileHeight),
+             kpis.lowRows > 0 ? kLowStockFill : kLowStockEmptyFill, value, T(i18n::KpiLowStock), bigFont, smallFont);
+
+    value.Format(_T("%lld"), kpis.totalUnits);
+    drawTile(dc, CRect(inner.left + 2 * tileW + 2 * kTileGap, inner.top, inner.right, inner.top + kTileHeight),
+             kTotalUnitsFill, value, T(i18n::KpiTotalUnits), bigFont, smallFont);
+}
+
+// Bar chart of on-hand per SKU, below the tiles. Low-stock SKUs draw in the low-stock colour.
+void drawBarChart(CDC& dc, CRect inner, const StockKpis& kpis, const DashboardColors& colors, CFont& smallFont) {
+    CRect chart = inner;
+    chart.top += kTileHeight + kTilesToChartGap;
+    dc.SetBkMode(TRANSPARENT);
+    dc.SelectObject(&smallFont);
+    dc.SetTextColor(colors.foreground);
+    dc.DrawText(T(i18n::ChartTitle), CRect(chart.left, chart.top, chart.right, chart.top + kChartTitleHeight),
+                DT_LEFT | DT_SINGLELINE);
+    chart.top += kChartTitleToPlotGap;
+
+    const int n = static_cast<int>(kpis.onHandBySku.size());
+    if (n == 0) {
+        return;
+    }
+    long long maxVal = 1;
+    for (const auto& kv : kpis.onHandBySku) {
+        maxVal = (std::max)(maxVal, kv.second);
+    }
+
+    const int axisY = chart.bottom - kSkuLabelBand;
+    const int plotH = axisY - chart.top;
+    const int slot = chart.Width() / n;
+    const int barW = (std::min)(kMaxBarWidth, slot * 2 / 3);
+    int i = 0;
+    for (const auto& kv : kpis.onHandBySku) {
+        const int cx = chart.left + slot * i + slot / 2;
+        const int h = static_cast<int>(static_cast<long long>(plotH) * kv.second / maxVal);
+        CRect bar(cx - barW / 2, axisY - h, cx + barW / 2, axisY);
+        dc.FillSolidRect(bar, kpis.lowBySku.at(kv.first) ? colors.barLow : colors.bar);
+
+        CString value;
+        value.Format(_T("%lld"), kv.second);
+        dc.SetTextColor(colors.foreground);
+        dc.DrawText(value, CRect(cx - slot / 2, bar.top - kBarValueHeight, cx + slot / 2, bar.top),
+                    DT_CENTER | DT_BOTTOM | DT_SINGLELINE);
+        dc.DrawText(FromUtf8(kv.first), CRect(cx - slot / 2, axisY + 2, cx + slot / 2, axisY + kSkuLabelBand),
+                    DT_CENTER | DT_TOP | DT_SINGLELINE);
+        ++i;
+    }
+    dc.FillSolidRect(chart.left, axisY, chart.Width(), 1, colors.axis);
+}
+
 }  // namespace
 
 // --- Dashboard pane --------------------------------------------------------
@@ -73,101 +191,28 @@ void CDashboardPane::OnPaint() {
     CRect rc;
     GetClientRect(rc);
 
-    // Double-buffer to avoid flicker.
+    // Double-buffer to avoid flicker: draw everything to a memory DC, then blit once.
     CDC mem;
     mem.CreateCompatibleDC(&paint);
     CBitmap bmp;
     bmp.CreateCompatibleBitmap(&paint, rc.Width(), rc.Height());
     CBitmap* oldBmp = mem.SelectObject(&bmp);
 
-    const COLORREF bgColor = dark_ ? RGB(30, 30, 30) : RGB(245, 246, 248);
-    const COLORREF fgColor = dark_ ? RGB(215, 215, 215) : RGB(60, 60, 60);
-    const COLORREF axisColor = dark_ ? RGB(90, 90, 90) : RGB(180, 180, 180);
-    const COLORREF barColor = dark_ ? RGB(70, 120, 200) : RGB(40, 86, 150);
-    const COLORREF barLow = dark_ ? RGB(220, 80, 80) : RGB(176, 32, 32);
-    mem.FillSolidRect(rc, bgColor);
+    const DashboardColors colors = dashboardColors(dark_);
+    mem.FillSolidRect(rc, colors.background);
 
-    CFont fontBig, fontSmall;
-    fontBig.CreateFont(30, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
-                       CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH, _T("Segoe UI"));
-    fontSmall.CreateFont(14, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
-                         OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH,
-                         _T("Segoe UI"));
+    CFont bigFont, smallFont;
+    createDashboardFonts(bigFont, smallFont);
 
-    const std::vector<warehouse::StockRow>* stock = activeStock();
-
-    // KPIs.
-    std::map<std::string, long long> bySku;
-    std::map<std::string, bool> lowBySku;
-    long long totalUnits = 0;
-    int lowRows = 0;
-    if (stock != nullptr) {
-        for (const warehouse::StockRow& row : *stock) {
-            bySku[row.sku] += row.onHand;
-            lowBySku[row.sku] = lowBySku[row.sku] || row.isLow;
-            totalUnits += row.onHand;
-            if (row.isLow) ++lowRows;
-        }
+    StockKpis kpis;
+    if (const std::vector<warehouse::StockRow>* stock = activeStock()) {
+        kpis = computeKpis(*stock);
     }
 
-    const int margin = 10;
     CRect inner = rc;
-    inner.DeflateRect(margin, margin);
-
-    // --- three KPI tiles across the top ---
-    const int tileH = 74;
-    const int gap = 8;
-    const int tileW = (inner.Width() - 2 * gap) / 3;
-    CString s;
-    s.Format(_T("%d"), static_cast<int>(bySku.size()));
-    drawTile(mem, CRect(inner.left, inner.top, inner.left + tileW, inner.top + tileH),
-             RGB(33, 115, 70), s, T(i18n::KpiAssortment), fontBig, fontSmall);
-    s.Format(_T("%d"), lowRows);
-    drawTile(mem, CRect(inner.left + tileW + gap, inner.top, inner.left + 2 * tileW + gap, inner.top + tileH),
-             lowRows > 0 ? RGB(176, 32, 32) : RGB(120, 120, 120), s, T(i18n::KpiLowStock),
-             fontBig, fontSmall);
-    s.Format(_T("%lld"), totalUnits);
-    drawTile(mem, CRect(inner.left + 2 * tileW + 2 * gap, inner.top, inner.right, inner.top + tileH),
-             RGB(40, 86, 150), s, T(i18n::KpiTotalUnits), fontBig, fontSmall);
-
-    // --- bar chart of on-hand per SKU ---
-    CRect chart = inner;
-    chart.top += tileH + 16;
-    mem.SetBkMode(TRANSPARENT);
-    mem.SelectObject(&fontSmall);
-    mem.SetTextColor(fgColor);
-    mem.DrawText(T(i18n::ChartTitle), CRect(chart.left, chart.top, chart.right, chart.top + 16),
-                 DT_LEFT | DT_SINGLELINE);
-    chart.top += 20;
-
-    long long maxVal = 1;
-    for (const auto& kv : bySku) maxVal = (std::max)(maxVal, kv.second);
-
-    const int n = static_cast<int>(bySku.size());
-    if (n > 0) {
-        const int axisY = chart.bottom - 18;            // leave room for sku labels
-        const int plotH = axisY - chart.top;
-        const int slot = chart.Width() / n;
-        const int barW = (std::min)(48, slot * 2 / 3);
-        int i = 0;
-        for (const auto& kv : bySku) {
-            const int cx = chart.left + slot * i + slot / 2;
-            const int h = static_cast<int>(static_cast<long long>(plotH) * kv.second / maxVal);
-            CRect bar(cx - barW / 2, axisY - h, cx + barW / 2, axisY);
-            const COLORREF c = lowBySku[kv.first] ? barLow : barColor;
-            mem.FillSolidRect(bar, c);
-
-            CString val;
-            val.Format(_T("%lld"), kv.second);
-            mem.SetTextColor(fgColor);
-            mem.DrawText(val, CRect(cx - slot / 2, bar.top - 16, cx + slot / 2, bar.top),
-                         DT_CENTER | DT_BOTTOM | DT_SINGLELINE);
-            mem.DrawText(FromUtf8(kv.first), CRect(cx - slot / 2, axisY + 2, cx + slot / 2, axisY + 18),
-                         DT_CENTER | DT_TOP | DT_SINGLELINE);
-            ++i;
-        }
-        mem.FillSolidRect(chart.left, axisY, chart.Width(), 1, axisColor);
-    }
+    inner.DeflateRect(kMargin, kMargin);
+    drawKpiTiles(mem, inner, kpis, bigFont, smallFont);
+    drawBarChart(mem, inner, kpis, colors, smallFont);
 
     paint.BitBlt(0, 0, rc.Width(), rc.Height(), &mem, 0, 0, SRCCOPY);
     mem.SelectObject(oldBmp);

@@ -144,7 +144,10 @@ The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Featu
 - [x] **Warnings-as-errors** — `core/` + `data/` + `app/` at **`/W4 /WX`** (MFC headers external-
   silenced); **clang-tidy** curated set (`.clang-tidy`) clean on `core/` + `data/`. See
   `docs/TESTING.md` → *Static analysis*.
-- [ ] Clean-code sweep.
+- [x] **Clean-code sweep.** Dashboard `OnPaint` (~100-line monolith) split into named steps
+  (`computeKpis` / `drawKpiTiles` / `drawBarChart`) with the palette + layout magic numbers named;
+  `BuildRibbon` split into `BuildStockTab` / `BuildViewTab`; Dziennik column indices replaced by a
+  `MovementLogColumn` enum. Pixels + behaviour unchanged (sweep + all gates green).
 
 ## Build / test (Windows)
 ```bash

@@ -69,6 +69,10 @@ private:
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
     ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
+
+// Column order of the Movement-log list (Dziennik ruchów) — one source of truth for both
+// inserting the columns and filling each row.
+enum MovementLogColumn { kLogTime = 0, kLogWarehouse, kLogType, kLogSku, kLogQty, kLogColumnCount };
 }  // namespace
 
 IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
@@ -135,8 +139,16 @@ void CMainFrame::BuildRibbon() {
     // Office-style way to show the app's icon in a ribbon title bar. Icon only, no menu.
     ribbon_.SetApplicationButton(new CIconOnlyAppButton(IDB_APPBTN), CSize(45, 45));
 
-    // Each category owns a small (16px) + large (32px) image strip; the button's
-    // image index selects its glyph within that category's strip.
+    BuildStockTab();
+    BuildViewTab();
+
+    // Help button at the top-right of the tab row (Office-style), opens About/Help (also F1).
+    ribbon_.AddToTabs(new CMFCRibbonButton(ID_APP_ABOUT, T(i18n::HelpButton), -1, -1));
+}
+
+// Each category owns a small (16px) + large (32px) image strip; a button's image index
+// selects its glyph within that category's strip.
+void CMainFrame::BuildStockTab() {
     CMFCRibbonCategory* magazyn =
         ribbon_.AddCategory(T(i18n::TabStock), IDB_RIBBON_MAGAZYN_16, IDB_RIBBON_MAGAZYN_32);
 
@@ -151,9 +163,12 @@ void CMainFrame::BuildRibbon() {
     CMFCRibbonPanel* edycja = magazyn->AddPanel(T(i18n::PanelEdit));
     edycja->Add(new CMFCRibbonButton(ID_EDIT_UNDO, T(i18n::BtnUndo), 4, 4));
     edycja->Add(new CMFCRibbonButton(ID_EDIT_REDO, T(i18n::BtnRedo), 5, 5));
+}
 
+void CMainFrame::BuildViewTab() {
     CMFCRibbonCategory* widok =
         ribbon_.AddCategory(T(i18n::TabView), IDB_RIBBON_WIDOK_16, IDB_RIBBON_WIDOK_32);
+
     CMFCRibbonPanel* motyw = widok->AddPanel(T(i18n::PanelTheme));
     auto* themeMenu = new CMFCRibbonButton(ID_THEME_MENU, T(i18n::BtnTheme), 0, 0);
     themeMenu->SetDefaultCommand(FALSE);  // whole button opens the menu (not a split button)
@@ -180,9 +195,6 @@ void CMainFrame::BuildRibbon() {
     langMenu->AddSubItem(new CMFCRibbonButton(ID_LANG_POLISH, T(i18n::LangPolish)));
     langMenu->AddSubItem(new CMFCRibbonButton(ID_LANG_ENGLISH, T(i18n::LangEnglish)));
     jezyk->Add(langMenu);
-
-    // Help button at the top-right of the tab row (Office-style), opens About/Help (also F1).
-    ribbon_.AddToTabs(new CMFCRibbonButton(ID_APP_ABOUT, T(i18n::HelpButton), -1, -1));
 }
 
 // Three docking panels managed by CFrameWndEx: a (custom-drawn) Dashboard on the
@@ -205,11 +217,11 @@ void CMainFrame::CreatePanes() {
                         IDC_PANE_MOVEMENTS, style | CBRS_RIGHT);
     movementLog_.EnableDocking(CBRS_ALIGN_ANY);
     DockPane(&movementLog_);
-    movementLog_.List().InsertColumn(0, T(i18n::ColTime), LVCFMT_LEFT, 130);
-    movementLog_.List().InsertColumn(1, T(i18n::ColWarehouse), LVCFMT_LEFT, 60);
-    movementLog_.List().InsertColumn(2, T(i18n::ColMoveType), LVCFMT_LEFT, 44);
-    movementLog_.List().InsertColumn(3, T(i18n::ColSku), LVCFMT_LEFT, 60);
-    movementLog_.List().InsertColumn(4, T(i18n::ColQty), LVCFMT_RIGHT, 48);
+    movementLog_.List().InsertColumn(kLogTime, T(i18n::ColTime), LVCFMT_LEFT, 130);
+    movementLog_.List().InsertColumn(kLogWarehouse, T(i18n::ColWarehouse), LVCFMT_LEFT, 60);
+    movementLog_.List().InsertColumn(kLogType, T(i18n::ColMoveType), LVCFMT_LEFT, 44);
+    movementLog_.List().InsertColumn(kLogSku, T(i18n::ColSku), LVCFMT_LEFT, 60);
+    movementLog_.List().InsertColumn(kLogQty, T(i18n::ColQty), LVCFMT_RIGHT, 48);
 
     details_.Create(T(i18n::PaneDetails), this, CRect(0, 0, 280, 160), TRUE, IDC_PANE_DETAILS,
                     style | CBRS_RIGHT);
@@ -233,21 +245,20 @@ void CMainFrame::RefreshPanes() {
         log.DeleteAllItems();
         int i = 0;
         for (const warehouse::MovementRow& m : doc->Movements()) {
-            log.InsertItem(i, FromUtf8(m.createdAt));
-            log.SetItemText(i, 1, FromUtf8(m.warehouseCode));
-            log.SetItemText(i, 2, FromUtf8(m.type));
-            log.SetItemText(i, 3, FromUtf8(m.sku));
+            log.InsertItem(i, FromUtf8(m.createdAt));  // InsertItem fills column kLogTime
+            log.SetItemText(i, kLogWarehouse, FromUtf8(m.warehouseCode));
+            log.SetItemText(i, kLogType, FromUtf8(m.type));
+            log.SetItemText(i, kLogSku, FromUtf8(m.sku));
             CString qty;
             qty.Format(_T("%d"), m.qty < 0 ? -m.qty : m.qty);
-            log.SetItemText(i, 4, qty);
+            log.SetItemText(i, kLogQty, qty);
             log.SetItemData(i, static_cast<DWORD_PTR>(i));  // index into Movements()
             ++i;
         }
         movementLog_.Resort();  // keep the active sort (default: Czas descending) after reload
         // Fit every column to its widest value (and header) so the log is readable on first
         // sight — no dragging column borders to reveal the timestamp / values.
-        constexpr int kMovementColumns = 5;
-        for (int col = 0; col < kMovementColumns; ++col) {
+        for (int col = 0; col < kLogColumnCount; ++col) {
             log.SetColumnWidth(col, LVSCW_AUTOSIZE_USEHEADER);
         }
     }

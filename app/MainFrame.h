@@ -44,6 +44,8 @@ protected:
 
 private:
     void BuildRibbon();
+    void BuildStockTab();  // Magazyn tab: Stany / Ruchy / Edycja panels
+    void BuildViewTab();   // Widok tab: Motyw / Panele / Język panels
     void CreatePanes();
     CDockablePane* PaneFor(UINT cmdId);
 
