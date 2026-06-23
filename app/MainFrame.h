@@ -22,6 +22,9 @@ public:
     // Fill the Details pane with the selected stock row.
     void ShowDetails(const warehouse::StockRow& row);
 
+    // True when the custom dark theme is active (same flag drives ApplyContentTheme).
+    bool IsDarkTheme() const { return currentTheme_ == ID_THEME_DARK; }
+
 protected:
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
     void OnUpdateFrameTitle(BOOL bAddToTitle) override;  // fixed product caption (no slug)

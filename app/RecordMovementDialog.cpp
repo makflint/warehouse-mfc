@@ -1,6 +1,9 @@
 #include "framework.h"
 
-#include "DarkVisualManager.h"
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
+
+#include "MainFrame.h"
 #include "RecordMovementDialog.h"
 #include "TextUtil.h"
 #include "warehouse/view_logic.hpp"
@@ -48,11 +51,18 @@ void CRecordMovementDialog::DoDataExchange(CDataExchange* dx) {
 
 BOOL CRecordMovementDialog::OnInitDialog() {
     CDialogEx::OnInitDialog();
-    // Match the app's active theme: under the custom dark visual manager, paint the dialog
-    // background dark (CDialogEx fills it + tints the static labels via OnCtlColor below).
-    dark_ = CMFCVisualManager::GetInstance()->IsKindOf(RUNTIME_CLASS(CDarkVisualManager)) != FALSE;
+    // Match the app's active theme (use the frame's flag, the same source ApplyContentTheme
+    // uses): paint the dialog background dark + tint the static labels via OnCtlColor below.
+    if (auto* frame = DYNAMIC_DOWNCAST(CMainFrame, AfxGetMainWnd())) {
+        dark_ = frame->IsDarkTheme();
+    }
     if (dark_) {
         SetBackgroundColor(ThemeColorsFor(true).background);
+        // Dark the non-client caption too (SetBackgroundColor only themes the client area),
+        // so we don't get a light title bar over a dark body. Win10 20H1+/Win11.
+        const BOOL useDark = TRUE;
+        constexpr DWORD kImmersiveDarkMode = 20;  // DWMWA_USE_IMMERSIVE_DARK_MODE
+        ::DwmSetWindowAttribute(GetSafeHwnd(), kImmersiveDarkMode, &useDark, sizeof(useDark));
     }
     SetWindowText(type_ == warehouse::MovementType::In ? _T("Przyjęcie (IN)")
                                                        : _T("Wydanie (OUT)"));
