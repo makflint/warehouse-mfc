@@ -89,6 +89,14 @@ const LPCTSTR kCatalog[Tx::Count][2] = {
     /* MsgResetLayout   */ {_T("Przywrócić domyślny układ paneli? Aplikacja zostanie uruchomiona ponownie."),
                             _T("Restore the default pane layout? The app will restart.")},
     /* MenuExit         */ {_T("Zakończ"), _T("Exit")},
+
+    /* HelpButton       */ {_T("Pomoc"), _T("Help")},
+    /* HelpAbout        */ {_T("O programie"), _T("About")},
+    /* AboutDesc        */ {_T("Demo magazynowe: MFC + SQL Server, z cofnij/ponów i sterowaniem wstążką."),
+                            _T("Warehouse stock demo: MFC + SQL Server, with undo/redo and a ribbon UI.")},
+    /* AboutVersion     */ {_T("Wersja 1.0"), _T("Version 1.0")},
+    /* AboutShortcuts   */ {_T("Skróty: F5 — odśwież · Ctrl+Z / Ctrl+Y — cofnij / ponów · F1 — pomoc"),
+                            _T("Shortcuts: F5 — refresh · Ctrl+Z / Ctrl+Y — undo / redo · F1 — help")},
 };
 
 }  // namespace

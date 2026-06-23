@@ -39,6 +39,7 @@ protected:
     afx_msg void OnLanguage(UINT cmdId);
     afx_msg void OnUpdateLanguage(CCmdUI* cmdUI);
     afx_msg void OnResetLayout();
+    afx_msg void OnAppAbout();
     DECLARE_MESSAGE_MAP()
 
 private:

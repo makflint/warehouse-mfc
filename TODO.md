@@ -105,10 +105,11 @@ The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Featu
 
 ## Backlog — open work
 ### UX & features
-- [ ] **App button:** drop the menu under the orb — keep it as **just the icon** (no File/Exit menu).
-- [ ] **Main grid double-click** → do something (open *Przyjmij*, or focus Details).
-- [ ] **Main grid right-click context menu** (Przyjmij / Wydaj / Odśwież / pokaż Szczegóły…).
-- [ ] **Help menu** — Help (F1) + **„O programie / About"** dialog.
+- [x] **App button:** menu dropped — the orb is **just the icon** (`CIconOnlyAppButton` swallows the click).
+- [x] **Main grid double-click** → opens *Przyjmij* pre-selected to that row.
+- [x] **Main grid right-click context menu** (Przyjmij / Wydaj / Odśwież / Szczegóły).
+- [x] **Help** — a *Pomoc/Help* button (top-right of the tabs) + **F1** open an **About** dialog
+  (icon, name, description, version, shortcut hints; localised + dark-aware).
 - [ ] *(later)* per-column filters on the main grid.
 
 ### i18n — beyond scope A

@@ -1,6 +1,7 @@
 #include "framework.h"
 #include "resource.h"
 
+#include <dwmapi.h>     // dark title bar for the About dialog
 #include <shellapi.h>  // ShellExecute (restart on layout reset)
 
 #include <afxvisualmanageroffice2003.h>
@@ -18,6 +19,58 @@
 
 using i18n::T;
 
+namespace {
+// Application button that is *just the app icon*: it swallows the click/double-click so there's
+// no File/Exit menu (and the Office "double-click closes the app" behaviour is suppressed too).
+class CIconOnlyAppButton : public CMFCRibbonApplicationButton {
+public:
+    explicit CIconOnlyAppButton(UINT bmpId) : CMFCRibbonApplicationButton(bmpId) {}
+
+protected:
+    void OnLButtonDown(CPoint) override {}
+    void OnLButtonDblClk(CPoint) override {}
+};
+
+// About / Help dialog (icon + name + description + version + shortcut hints), localised at
+// runtime and theme-aware (dark) like the record dialog.
+class CAboutDlg : public CDialogEx {
+public:
+    CAboutDlg(CWnd* parent, bool dark) : CDialogEx(IDD_ABOUTBOX, parent), dark_(dark) {}
+
+protected:
+    BOOL OnInitDialog() override {
+        CDialogEx::OnInitDialog();
+        SetWindowText(T(i18n::HelpAbout));
+        SetDlgItemText(IDC_ABOUT_TITLE, T(i18n::AppTitle));
+        SetDlgItemText(IDC_ABOUT_DESC, T(i18n::AboutDesc));
+        SetDlgItemText(IDC_ABOUT_VER, T(i18n::AboutVersion));
+        SetDlgItemText(IDC_ABOUT_KEYS, T(i18n::AboutShortcuts));
+        if (dark_) {
+            SetBackgroundColor(ThemeColorsFor(true).background);
+            const BOOL on = TRUE;
+            ::DwmSetWindowAttribute(GetSafeHwnd(), 20 /*DWMWA_USE_IMMERSIVE_DARK_MODE*/, &on, sizeof(on));
+        }
+        return TRUE;
+    }
+    afx_msg HBRUSH OnCtlColor(CDC* dc, CWnd* wnd, UINT type) {
+        HBRUSH brush = CDialogEx::OnCtlColor(dc, wnd, type);
+        if (dark_ && type == CTLCOLOR_STATIC) {
+            dc->SetTextColor(ThemeColorsFor(true).text);
+            dc->SetBkMode(TRANSPARENT);
+        }
+        return brush;
+    }
+    DECLARE_MESSAGE_MAP()
+
+private:
+    bool dark_;
+};
+
+BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
+    ON_WM_CTLCOLOR()
+END_MESSAGE_MAP()
+}  // namespace
+
 IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
 
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
@@ -31,6 +84,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_UPDATE_COMMAND_UI_RANGE(ID_LANG_POLISH, ID_LANG_ENGLISH, &CMainFrame::OnUpdateLanguage)
     ON_UPDATE_COMMAND_UI(ID_LANG_MENU, &CMainFrame::OnUpdateMenuButton)
     ON_COMMAND(ID_VIEW_RESET_LAYOUT, &CMainFrame::OnResetLayout)
+    ON_COMMAND(ID_APP_ABOUT, &CMainFrame::OnAppAbout)
 END_MESSAGE_MAP()
 
 CMainFrame::CMainFrame() {}
@@ -78,11 +132,8 @@ void CMainFrame::BuildRibbon() {
     ribbon_.EnableToolTips();
 
     // Round application button (top-left of the caption) carrying the app icon — the
-    // Office-style way to show the app's icon in a ribbon title bar. Its menu holds Exit.
-    ribbon_.SetApplicationButton(new CMFCRibbonApplicationButton(IDB_APPBTN), CSize(45, 45));
-    CMFCRibbonMainPanel* mainPanel =
-        ribbon_.AddMainCategory(T(i18n::AppTitle), IDB_RIBBON_MAGAZYN_16, IDB_RIBBON_MAGAZYN_32);
-    mainPanel->Add(new CMFCRibbonButton(ID_APP_EXIT, T(i18n::MenuExit), -1, -1));
+    // Office-style way to show the app's icon in a ribbon title bar. Icon only, no menu.
+    ribbon_.SetApplicationButton(new CIconOnlyAppButton(IDB_APPBTN), CSize(45, 45));
 
     // Each category owns a small (16px) + large (32px) image strip; the button's
     // image index selects its glyph within that category's strip.
@@ -129,6 +180,9 @@ void CMainFrame::BuildRibbon() {
     langMenu->AddSubItem(new CMFCRibbonButton(ID_LANG_POLISH, T(i18n::LangPolish)));
     langMenu->AddSubItem(new CMFCRibbonButton(ID_LANG_ENGLISH, T(i18n::LangEnglish)));
     jezyk->Add(langMenu);
+
+    // Help button at the top-right of the tab row (Office-style), opens About/Help (also F1).
+    ribbon_.AddToTabs(new CMFCRibbonButton(ID_APP_ABOUT, T(i18n::HelpButton), -1, -1));
 }
 
 // Three docking panels managed by CFrameWndEx: a (custom-drawn) Dashboard on the
@@ -272,6 +326,10 @@ void CMainFrame::OnResetLayout() {
     ::GetModuleFileName(nullptr, exe, MAX_PATH);
     ::ShellExecute(nullptr, nullptr, exe, nullptr, nullptr, SW_SHOWNORMAL);  // launch a fresh instance
     PostMessage(WM_CLOSE);
+}
+
+void CMainFrame::OnAppAbout() {
+    CAboutDlg(this, IsDarkTheme()).DoModal();
 }
 
 // Apply one of the built-in MFC visual managers. The Office 2007 manager needs its

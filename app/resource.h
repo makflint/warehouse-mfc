@@ -2,6 +2,13 @@
 
 #define IDR_MAINFRAME       128
 #define IDD_RECORD_MOVEMENT 130
+#define IDD_ABOUTBOX        131
+
+// About-dialog static labels (set at runtime for the active language).
+#define IDC_ABOUT_TITLE 1020
+#define IDC_ABOUT_DESC  1021
+#define IDC_ABOUT_VER   1022
+#define IDC_ABOUT_KEYS  1023
 
 #define IDC_PRODUCT   1001
 #define IDC_WAREHOUSE 1002

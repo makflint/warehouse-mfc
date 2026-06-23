@@ -98,6 +98,8 @@ BEGIN_MESSAGE_MAP(CStockView, CView)
     ON_COMMAND(ID_STOCK_FILTER_LOW, &CStockView::OnFilterLow)
     ON_UPDATE_COMMAND_UI(ID_STOCK_FILTER_LOW, &CStockView::OnUpdateFilterLow)
     ON_NOTIFY(LVN_ITEMCHANGED, kGridId, &CStockView::OnItemChanged)
+    ON_NOTIFY(NM_DBLCLK, kGridId, &CStockView::OnGridDblClk)
+    ON_NOTIFY(NM_RCLICK, kGridId, &CStockView::OnGridRClick)
 END_MESSAGE_MAP()
 
 CStockView::CStockView() {}
@@ -280,4 +282,32 @@ void CStockView::OnItemChanged(NMHDR* notify, LRESULT* result) {
             frame->ShowDetails(doc->Stock()[idx]);
         }
     }
+}
+
+// Double-click a row → record a movement for it (Przyjmij, pre-selected to that product).
+void CStockView::OnGridDblClk(NMHDR* /*notify*/, LRESULT* result) {
+    *result = 0;
+    if (grid_.GetNextItem(-1, LVNI_SELECTED) >= 0) {
+        RecordMovement(warehouse::MovementType::In);
+    }
+}
+
+// Right-click a row → select it and show a context menu of the row actions. The command ids
+// match the ribbon, so they route through the frame to the existing handlers.
+void CStockView::OnGridRClick(NMHDR* notify, LRESULT* result) {
+    *result = 0;
+    const auto* item = reinterpret_cast<NMITEMACTIVATE*>(notify);
+    if (item->iItem >= 0) {
+        grid_.SetItemState(item->iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+    }
+    CMenu menu;
+    menu.CreatePopupMenu();
+    menu.AppendMenu(MF_STRING, ID_STOCK_RECORD_IN, i18n::T(i18n::BtnReceive));
+    menu.AppendMenu(MF_STRING, ID_STOCK_RECORD_OUT, i18n::T(i18n::BtnIssue));
+    menu.AppendMenu(MF_SEPARATOR);
+    menu.AppendMenu(MF_STRING, ID_STOCK_REFRESH, i18n::T(i18n::BtnRefresh));
+    menu.AppendMenu(MF_STRING, ID_TOGGLE_DETAILS, i18n::T(i18n::BtnDetails));
+    CPoint pt;
+    ::GetCursorPos(&pt);
+    menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, AfxGetMainWnd());
 }

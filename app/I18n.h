@@ -56,6 +56,9 @@ enum Tx {
     // Application-button menu
     MenuExit,
 
+    // Help / About
+    HelpButton, HelpAbout, AboutDesc, AboutVersion, AboutShortcuts,
+
     Count
 };
 

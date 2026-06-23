@@ -37,6 +37,7 @@ BEGIN
     VK_F5,          ID_STOCK_REFRESH,       VIRTKEY
     "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL
     "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL
+    VK_F1,          ID_APP_ABOUT,           VIRTKEY
 END
 
 /////////////////////////////////////////////////////////////////////////////
@@ -60,6 +61,19 @@ BEGIN
     EDITTEXT        IDC_QTY,66,60,64,14,ES_AUTOHSCROLL | ES_NUMBER
     DEFPUSHBUTTON   "OK",IDOK,146,96,50,15
     PUSHBUTTON      "Anuluj",IDCANCEL,202,96,50,15
+END
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 250, 116
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "O programie"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
+    LTEXT           "",IDC_ABOUT_TITLE,48,14,188,12
+    LTEXT           "",IDC_ABOUT_DESC,48,30,192,24
+    LTEXT           "",IDC_ABOUT_VER,48,56,188,10
+    LTEXT           "",IDC_ABOUT_KEYS,14,76,222,18
+    DEFPUSHBUTTON   "OK",IDOK,100,96,50,15
 END
 
 /////////////////////////////////////////////////////////////////////////////

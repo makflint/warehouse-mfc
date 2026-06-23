@@ -64,6 +64,8 @@ protected:
     afx_msg void OnFilterLow();
     afx_msg void OnUpdateFilterLow(CCmdUI* cmdUI);
     afx_msg void OnItemChanged(NMHDR* notify, LRESULT* result);
+    afx_msg void OnGridDblClk(NMHDR* notify, LRESULT* result);
+    afx_msg void OnGridRClick(NMHDR* notify, LRESULT* result);
     DECLARE_MESSAGE_MAP()
 
 private:
