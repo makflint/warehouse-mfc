@@ -57,12 +57,14 @@
     <ClInclude Include="include\warehouse\movement.hpp" />
     <ClInclude Include="include\warehouse\command.hpp" />
     <ClInclude Include="include\warehouse\movement_command.hpp" />
+    <ClInclude Include="include\warehouse\db_error.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stock_math.cpp" />
     <ClCompile Include="src\movement.cpp" />
     <ClCompile Include="src\movement_command.cpp" />
     <ClCompile Include="src\command_stack.cpp" />
+    <ClCompile Include="src\db_error.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -16,8 +16,10 @@ The domain logic lives in a pure C++ static lib with no GUI/DB dependencies, so 
 tested in isolation. Development follows **red → green → refactor** (see CLAUDE.md).
 
 - Framework: **Catch2** (amalgamated header under `tests/third_party/catch2`).
-- Covered: stock on-hand math (IN/OUT, low-stock threshold) and the **Command** stack
-  (execute / undo / redo invariants, stack depth).
+- Covered: stock on-hand math (IN/OUT, low-stock threshold), the **Command** stack
+  (execute / undo / redo invariants, stack depth), and **ODBC error cleaning**
+  (`cleanDbError` strips the `[SQLSTATE][driver][server]` prefixes; UTF-8 message text,
+  incl. Polish diacritics, passes through — the logic behind the *Overdraw* message below).
 - Run:
   ```powershell
   msbuild warehouse-mfc.sln /p:Configuration=Debug /p:Platform=x64 /t:core_tests
