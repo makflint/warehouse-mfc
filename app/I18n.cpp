@@ -30,7 +30,7 @@ const LPCTSTR kCatalog[Tx::Count][2] = {
     /* BtnDashboard    */ {_T("Pulpit"), _T("Dashboard")},
     /* BtnJournal      */ {_T("Dziennik"), _T("Journal")},
     /* BtnDetails      */ {_T("Szczegóły"), _T("Details")},
-    /* BtnResetLayout  */ {_T("Resetuj układ"), _T("Reset layout")},
+    /* BtnResetLayout  */ {_T("Przywróć układ okien"), _T("Restore layout")},
     /* BtnLanguage     */ {_T("Język"), _T("Language")},
     /* LangPolish      */ {_T("Polski"), _T("Polish")},
     /* LangEnglish     */ {_T("Angielski"), _T("English")},

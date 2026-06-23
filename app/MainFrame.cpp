@@ -113,7 +113,7 @@ void CMainFrame::BuildRibbon() {
     panele->Add(new CMFCRibbonButton(ID_TOGGLE_DASHBOARD, T(i18n::BtnDashboard), 1, 1));
     panele->Add(new CMFCRibbonButton(ID_TOGGLE_MOVEMENTS, T(i18n::BtnJournal), 2, 2));
     panele->Add(new CMFCRibbonButton(ID_TOGGLE_DETAILS, T(i18n::BtnDetails), 3, 3));
-    panele->Add(new CMFCRibbonButton(ID_VIEW_RESET_LAYOUT, T(i18n::BtnResetLayout), -1, -1));
+    panele->Add(new CMFCRibbonButton(ID_VIEW_RESET_LAYOUT, T(i18n::BtnResetLayout), 5, 5));  // window-layout glyph
 
     CMFCRibbonPanel* jezyk = widok->AddPanel(T(i18n::PanelLanguage));
     // Image index 4 = the globe glyph appended to the Widok strip (slots 0-3 are the existing icons).
