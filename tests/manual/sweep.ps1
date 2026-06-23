@@ -87,3 +87,9 @@ Pin-App
 Capture "resize-restored"
 
 Write-Output ("`nSweep complete: {0} screenshots in {1}" -f $script:step, $ShotDir)
+
+# Always close the app when the sweep finishes (no leftover window/modal to interfere
+# with the next run or the foreground).
+Send-Key "{ESC}"                                  # dismiss any stray modal first
+Stop-Process -Name app -Force -ErrorAction SilentlyContinue
+Write-Output "App closed."
