@@ -7,13 +7,19 @@ namespace {
 constexpr int kMinQty = 1;
 constexpr int kMaxQty = 1000000;
 
-void fill(CComboBox& combo, const std::vector<ComboOption>& options) {
-    for (const ComboOption& option : options) {
-        const int index = combo.AddString(option.label);
-        combo.SetItemData(index, static_cast<DWORD_PTR>(option.id));
+// Fill a combo and pre-select the option whose id matches selectedId (the grid's current
+// row); falls back to the first item when there's no match.
+void fill(CComboBox& combo, const std::vector<ComboOption>& options, int selectedId) {
+    int selected = 0;
+    for (std::size_t i = 0; i < options.size(); ++i) {
+        const int index = combo.AddString(options[i].label);
+        combo.SetItemData(index, static_cast<DWORD_PTR>(options[i].id));
+        if (options[i].id == selectedId) {
+            selected = index;
+        }
     }
     if (!options.empty()) {
-        combo.SetCurSel(0);
+        combo.SetCurSel(selected);
     }
 }
 }  // namespace
@@ -39,10 +45,14 @@ BOOL CRecordMovementDialog::OnInitDialog() {
     CDialog::OnInitDialog();
     SetWindowText(type_ == warehouse::MovementType::In ? _T("Przyjęcie (IN)")
                                                        : _T("Wydanie (OUT)"));
-    fill(productCombo_, products_);
-    fill(warehouseCombo_, warehouses_);
+    fill(productCombo_, products_, initialProductId_);
+    fill(warehouseCombo_, warehouses_, initialWarehouseId_);
     SetDlgItemInt(IDC_QTY, qty_, FALSE);  // default quantity (unsigned: the field is ES_NUMBER)
-    return TRUE;
+    // Product/warehouse come pre-set from the grid, so go straight to the quantity field
+    // (with its text selected, ready to overtype).
+    GotoDlgCtrl(GetDlgItem(IDC_QTY));
+    SendDlgItemMessage(IDC_QTY, EM_SETSEL, 0, -1);
+    return FALSE;  // FALSE: focus was set explicitly above
 }
 
 void CRecordMovementDialog::OnOK() {

@@ -212,7 +212,20 @@ void CStockView::RecordMovement(warehouse::MovementType type) {
         }
     }
 
+    // Pre-select the product/warehouse from the grid's current row.
+    int selProduct = 0;
+    int selWarehouse = 0;
+    const int selected = grid_.GetNextItem(-1, LVNI_SELECTED);
+    if (selected >= 0) {
+        const std::size_t idx = grid_.GetItemData(selected);
+        if (idx < doc->Stock().size()) {
+            selProduct = doc->Stock()[idx].productId;
+            selWarehouse = doc->Stock()[idx].warehouseId;
+        }
+    }
+
     CRecordMovementDialog dialog(type, std::move(products), std::move(warehouses), this);
+    dialog.Preselect(selProduct, selWarehouse);
     if (dialog.DoModal() == IDOK) {
         doc->ExecuteMovement(
             warehouse::Movement{dialog.productId(), dialog.warehouseId(), dialog.qty(), type});

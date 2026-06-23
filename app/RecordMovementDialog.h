@@ -21,6 +21,12 @@ public:
                           std::vector<ComboOption> warehouses,
                           CWnd* parent = nullptr);
 
+    // Pre-select the product/warehouse to match the grid's current row (call before DoModal).
+    void Preselect(int productId, int warehouseId) {
+        initialProductId_ = productId;
+        initialWarehouseId_ = warehouseId;
+    }
+
     int productId() const { return productId_; }
     int warehouseId() const { return warehouseId_; }
     int qty() const { return qty_; }
@@ -39,4 +45,6 @@ private:
     int qty_ = 1;
     int productId_ = 0;
     int warehouseId_ = 0;
+    int initialProductId_ = 0;    // grid row to pre-select in the combos
+    int initialWarehouseId_ = 0;
 };
