@@ -89,6 +89,60 @@ The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Featu
   window is foreground-active, so the headless screenshot tooling can't render them —
   capture hero shots live.
 
+## M9 — localisation, polish & testability  (DONE this round)
+- [x] **Bilingual UI (PL + EN).** String catalog `app/I18n.*` (`T(Tx)`), language chosen at
+  startup (saved choice → else Windows UI language), **Język/Language** toggle on the Widok tab
+  (applied on restart). Whole chrome localised; EN layout fix (Warehouse column). *Scope A:* DB
+  content + stored-proc error stay Polish.
+- [x] **App icon.** Multi-res `app/res/app.ico` (warehouse shelving) → window / taskbar /
+  Alt+Tab / Explorer; plus a round **ribbon application button** (`IDB_APPBTN`) showing it in the title bar.
+- [x] **Status bar filtered count** — `Pozycje: <shown> z <all>` when the low-stock filter is on.
+- [x] **„Przywróć układ okien"** — clears saved docking/window state and restarts to the default layout.
+- [x] **Assertion UI suite** `tests/ui/` (Pester + UIA + cross-process `LVcnt`/`LVtext`): grid
+  sort/filter/selection/undo, dialog pre-select + validation, panes/resize. Codified visual
+  **`sweep.ps1`** (PL/EN). Pure logic extracted to `core/` (`cleanDbError`, grid-sort,
+  combo-preselect) + unit-tested. Record dialog is theme-aware (dark) with Segoe UI.
+
+## Backlog — open work
+### UX & features
+- [ ] **App button:** drop the menu under the orb — keep it as **just the icon** (no File/Exit menu).
+- [ ] **Main grid double-click** → do something (open *Przyjmij*, or focus Details).
+- [ ] **Main grid right-click context menu** (Przyjmij / Wydaj / Odśwież / pokaż Szczegóły…).
+- [ ] **Help menu** — Help (F1) + **„O programie / About"** dialog.
+- [ ] *(later)* per-column filters on the main grid.
+
+### i18n — beyond scope A
+- [ ] Framework context menus (dock-pane Float/Dock/Hide) + ribbon **tooltips / status prompts**
+  are still Polish (compiled `.rc` STRINGTABLE) → **satellite resource DLLs** for full localisation.
+- [ ] DB content (product/warehouse names) + the `sp_RecordMovement` error stay Polish → English
+  columns + language-aware error (code → client message) if wanted.
+- [ ] *(nice)* live language switch without a restart.
+
+### Dialog polish
+- [ ] Owner-draw **theme-following combos** in the record dialog (flat, dark-aware) — the
+  "BCG-style combo" deferred earlier; MFC ships no themed combo for dialogs.
+
+### Testing
+- [ ] **Trim `sweep.ps1`** to the genuinely-visual + un-assertable cases (don't duplicate what
+  `tests/ui` already asserts).
+- [ ] Document **`LVcnt` / `LVtext`** (cross-process grid reading) in `docs/TESTING.md`.
+- [ ] Record the automation limits: ribbon menus / confirm modals aren't drivable here
+  (foreground/focus); the sort arrow is owner-drawn (not machine-readable).
+
+### Docs / README
+- [ ] **Test methodology** summary in the README (link `docs/TESTING.md`).
+- [ ] **Build / "local CI"** section: the local build+test script, and how to run a
+  **review / test with Claude (or any AI)**.
+- [ ] Review README — make clear **full SQL Server** (VPS / Tailscale) is supported, not only LocalDB.
+- [ ] **Installer + GitHub** — document the release / download path ("can you install from GitHub?").
+- [ ] **Architecture** section + a list of **C++ techniques / patterns / tech** used (Command +
+  undo/redo, RAII, pImpl, Feature Pack, ODBC, TDD/Catch2, i18n catalog, cross-process UIA testing…).
+- [ ] *(nice)* a guided **project tour**.
+
+### Engineering hygiene
+- [ ] **Warnings-as-errors** (`/WX`) + a **clang-tidy / `/analyze`** pass.
+- [ ] Clean-code sweep.
+
 ## Build / test (Windows)
 ```bash
 # DB (once): sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql ; ... -i db\02_seed.sql
