@@ -1,5 +1,8 @@
 #include "resource.h"
 #include <afxres.h>
+#include <afxribbonres.h>   // IDs for the framework's ribbon/pane context-menu strings
+
+#pragma code_page(65001)    // the .rc is saved as UTF-8; let rc.exe read Polish diacritics
 
 /////////////////////////////////////////////////////////////////////////////
 // Menu  (SDI needs IDR_MAINFRAME as the shared menu; the ribbon hides it at runtime)
@@ -48,7 +51,7 @@ BEGIN
     COMBOBOX        IDC_PRODUCT,60,12,180,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Magazyn:",IDC_STATIC,10,34,45,10
     COMBOBOX        IDC_WAREHOUSE,60,32,180,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Ilosc:",IDC_STATIC,10,54,45,10
+    LTEXT           "Ilość:",IDC_STATIC,10,54,45,10
     EDITTEXT        IDC_QTY,60,52,60,13,ES_AUTOHSCROLL | ES_NUMBER
     DEFPUSHBUTTON   "OK",IDOK,135,88,50,14
     PUSHBUTTON      "Anuluj",IDCANCEL,190,88,50,14
@@ -73,4 +76,22 @@ BEGIN
     ID_STOCK_RECORD_OUT     "Zarejestruj wydanie (OUT)\nWydaj"
     ID_STOCK_FILTER_LOW     "Pokaz tylko pozycje ponizej progu\nFiltr niskich stanow"
     ID_THEME_MENU           "Wybierz motyw kolorystyczny\nMotyw"
+END
+
+// Polish overrides for the MFC Feature Pack context menus (dockable-pane and ribbon
+// Quick Access Toolbar). These IDs belong to the shared MFC DLL; the app's copies take
+// precedence when the framework resolves the resource through this module.
+STRINGTABLE
+BEGIN
+    IDS_AFXBARRES_FLOATING              "Pływające"
+    IDS_AFXBARRES_DOCKING               "Zadokowane"
+    IDS_AFXBARRES_TABBED                "Dokument w kartach"
+    IDS_AFXBARRES_AUTOHIDE              "Autoukrywanie"
+    IDS_AFXBARRES_HIDE                  "Ukryj"
+    IDS_AFXBARRES_ADD_TO_QAT           "Dodaj do paska szybkiego dostępu"
+    IDS_AFXBARRES_REMOVE_FROM_QAT      "Usuń z paska szybkiego dostępu"
+    IDS_AFXBARRES_CUSTOMIZE_QAT        "Dostosuj pasek szybkiego dostępu..."
+    IDS_AFXBARRES_MINIMIZE_RIBBON      "Minimalizuj Wstążkę"
+    IDS_AFXBARRES_PLACE_QAT_BELOW_RIBBON "Pokaż pasek szybkiego dostępu pod Wstążką"
+    IDS_AFXBARRES_PLACE_QAT_ABOVE_RIBBON "Pokaż pasek szybkiego dostępu nad Wstążką"
 END

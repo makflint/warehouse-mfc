@@ -36,6 +36,10 @@ protected:
 private:
     warehouse::StockRepository& repository();
 
+    // Show a data-layer error as a titled message box with the ODBC diagnostic
+    // prefixes stripped, so only the (Polish) business message reaches the user.
+    void ShowError(const std::exception& error);
+
     std::unique_ptr<warehouse::StockRepository> repo_;
     std::vector<warehouse::StockRow> stock_;
     std::vector<warehouse::MovementRow> movements_;
