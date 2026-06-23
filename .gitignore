@@ -37,3 +37,6 @@ docs/WINDOWS_SETUP_LOG.md
 .env
 *.local
 Zrzut ekranu*.png
+
+# Manual-test screenshot output (keep the harness scripts, not the captures)
+tests/manual/shots/
