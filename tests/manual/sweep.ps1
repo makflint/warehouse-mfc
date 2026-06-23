@@ -8,8 +8,22 @@
 #
 # The undo/redo cycle records a movement and immediately undoes it (net-zero), so the demo
 # DB is left unchanged. Everything else cancels out.
+#
+# -Lang pl|en forces the UI language for this run (registry, applied on the launch below);
+# -Prefix names the shots (e.g. sweep-en-01-main). NOTE: ribbon hit-points are tuned for the
+# Polish layout; English labels are shorter so some interaction clicks may land slightly off —
+# the captured screenshots still show the English layout for a by-eye review, which is the point.
+
+param([ValidateSet('', 'pl', 'en')] [string]$Lang = '', [string]$Prefix = 'sweep')
 
 . "$PSScriptRoot\uia.ps1"
+
+if ($Lang) {
+    $code = if ($Lang -eq 'en') { 1 } else { 0 }
+    reg add "HKCU\Software\warehouse-mfc\app\Settings" /v Language /t REG_DWORD /d $code /f | Out-Null
+    Stop-Process -Name app -Force -ErrorAction SilentlyContinue   # force relaunch in the chosen language
+    Start-Sleep -Milliseconds 500
+}
 
 # Ribbon/grid hit points in pinned-window (1280-wide) pixel coordinates. UIA can't see the
 # MFC ribbon or grid rows, so these are read from screenshots (re-probe if the layout changes).
@@ -24,7 +38,7 @@ function Tap($p) { Click-Point $p[0] $p[1] }
 $script:step = 0
 function Capture([string]$name, [switch]$Screen) {
     $script:step++
-    $tag = "sweep-{0:00}-{1}" -f $script:step, $name
+    $tag = "{0}-{1:00}-{2}" -f $Prefix, $script:step, $name
     if ($Screen) { Shot-Screen $tag } else { Shot-App $tag }
 }
 

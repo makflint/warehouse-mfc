@@ -114,7 +114,7 @@ int CStockView::OnCreate(LPCREATESTRUCT createStruct) {
     grid_.Create(style, CRect(0, 0, 0, 0), this, kGridId);
     grid_.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
     grid_.EnableMarkSortedColumn(TRUE);  // highlight + arrow on the sorted column
-    grid_.InsertColumn(kColWarehouse, i18n::T(i18n::ColWarehouse), LVCFMT_LEFT, 90);
+    grid_.InsertColumn(kColWarehouse, i18n::T(i18n::ColWarehouse), LVCFMT_LEFT, 105);  // fits EN "Warehouse" + sort arrow
     grid_.InsertColumn(kColSku, i18n::T(i18n::ColSku), LVCFMT_LEFT, 70);
     grid_.InsertColumn(kColProduct, i18n::T(i18n::ColProduct), LVCFMT_LEFT, 220);
     grid_.InsertColumn(kColOnHand, i18n::T(i18n::ColOnHand), LVCFMT_RIGHT, 70);

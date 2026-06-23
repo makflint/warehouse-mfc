@@ -111,8 +111,8 @@ void CMainFrame::BuildRibbon() {
     panele->Add(new CMFCRibbonButton(ID_TOGGLE_DETAILS, T(i18n::BtnDetails), 3, 3));
 
     CMFCRibbonPanel* jezyk = widok->AddPanel(T(i18n::PanelLanguage));
-    // No icon (the Widok image strip has no language glyph) — text-only avoids the wrong moon.
-    auto* langMenu = new CMFCRibbonButton(ID_LANG_MENU, T(i18n::BtnLanguage), -1, -1);
+    // Image index 4 = the globe glyph appended to the Widok strip (slots 0-3 are the existing icons).
+    auto* langMenu = new CMFCRibbonButton(ID_LANG_MENU, T(i18n::BtnLanguage), 4, 4);
     langMenu->SetDefaultCommand(FALSE);
     langMenu->AddSubItem(new CMFCRibbonButton(ID_LANG_POLISH, T(i18n::LangPolish)));
     langMenu->AddSubItem(new CMFCRibbonButton(ID_LANG_ENGLISH, T(i18n::LangEnglish)));
