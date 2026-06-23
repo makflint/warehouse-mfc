@@ -20,7 +20,8 @@
 param(
     [switch]$Build,
     [ValidateSet('Release', 'Debug')] [string]$Config = 'Release',
-    [switch]$NoSweep
+    [switch]$NoSweep,
+    [switch]$AiReview   # after the sweep, ask the `claude` CLI to eyeball the shots
 )
 
 $root = $PSScriptRoot
@@ -75,6 +76,24 @@ if (-not $NoSweep) {
         & powershell -NoProfile -ExecutionPolicy Bypass -File "$root\tests\manual\sweep.ps1" -Lang $lang -Prefix "sweep-$lang" |
             Select-Object -Last 1
         $sweeps["sweep-$lang"] = (Test-Path "$root\tests\manual\shots\sweep-$lang-01-main.png")
+    }
+}
+
+# --- AI review of the sweep shots (headless: the `claude` CLI reads the PNGs) ---
+if ($AiReview -and -not $NoSweep) {
+    Section 'AI review (sweep shots)'
+    if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
+        Write-Host "  'claude' CLI not on PATH - skipping (or review tests/manual/shots by eye)." -ForegroundColor Yellow
+    } else {
+        $prompt = @"
+Act as a UI reviewer. Read every screenshot matching tests/manual/shots/sweep-pl-*.png and
+tests/manual/shots/sweep-en-*.png (a Polish + English warehouse MFC app). For each, look for
+rendering/layout defects: clipped or overlapping text, truncated column headers, missing icons,
+wrong/garbled characters, untranslated strings (Polish leaking into the English run or vice
+versa), or a broken dark theme. Reply with one line 'VERDICT: CLEAN' if all are fine, otherwise
+'VERDICT: ISSUES' followed by a short bullet list of '<shot-name>: <problem>'.
+"@
+        '' | claude -p $prompt   # empty stdin so the CLI doesn't wait for piped input
     }
 }
 
