@@ -70,10 +70,12 @@ sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\02_seed.sql
 > `sqlcmd` needs `-f 65001`.
 
 ## Testing
-Two layers: **unit tests** for the GUI-free `core/` (TDD, Catch2) and a **manual UI harness**
-([`tests/manual/`](tests/manual/)) that drives the running app via UI Automation for
-exploratory end-to-end checks (right-click menus, invalid/boundary input, overdraw, undo,
-themes, resize). Full methodology + case list: **[docs/TESTING.md](docs/TESTING.md)**.
+Three layers: **unit tests** for the GUI-free `core/` (TDD, Catch2); an **assertion-based UI
+suite** ([`tests/ui/`](tests/ui/), Pester) that drives the running app and asserts on control
+*state* via UI Automation (e.g. the dialog combos follow the selected grid row); and an
+**exploratory harness** ([`tests/manual/`](tests/manual/)) that screenshots each step for the
+genuinely visual cases (theming, owner-draw, resize). Full methodology + case list:
+**[docs/TESTING.md](docs/TESTING.md)**.
 
 ```powershell
 msbuild warehouse-mfc.sln /p:Configuration=Debug /p:Platform=x64 /t:core_tests

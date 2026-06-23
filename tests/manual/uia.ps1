@@ -144,3 +144,46 @@ function Shot-App { param([string]$Name)
 }
 
 function Send-Key { param([string]$Keys) [System.Windows.Forms.SendKeys]::SendWait($Keys); Start-Sleep -Milliseconds 250 }
+
+# --- Assertion helpers (used by the Pester specs under tests/ui) -------------
+# These read control *state* via UIA (not pixels), so the checks are machine-verifiable.
+
+# Dialog-control automation ids (mirror app/resource.h IDC_PRODUCT/IDC_WAREHOUSE/IDC_QTY).
+$global:IdcProduct   = "1001"
+$global:IdcWarehouse = "1002"
+$global:IdcQty       = "1003"
+# Ribbon "Przyjmij" button, in pinned-window pixel coordinates.
+$global:RecordInPoint = @(158, 110)
+
+# Launch the Release app if it isn't running, then pin it to a known size/position.
+function Ensure-App {
+    if (-not (Get-Process app -ErrorAction SilentlyContinue)) {
+        Start-Process "$AppRoot\app\x64\Release\app.exe"
+        Start-Sleep -Seconds 4
+    }
+    Pin-App
+}
+
+# The modal record-movement dialog ("Przyjęcie (IN)" / "Wydanie (OUT)"), or $null.
+function Find-RecordDialog {
+    $d = Find-El "Przyj" "Window"
+    if (-not $d) { $d = Find-El "Wydanie" "Window" }
+    return $d
+}
+
+function Test-RecordDialogOpen { return ($null -ne (Find-RecordDialog)) }
+
+# Read a dialog control's text (a combo's selected item, or the quantity) by automation id.
+function Read-DlgField {
+    param([string]$AutomationId)
+    $d = Find-RecordDialog
+    if (-not $d) { return $null }
+    $cond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty, $AutomationId)
+    $el = $d.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cond)
+    if ($el) { return $el.Current.Name } else { return $null }
+}
+
+function Open-RecordIn { Click-Point $RecordInPoint[0] $RecordInPoint[1]; Start-Sleep -Milliseconds 500 }
+function Close-Dialog  { Send-Key "{ESC}"; Start-Sleep -Milliseconds 250 }
+function Select-GridRow { param([int]$Y = 212) Click-Point 450 $Y }  # click a data row in the main grid
