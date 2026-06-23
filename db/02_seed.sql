@@ -8,6 +8,12 @@ GO
 DELETE FROM StockMovements;
 DELETE FROM Products;
 DELETE FROM Warehouses;
+-- Reset IDENTITY so a re-run always produces the *same* ids (Products 1..5, Warehouses 1..2)
+-- instead of climbing — otherwise re-seeding invalidates the ids a running app already loaded
+-- (FK_Mov_Product violations on the next recorded movement).
+DBCC CHECKIDENT('Products',   RESEED, 0);
+DBCC CHECKIDENT('Warehouses', RESEED, 0);
+DBCC CHECKIDENT('StockMovements', RESEED, 0);
 GO
 
 INSERT INTO Warehouses (Code, Name) VALUES
@@ -23,9 +29,8 @@ INSERT INTO Products (Sku, Name, Unit, ReorderLevel) VALUES
 GO
 
 /* Seed some opening stock via the stored proc so the transaction path is exercised.
-   Resolve IDs by natural key (Sku/Code) instead of hardcoding IDENTITY values, so the
-   seed stays correct even when re-run without recreating the schema (DELETE does not
-   reset IDENTITY, so the IDs are not guaranteed to be 1..N on a second run). */
+   IDs are reset above, so a re-run yields the same 1..N values; we still resolve them by
+   natural key (Sku/Code) rather than hardcoding, which is robust either way. */
 DECLARE @wA INT = (SELECT WarehouseId FROM Warehouses WHERE Code = N'MAG-A');
 DECLARE @wB INT = (SELECT WarehouseId FROM Warehouses WHERE Code = N'MAG-B');
 DECLARE @p4521 INT = (SELECT ProductId FROM Products WHERE Sku = N'4521');
