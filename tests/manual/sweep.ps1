@@ -71,6 +71,16 @@ Send-Key "0"; Send-Key "{ENTER}"
 Capture "validation-msgbox" -Screen          # full-screen: the modal lives outside the window
 Send-Key "{ENTER}"; Close-Dialog
 
+# --- Context menu: right-click a row shows the row-actions popup ---
+Click-Point $Row1[0] $Row1[1] -Right
+Capture "context-menu" -Screen               # full-screen: the popup lives outside the window
+Send-Key "{ESC}"
+
+# --- Help: F1 opens the About dialog ---
+Send-Key "{F1}"
+Capture "about" -Screen
+Send-Key "{ENTER}"                            # close (OK)
+
 # --- Undo / redo cycle (records +1, then restores net-zero) ---
 # Undo/redo go through the Ctrl+Z / Ctrl+Y accelerators, not the ribbon Cofnij/Ponów buttons:
 # the buttons enable a frame late, so a pixel click can miss; the accelerator always routes.
@@ -81,8 +91,11 @@ Send-Key "^z"; Capture "after-undo"
 Send-Key "^y"; Capture "after-redo"
 Send-Key "^z"                                # final undo -> back to the seeded state
 
-# --- Themes: open the Motyw menu, switch to dark, restore light ---
+# --- View tab: app-icon orb (top-left) + Przywróć układ / Język / Pomoc buttons ---
 Tap $TabWidok
+Capture "view-tab"
+
+# --- Themes: open the Motyw menu, switch to dark, restore light ---
 Tap $Motyw; Capture "theme-menu" -Screen
 Send-Key "{END}"; Send-Key "{ENTER}"; Capture "theme-dark"
 Tap $Motyw; Send-Key "{HOME}"; Send-Key "{ENTER}"; Capture "theme-light-restored"
