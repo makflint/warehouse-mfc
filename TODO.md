@@ -144,8 +144,10 @@ The modern-MFC showcase: the plain SDI shell is now a modern Feature-Pack UI.
   `core` + runs `core_tests`; README status badge. (data/app stay local — need LocalDB + desktop.)
 - [x] **README status** rewritten in capability terms ("What works today") instead of M-milestone jargon.
 - [x] Deleted the **stale v1.0** release (old name / pre-pane-fix); v1.1 is the sole Latest.
-- [ ] **Demo GIF/clip** in the README (undo/redo, theme switch, dashboard repaint) — most viewers
-  will never install; record live (ScreenToGif), drop at `docs/screenshots/demo.gif`, embed near the top.
+- [x] **Demo GIF/clip** in the README (`docs/screenshots/demo.gif`, embedded at the top): record a
+  movement → undo/redo → switch to the dark theme, dashboard repaints live. Reproducible:
+  `tests/manual/demo_gif.ps1` captures the frames (UIA-driven), `tests/manual/build_gif.py` (Pillow)
+  assembles them (760px, octree palette, looped, ~420 KB).
 
 ### Engineering hygiene
 - [x] **Warnings-as-errors** — `core/` + `data/` + `app/` at **`/W4 /WX`** (MFC headers external-
