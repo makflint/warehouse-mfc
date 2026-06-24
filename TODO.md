@@ -137,7 +137,9 @@ The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Featu
 - [ ] **Test methodology** summary in the README (link `docs/TESTING.md`).
 - [ ] **Build / "local CI"** section: the local build+test script, and how to run a
   **review / test with Claude (or any AI)**.
-- [ ] Review README — make clear **full SQL Server** (VPS / Tailscale) is supported, not only LocalDB.
+- [x] README **SQL Server** section made honest: ships on LocalDB (same engine), full server is a
+  one-line `Server=` switch in `connection_profiles.hpp`; everything in the repo runs against
+  LocalDB — the VPS/Tailscale profile is the documented switch, not an exercised second profile.
 - [ ] **Installer + GitHub** — document the release / download path ("can you install from GitHub?").
 - [ ] **Architecture** section + a list of **C++ techniques / patterns / tech** used (Command +
   undo/redo, RAII, pImpl, Feature Pack, ODBC, TDD/Catch2, i18n catalog, cross-process UIA testing…).

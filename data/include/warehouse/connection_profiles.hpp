@@ -3,8 +3,10 @@
 
 namespace warehouse {
 
-// The connection string is chosen at build/config time. Only the server differs
-// between profiles; all T-SQL is identical on LocalDB and full SQL Server.
+// The app ships with the DEMO (LocalDB) profile below. LocalDB *is* the SQL Server engine, so
+// targeting a full instance (LAN box, VPS over Tailscale, Azure SQL) is a one-line change here:
+// swap the `Server=` host (and add `UID=`/`PWD=` instead of Trusted_Connection). The schema,
+// view, stored proc and all T-SQL are identical — nothing else moves.
 //
 // DEMO: zero-config SQL Server LocalDB, seeded by db/02_seed.sql.
 inline const char* demoConnectionString() {

@@ -43,14 +43,22 @@ On-hand is summed from the movement log; rows at/below the reorder level are dra
 a movement runs through the **Command** stack (undo/redo, Ctrl+Z/Ctrl+Y) and the dashboard
 repaints live.
 
-## Two build profiles (same code, different connection string)
-| | DEMO (for guests) | DEV (for you) |
+## SQL Server connection (one switch)
+The app talks to **SQL Server over ODBC** only (no web/HTTP in C++). It ships pointed at
+**LocalDB** — zero-config, and it **self-seeds on first run**. LocalDB *is* the SQL Server engine
+(identical T-SQL, view, stored proc, ODBC driver), so pointing at a full instance — a LAN box, a
+**VPS over Tailscale**, Azure SQL — changes **only the `Server=` part** of the connection string in
+[`connection_profiles.hpp`](data/include/warehouse/connection_profiles.hpp); nothing else moves.
+
+| | DEMO — shipped | Full server — the switch |
 |---|---|---|
-| DB | **SQL Server LocalDB** (zero-config, seeded) | **SQL Server on VPS** over Tailscale |
-| Connection | `Server=(localdb)\MSSQLLocalDB` | `Server=100.84.173.113` |
+| DB | SQL Server LocalDB (zero-config, seeded) | SQL Server on a box / VPS / Azure |
+| Connection | `Server=(localdb)\MSSQLLocalDB;Trusted_Connection=yes` | `Server=<host>;UID=…;PWD=…` |
 | Install | one-click **MSI** (Inno Setup) | manual |
 
-No web/HTTP in C++ — the app only talks to SQL Server via **ODBC**.
+Everything in this repo runs against **LocalDB** (the app, `data_smoke`, the `tests/ui` suite,
+coverage); the full-server column is the documented one-line switch, not a second profile that's
+exercised here.
 
 ## Windows prerequisites (all free)
 1. **Visual Studio Community 2022** → workload *"Desktop development with C++"* + optional
