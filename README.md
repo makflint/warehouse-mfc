@@ -89,6 +89,9 @@ x64\Debug\core_tests.exe        # exit 0 = green
 ```
 
 ## Demo installer (one-click)
+**Download:** [latest release](https://github.com/macius702/warehouse-mfc/releases/latest) →
+`warehouse-mfc-setup.exe`. Run it on a clean Windows machine — no prerequisites to install by hand.
+
 An [Inno Setup](installer/warehouse-mfc.iss) script bundles the app, the SQL scripts and the
 two runtime prerequisites (Visual C++ runtime + SQL Server LocalDB) and installs them silently.
 The app **seeds its LocalDB database on first run**, so it works on a fresh machine.
