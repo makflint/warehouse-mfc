@@ -71,7 +71,11 @@ exercised here.
 1. **Visual Studio Community 2022** → workload *"Desktop development with C++"* + optional
    component **"C++ MFC for latest v143 build tools"**.
 2. **SQL Server 2022 Express** (includes **LocalDB**) + **SSMS**.
-3. **Claude Code** for Windows (to continue this project where the toolchain lives).
+
+That's all you need to build, run and test the app. *Optional:* the visual sweep's **AI review**
+(`run-tests.ps1 -AiReview`) shells out to the [`claude`](https://claude.com/claude-code) CLI to
+eyeball the screenshots — it is **not** a prerequisite; without it the sweep is just reviewed by
+eye and every test gate still runs.
 
 ## Quickstart (Windows)
 ```powershell
@@ -151,7 +155,11 @@ powershell -File run-tests.ps1                 # all layers (assumes already bui
 powershell -File run-tests.ps1 -Build          # build Debug + Release first
 powershell -File run-tests.ps1 -NoSweep        # gates only (skip the visual sweeps)
 powershell -File run-tests.ps1 -Coverage       # also report core/ line coverage
+powershell -File run-tests.ps1 -AiReview       # also AI-review the sweep shots (needs the `claude` CLI)
 ```
+Only the three gating layers decide the exit code; the sweep is informational. `-AiReview` is
+optional — it asks the `claude` CLI to eyeball the sweep screenshots, and is silently skipped if
+the CLI isn't on PATH (see [docs/TESTING.md](docs/TESTING.md)).
 
 ## Demo installer (one-click)
 **Download:** [release v1.1](https://github.com/makflint/warehouse-mfc/releases/tag/v1.1) →

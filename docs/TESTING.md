@@ -145,3 +145,11 @@ Two static gates back the test layers:
   recolouring, the owner-drawn dashboard, no-clipping-on-resize — plus grid *row contents* (the
   Feature-Pack list exposes no readable rows to UIA). Those are checked via screenshots in the
   exploratory harness, not pixel-diffed: fast corner-case coverage over a brittle suite.
+
+  **Optional AI review (`run-tests.ps1 -AiReview`).** Eyeballing those sweep screenshots can be
+  delegated to an LLM: with `-AiReview`, after the sweep the runner pipes a per-shot rubric to the
+  [`claude`](https://claude.com/claude-code) CLI (every shot's expected state, plus "is the EN run
+  fully translated?"), which replies `VERDICT: CLEAN` or `VERDICT: ISSUES` + a bullet list. This is
+  **purely optional and not a prerequisite** — it's gated behind the `-AiReview` flag *and* a
+  `Get-Command claude` check, so without the CLI on PATH it's silently skipped and the three test
+  **gates still run and still decide the exit code**. Nothing in the build/test path requires it.
