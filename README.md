@@ -84,7 +84,7 @@ cd warehouse-mfc
 # 1) create the demo DB in LocalDB and seed it (optional — the app self-seeds on first run)
 sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql
 sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\02_seed.sql
-# 2) open warehouse-mfc.sln in Claude Code / VS and follow docs/PLAN.md
+# 2) open warehouse-mfc.sln in Visual Studio (build x64), or: msbuild warehouse-mfc.sln /p:Configuration=Release /p:Platform=x64
 ```
 > The SQL scripts are **UTF-8** (Polish names with diacritics). The app's first-run self-seed
 > (`SQLExecDirectW`) and the modern `sqlcmd` handle this natively; the classic SQL-tools
