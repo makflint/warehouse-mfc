@@ -113,13 +113,28 @@ That's all you need to build, run and test the app. *Optional:* the visual sweep
 eyeball the screenshots — it is **not** a prerequisite; without it the sweep is just reviewed by
 eye and every test gate still runs.
 
-### 2. Build & run
+### 2. One command (build → test → installer)
+From zero — build (Debug + Release) → run the test gates → produce the installer:
 ```powershell
 git clone https://github.com/makflint/warehouse-mfc.git
 cd warehouse-mfc
+powershell -File release.ps1            # add -NoSweep to skip the slow visual sweeps
 ```
-Open `warehouse-mfc.sln` in **Visual Studio** (Release · x64, Ctrl+Shift+B, F5) — the app
-**self-seeds its LocalDB database on first run**, so building and launching is enough.
+It stops **before** the installer if any test gate fails. What it emits:
+
+| Artifact | Location |
+|---|---|
+| **Test results** | console — per-layer pass/fail; the run **exits non-zero on any failed gate** |
+| **App binary** (Release · x64) | `app\x64\Release\app.exe` |
+| **Installer** | `installer\Output\WarehouseMFC-Setup.exe` |
+
+No publishing — push a GitHub release by hand with `gh` when you want one. The detailed,
+step-by-step equivalents are below.
+
+### 3. Build & run
+Just hacking on it? Open `warehouse-mfc.sln` in **Visual Studio** (Release · x64, Ctrl+Shift+B, F5)
+— the app **self-seeds its LocalDB database on first run**, so building and launching is enough.
+Build + test only, no installer: `powershell -File run-tests.ps1 -Build`.
 
 > *Optional manual seed* (the app does this itself on first run):
 > ```powershell
@@ -129,14 +144,7 @@ Open `warehouse-mfc.sln` in **Visual Studio** (Release · x64, Ctrl+Shift+B, F5)
 > The SQL scripts are **UTF-8** (Polish diacritics); the first-run self-seed (`SQLExecDirectW`) and
 > modern `sqlcmd` handle this natively — the classic SQL-tools `sqlcmd` needs `-f 65001`.
 
-**One command, from zero** — build (Debug + Release) → run the test gates → produce the installer:
-```powershell
-powershell -File release.ps1            # -> installer\Output\WarehouseMFC-Setup.exe
-```
-It stops without an installer if a test gate fails (no publishing — push a GitHub release by hand
-with `gh` when you want one). Build + test only, no installer: `powershell -File run-tests.ps1 -Build`.
-
-### 3. Test (local CI)
+### 4. Test (local CI)
 Three layers: **unit tests** for the GUI-free `core/` (TDD, Catch2); an **assertion-based UI
 suite** ([`tests/ui/`](tests/ui/), Pester) that drives the running app and asserts on control
 *state* via UI Automation (e.g. the dialog combos follow the selected grid row); and an
@@ -172,7 +180,7 @@ Only the three gating layers decide the exit code; the sweep is informational. `
 optional — it asks the `claude` CLI to eyeball the sweep screenshots, and is silently skipped if
 the CLI isn't on PATH (see [docs/TESTING.md](docs/TESTING.md)).
 
-### 4. Installer & download
+### 5. Installer & download
 **Download:** [release v1.1](https://github.com/makflint/warehouse-mfc/releases/tag/v1.1) →
 `WarehouseMFC-Setup.exe`. Run it on a clean Windows machine — no prerequisites to install by hand.
 
