@@ -62,8 +62,9 @@ entirely in the harness, no hooks in the app). Async changes are awaited with `W
   the decision `selectedIndexForId` is unit-tested in `core/`); out-of-range quantity rejected.
 - **Grid** — Stan sorts numerically, text columns ordinally; the filter narrows to low rows and
   restores; selection tracked; a recorded movement changes on-hand and **undo/redo** restores it.
-- **Window** — the OUT dialog opens titled *Wydanie*; a dockable pane hide/show reflows the grid;
-  an extreme resize doesn't crash.
+- **Window** — the OUT dialog opens titled *Wydanie*; an **over-stock OUT** is rejected by the
+  stored proc and surfaces a clean error message box with on-hand unchanged (rolled back); a
+  dockable pane hide/show reflows the grid; an extreme resize doesn't crash.
 
 The movement case records then undoes (net-zero, restored in a `finally`); dialog cases cancel —
 so the demo DB is unchanged and the suite repeats.
@@ -93,6 +94,7 @@ the genuinely visual cases (theming, owner-draw, no-clipping-on-resize).
 - **Pre-select** — opening the dialog defaults the combos to the selected grid row.
   *(asserted in `tests/ui`.)*
 - **Overdraw** — issuing more than on-hand is rejected by the stored proc; stock unchanged.
+  *(asserted in `tests/ui`: the cleaned error reaches a message box and on-hand is unchanged.)*
 - **Undo / redo** — data and dashboard restore; correct enable/disable; persists to the DB.
   *(on-hand restore asserted in `tests/ui`.)*
 - **Themes** — switch across all visual managers incl. the custom dark theme; chrome, grids,

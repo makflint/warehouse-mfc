@@ -19,6 +19,27 @@ Describe "Window and panes" {
         Close-Dialog
     }
 
+    It "rejects an over-stock OUT with a server error and records nothing" {
+        Click-Point 450 212                       # select a data row
+        $sel = Grid-Selected $g
+        $before = Grid-Cell $g $sel 3             # its on-hand (On-hand column = 3)
+        Click-Point 207 100                       # Wydaj (OUT)
+        [void](Wait-Until { $null -ne (Find-El "Wydanie" "Window") })
+
+        Send-Key "9999"                           # far more than any warehouse holds
+        Send-Key "{ENTER}"                        # OK closes the dialog -> ExecuteMovement -> sp THROWs
+
+        # The cleaned server error surfaces in a message box (exercises CWarehouseDoc's catch +
+        # ShowError). The stored-proc text stays Polish (scope A), so match the body, not the
+        # title (which equals the main window's).
+        [void](Wait-Until { $null -ne (Find-El "wystarczaj") })
+        (Find-El "wystarczaj") | Should Not BeNullOrEmpty
+
+        Send-Key "{ENTER}"                        # dismiss the error box
+        [void](Wait-Until { $null -eq (Find-El "wystarczaj") })
+        (Grid-Cell $g $sel 3) | Should Be $before # transaction rolled back: on-hand unchanged
+    }
+
     It "hides and restores a dockable pane; the centre grid reflows" {
         $w0 = Grid-Width $g
         Click-Point 178 50                        # Widok tab

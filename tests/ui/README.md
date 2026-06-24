@@ -28,9 +28,10 @@ assertions don't race the UI thread.
   ordinally (Magazyn/Symbol/Produkt); the filter narrows to low rows and restores; selection
   tracked; a recorded movement changes on-hand and **undo/redo** restores it; **double-click**
   a row opens the record dialog; **right-click** shows a context menu (`#32768`).
-- **`Window.Tests`** — the OUT dialog opens titled *Wydanie*; **F1 opens the About dialog**;
-  hiding/showing a dockable pane reflows the grid (width changes and returns); an extreme
-  resize doesn't crash.
+- **`Window.Tests`** — the OUT dialog opens titled *Wydanie*; an **over-stock OUT** is rejected
+  server-side and surfaces a clean error message box with on-hand rolled back; **F1 opens the
+  About dialog**; hiding/showing a dockable pane reflows the grid (width changes and returns); an
+  extreme resize doesn't crash.
 
 The movement case records then undoes (net-zero, with a `finally` that restores even on
 failure); every dialog case cancels. So **the demo DB is left unchanged** and the suite repeats.
