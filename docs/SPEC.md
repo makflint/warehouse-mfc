@@ -1,7 +1,7 @@
 # SPEC — warehouse-mfc
 
 ## Goal
-A small, polished MFC + SQL Server desktop app demonstrating, for a Senior C++/MFC role:
+A small, polished MFC + SQL Server (LocalDB) desktop app demonstrating, for a Senior C++/MFC role:
 MFC UI (doc/view, grid, dialogs+DDX/DDV), SQL Server (view + stored proc + transaction),
 the **Command** design pattern (undo/redo), and a creative, domain-justified **voice control**.
 
@@ -58,10 +58,12 @@ which conflicts with the **ODBC-only / no-networking** rule. `VoiceCommandParser
 unit-tested in `core/`, so the recognition path is designed and ready to wire if that
 constraint is ever relaxed.
 
-## Two build profiles
-- **DEMO**: `Server=(localdb)\MSSQLLocalDB`, seeded by `db/02_seed.sql`, shipped as one-click MSI.
-- **DEV**: `Server=100.84.173.113` (SQL Server on VPS over Tailscale).
-Only the connection string differs; all T-SQL is identical on LocalDB and full SQL Server.
+## SQL Server connection
+Ships on **LocalDB** (`Server=(localdb)\MSSQLLocalDB`, self-seeded by `db/02_seed.sql`, one-click
+MSI). LocalDB *is* the SQL Server engine, so a full instance (LAN box, VPS over Tailscale, Azure
+SQL) is a one-line `Server=` change in `connection_profiles.hpp` — identical T-SQL/view/proc.
+Everything in the repo runs against LocalDB; the full-server target is the documented switch, not
+an exercised profile.
 
 ## Out of scope (YAGNI)
 - No web/HTTP in C++ (ODBC only). No live data ingestion in the app.

@@ -1,6 +1,6 @@
 # warehouse-mfc
 
-A small but real **MFC + SQL Server** desktop app: warehouse stock & movements with a modern
+A small but real **MFC + SQL Server (LocalDB)** desktop app: warehouse stock & movements with a modern
 **MFC Feature Pack** UI (ribbon, dockable panes, themed dashboard) and **undo/redo** (Command
 pattern). Built as a portfolio piece for a *Senior C++ Developer (MFC)* role.
 
