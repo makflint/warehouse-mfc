@@ -79,7 +79,7 @@ eye and every test gate still runs.
 
 ## Quickstart (Windows)
 ```powershell
-git clone <this repo>
+git clone https://github.com/makflint/warehouse-mfc.git
 cd warehouse-mfc
 # 1) create the demo DB in LocalDB and seed it (optional — the app self-seeds on first run)
 sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql
