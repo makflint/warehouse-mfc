@@ -50,59 +50,6 @@ On-hand is summed from the movement log; rows at/below the reorder level are dra
 a movement runs through the **Command** stack (undo/redo, Ctrl+Z/Ctrl+Y) and the dashboard
 repaints live.
 
-## SQL Server connection (one switch)
-The app talks to **SQL Server over ODBC** only (no web/HTTP in C++). It ships pointed at
-**LocalDB** — zero-config, and it **self-seeds on first run**. LocalDB *is* the SQL Server engine
-(identical T-SQL, view, stored proc, ODBC driver), so pointing at a full instance — a LAN box, a
-**VPS over Tailscale**, Azure SQL — changes **only the `Server=` part** of the connection string in
-[`connection_profiles.hpp`](data/include/warehouse/connection_profiles.hpp); nothing else moves.
-
-| | DEMO — shipped | Full server — the switch |
-|---|---|---|
-| DB | SQL Server LocalDB (zero-config, seeded) | SQL Server on a box / VPS / Azure |
-| Connection | `Server=(localdb)\MSSQLLocalDB;Trusted_Connection=yes` | `Server=<host>;UID=…;PWD=…` |
-| Install | one-click **MSI** (Inno Setup) | manual |
-
-Everything in this repo runs against **LocalDB** (the app, `data_smoke`, the `tests/ui` suite,
-coverage); the full-server column is the documented one-line switch, not a second profile that's
-exercised here.
-
-## Windows prerequisites (all free)
-1. **Visual Studio Community 2022** → workload *"Desktop development with C++"* + optional
-   component **"C++ MFC for latest v143 build tools"**.
-2. **SQL Server 2022 Express** (includes **LocalDB**) + **SSMS**.
-
-That's all you need to build, run and test the app. *Optional:* the visual sweep's **AI review**
-(`run-tests.ps1 -AiReview`) shells out to the [`claude`](https://claude.com/claude-code) CLI to
-eyeball the screenshots — it is **not** a prerequisite; without it the sweep is just reviewed by
-eye and every test gate still runs.
-
-## Quickstart (Windows)
-```powershell
-git clone https://github.com/makflint/warehouse-mfc.git
-cd warehouse-mfc
-# 1) create the demo DB in LocalDB and seed it (optional — the app self-seeds on first run)
-sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql
-sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\02_seed.sql
-# 2) build & run — see "Build" below
-```
-> The SQL scripts are **UTF-8** (Polish names with diacritics). The app's first-run self-seed
-> (`SQLExecDirectW`) and the modern `sqlcmd` handle this natively; the classic SQL-tools
-> `sqlcmd` needs `-f 65001`.
-
-## Build
-One command, from zero — build (Debug + Release) → run the test gates → produce the installer:
-```powershell
-powershell -File release.ps1            # -> installer\Output\WarehouseMFC-Setup.exe
-```
-It stops without an installer if a test gate fails. (No publishing — push a GitHub release by
-hand with `gh` when you want one. The installer step needs Inno Setup 6 and the bundled assets
-under `installer\assets\`.)
-
-Just hacking on it? Open `warehouse-mfc.sln` in **Visual Studio** (Release · x64, Ctrl+Shift+B,
-F5) — the app **self-seeds its LocalDB database on first run**, so building and launching is
-enough. Build + test only, no installer: `powershell -File run-tests.ps1 -Build`.
-
 ## Architecture
 Three layers with hard boundaries — the testable logic is isolated from the GUI so it can be
 TDD'd without one. Dependencies point downward; no business rules live in `app/`.
@@ -137,7 +84,59 @@ core/   pure C++17 (no MFC / ODBC / Windows) — stock math, the Command/undo
 | **Testing** | **TDD** (Catch2; **100%** `core/` line coverage via OpenCppCoverage) · cross-process **UI Automation + Win32** assertion suite · scripted visual sweep |
 | **Tooling** | `/W4 /WX` (MFC headers external-silenced) · **clang-tidy** clean · one-command local CI ([`run-tests.ps1`](run-tests.ps1)) |
 
-## Testing
+## SQL Server connection (one switch)
+The app talks to **SQL Server over ODBC** only (no web/HTTP in C++). It ships pointed at
+**LocalDB** — zero-config, and it **self-seeds on first run**. LocalDB *is* the SQL Server engine
+(identical T-SQL, view, stored proc, ODBC driver), so pointing at a full instance — a LAN box, a
+**VPS over Tailscale**, Azure SQL — changes **only the `Server=` part** of the connection string in
+[`connection_profiles.hpp`](data/include/warehouse/connection_profiles.hpp); nothing else moves.
+
+| | DEMO — shipped | Full server — the switch |
+|---|---|---|
+| DB | SQL Server LocalDB (zero-config, seeded) | SQL Server on a box / VPS / Azure |
+| Connection | `Server=(localdb)\MSSQLLocalDB;Trusted_Connection=yes` | `Server=<host>;UID=…;PWD=…` |
+| Install | one-click **MSI** (Inno Setup) | manual |
+
+Everything in this repo runs against **LocalDB** (the app, `data_smoke`, the `tests/ui` suite,
+coverage); the full-server column is the documented one-line switch, not a second profile that's
+exercised here.
+
+## Getting started
+
+### 1. Prerequisites (all free)
+1. **Visual Studio Community 2022** → workload *"Desktop development with C++"* + optional
+   component **"C++ MFC for latest v143 build tools"**.
+2. **SQL Server 2022 Express** (includes **LocalDB**) + **SSMS**.
+
+That's all you need to build, run and test the app. *Optional:* the visual sweep's **AI review**
+(`run-tests.ps1 -AiReview`) shells out to the [`claude`](https://claude.com/claude-code) CLI to
+eyeball the screenshots — it is **not** a prerequisite; without it the sweep is just reviewed by
+eye and every test gate still runs.
+
+### 2. Build & run
+```powershell
+git clone https://github.com/makflint/warehouse-mfc.git
+cd warehouse-mfc
+```
+Open `warehouse-mfc.sln` in **Visual Studio** (Release · x64, Ctrl+Shift+B, F5) — the app
+**self-seeds its LocalDB database on first run**, so building and launching is enough.
+
+> *Optional manual seed* (the app does this itself on first run):
+> ```powershell
+> sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql
+> sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\02_seed.sql
+> ```
+> The SQL scripts are **UTF-8** (Polish diacritics); the first-run self-seed (`SQLExecDirectW`) and
+> modern `sqlcmd` handle this natively — the classic SQL-tools `sqlcmd` needs `-f 65001`.
+
+**One command, from zero** — build (Debug + Release) → run the test gates → produce the installer:
+```powershell
+powershell -File release.ps1            # -> installer\Output\WarehouseMFC-Setup.exe
+```
+It stops without an installer if a test gate fails (no publishing — push a GitHub release by hand
+with `gh` when you want one). Build + test only, no installer: `powershell -File run-tests.ps1 -Build`.
+
+### 3. Test (local CI)
 Three layers: **unit tests** for the GUI-free `core/` (TDD, Catch2); an **assertion-based UI
 suite** ([`tests/ui/`](tests/ui/), Pester) that drives the running app and asserts on control
 *state* via UI Automation (e.g. the dialog combos follow the selected grid row); and an
@@ -151,7 +150,6 @@ msbuild warehouse-mfc.sln /p:Configuration=Debug /p:Platform=x64 /t:core_tests
 x64\Debug\core_tests.exe        # exit 0 = green
 ```
 
-### Build & local CI
 One script — [`run-tests.ps1`](run-tests.ps1) — runs every layer against LocalDB, resetting the DB
 to a clean baseline and clearing the saved language first so the run is deterministic and
 self-contained. The **exit code is the number of failed gating layers** (0 = all green).
@@ -174,16 +172,16 @@ Only the three gating layers decide the exit code; the sweep is informational. `
 optional — it asks the `claude` CLI to eyeball the sweep screenshots, and is silently skipped if
 the CLI isn't on PATH (see [docs/TESTING.md](docs/TESTING.md)).
 
-## Demo installer (one-click)
+### 4. Installer & download
 **Download:** [release v1.1](https://github.com/makflint/warehouse-mfc/releases/tag/v1.1) →
 `WarehouseMFC-Setup.exe`. Run it on a clean Windows machine — no prerequisites to install by hand.
 
 An [Inno Setup](installer/warehouse-mfc.iss) script bundles the app, the SQL scripts and the
 two runtime prerequisites (Visual C++ runtime + SQL Server LocalDB) and installs them silently.
-The app **seeds its LocalDB database on first run**, so it works on a fresh machine.
-
+The app **seeds its LocalDB database on first run**, so it works on a fresh machine. The one-command
+`release.ps1` above builds it after the gates pass; to build just the installer from an existing
+Release app:
 ```powershell
-# build the Release app, then:
 "%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" installer\warehouse-mfc.iss
 # -> installer\Output\WarehouseMFC-Setup.exe
 ```
