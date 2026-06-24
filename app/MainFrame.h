@@ -31,6 +31,7 @@ public:
 protected:
     afx_msg int OnCreate(LPCREATESTRUCT createStruct);
     void OnUpdateFrameTitle(BOOL bAddToTitle) override;  // fixed product caption (no slug)
+    void ActivateFrame(int nCmdShow = -1) override;      // re-localise pane captions post-restore
     afx_msg void OnTheme(UINT cmdId);
     afx_msg void OnUpdateTheme(CCmdUI* cmdUI);
     afx_msg void OnUpdateMenuButton(CCmdUI* cmdUI);  // keep Motyw/Język drop-downs enabled
@@ -47,6 +48,7 @@ private:
     void BuildStockTab();  // Magazyn tab: Stany / Ruchy / Edycja panels
     void BuildViewTab();   // Widok tab: Motyw / Panele / Język panels
     void CreatePanes();
+    void LocalizePaneCaptions();  // pane + tab-group captions match the active language
     CDockablePane* PaneFor(UINT cmdId);
 
     void CreateStatusBar();

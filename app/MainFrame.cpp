@@ -233,6 +233,43 @@ void CMainFrame::CreatePanes() {
     details_.AttachToTabWnd(&movementLog_, DM_SHOW, TRUE, &tabbed);
 }
 
+// Pane captions are persisted in the docking workspace, so a layout saved under one language
+// keeps stale captions after a language switch (e.g. a Polish-saved layout shows "Szczegóły" in
+// the English UI). Re-apply them from the catalog — including the cached tab labels, since the
+// Details/Journal panes share a tab group.
+void CMainFrame::LocalizePaneCaptions() {
+    CDockablePane* panes[] = {&dashboard_, &movementLog_, &details_};
+    const i18n::Tx captions[] = {i18n::PaneDashboard, i18n::PaneMovements, i18n::PaneDetails};
+    for (int i = 0; i < _countof(panes); ++i) {
+        if (panes[i]->GetSafeHwnd() != nullptr) {
+            panes[i]->SetWindowText(T(captions[i]));
+        }
+    }
+    CBaseTabbedPane* tabbed = movementLog_.GetParentTabbedPane();
+    if (tabbed == nullptr) {
+        return;
+    }
+    CMFCBaseTabCtrl* tabs = tabbed->GetUnderlyingWindow();
+    if (tabs == nullptr) {
+        return;
+    }
+    for (int t = 0; t < tabs->GetTabsNum(); ++t) {
+        const CWnd* tabWnd = tabs->GetTabWnd(t);
+        const HWND tabHwnd = (tabWnd != nullptr) ? tabWnd->GetSafeHwnd() : nullptr;
+        if (tabHwnd == movementLog_.GetSafeHwnd()) {
+            tabs->SetTabLabel(t, T(i18n::PaneMovements));
+        } else if (tabHwnd == details_.GetSafeHwnd()) {
+            tabs->SetTabLabel(t, T(i18n::PaneDetails));
+        }
+    }
+}
+
+// Runs after the (possibly restored) docking layout is loaded and before the window is shown.
+void CMainFrame::ActivateFrame(int nCmdShow) {
+    LocalizePaneCaptions();
+    CFrameWndEx::ActivateFrame(nCmdShow);
+}
+
 void CMainFrame::RefreshPanes() {
     if (dashboard_.GetSafeHwnd() != nullptr) {
         dashboard_.Invalidate();
