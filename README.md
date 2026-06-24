@@ -1,12 +1,19 @@
 # warehouse-mfc
 
+[![CI](https://github.com/makflint/warehouse-mfc/actions/workflows/ci.yml/badge.svg)](https://github.com/makflint/warehouse-mfc/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A small but real **MFC + SQL Server (LocalDB)** desktop app: warehouse stock & movements with a modern
 **MFC Feature Pack** UI (ribbon, dockable panes, themed dashboard) and **undo/redo** (Command
 pattern). A demo of **MFC / Windows desktop** application development.
 
-> Status: **M0–M6 + M8 done** — DB, `core/` (TDD), `data/` (ODBC), MFC UI (undo/redo, low-stock),
-> one-click installer, and a **Feature Pack UI**: `CMFCRibbonBar`, dockable panes, dark-mode
-> themes, and an owner-drawn dashboard (KPI tiles + bar chart). Open work lives in [TODO.md](TODO.md).
+> **What works today:** a complete, runnable app. Browse live stock (on-hand summed from a movement
+> log, low-stock rows in red), record stock movements through a DDX/DDV dialog, and **undo/redo** every
+> change (Ctrl+Z / Ctrl+Y). A **ribbon** UI with dockable **Details** / **Movement-log** panes, a
+> **dark mode**, and an owner-drawn **dashboard** (KPI tiles + bar chart that repaints live). Ships
+> **bilingual** (Polish / English) and installs from a **one-click installer** that needs nothing
+> preinstalled. The GUI-free C++ core is **TDD'd at 100% line coverage**. Roadmap & open work:
+> [TODO.md](TODO.md).
 
 ## What it demonstrates
 - **MFC**: SDI doc/view, list-view grid, dialogs with DDX/DDV.
@@ -161,3 +168,6 @@ The app **seeds its LocalDB database on first run**, so it works on a fresh mach
 
 See [docs/SPEC.md](docs/SPEC.md) for the design and [docs/PLAN.md](docs/PLAN.md) for the
 ordered implementation milestones.
+
+## License
+[MIT](LICENSE) © Maciej Krzemiński

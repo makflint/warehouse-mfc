@@ -1,0 +1,27 @@
+name: CI
+
+# Builds the GUI-free C++ core and runs the Catch2 unit suite on a Windows
+# runner. core/ has no MFC/ODBC/Windows dependencies, so this needs only the
+# v143 C++ toolchain — the data/ and app/ layers (LocalDB, MFC, an interactive
+# desktop) are exercised locally by run-tests.ps1, not here.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  core-tests:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build core_tests (Debug | x64)
+        run: msbuild warehouse-mfc.sln /t:core_tests /p:Configuration=Debug /p:Platform=x64 /m
+
+      - name: Run core unit tests
+        run: x64\Debug\core_tests.exe
