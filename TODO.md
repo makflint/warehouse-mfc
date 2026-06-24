@@ -136,6 +136,17 @@ The modern-MFC showcase: the plain SDI shell is now a modern Feature-Pack UI.
   compile-time i18n, TDD/coverage, /WX + clang-tidy).
 - [ ] *(nice)* a guided **project tour**.
 
+### Repo presentation (outsider's first impression)
+- [x] **Repo public** + filled-in **About** (description + topics: mfc/cpp/cpp17/sql-server/odbc/
+  windows-desktop/visual-studio/tdd).
+- [x] **LICENSE** (MIT © Maciej Krzemiński) + README license badge & section.
+- [x] **GitHub Actions CI** (`.github/workflows/ci.yml`): windows-latest builds the GUI-free
+  `core` + runs `core_tests`; README status badge. (data/app stay local — need LocalDB + desktop.)
+- [x] **README status** rewritten in capability terms ("What works today") instead of M-milestone jargon.
+- [x] Deleted the **stale v1.0** release (old name / pre-pane-fix); v1.1 is the sole Latest.
+- [ ] **Demo GIF/clip** in the README (undo/redo, theme switch, dashboard repaint) — most viewers
+  will never install; record live (ScreenToGif), drop at `docs/screenshots/demo.gif`, embed near the top.
+
 ### Engineering hygiene
 - [x] **Warnings-as-errors** — `core/` + `data/` + `app/` at **`/W4 /WX`** (MFC headers external-
   silenced); **clang-tidy** curated set (`.clang-tidy`) clean on `core/` + `data/`. See
