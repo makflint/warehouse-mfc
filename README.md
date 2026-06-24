@@ -143,7 +143,7 @@ powershell -File run-tests.ps1 -Coverage       # also report core/ line coverage
 ```
 
 ## Demo installer (one-click)
-**Download:** [release v1.1](https://github.com/macius702/warehouse-mfc/releases/tag/v1.1) →
+**Download:** [release v1.1](https://github.com/makflint/warehouse-mfc/releases/tag/v1.1) →
 `WarehouseMFC-Setup.exe`. Run it on a clean Windows machine — no prerequisites to install by hand.
 
 An [Inno Setup](installer/warehouse-mfc.iss) script bundles the app, the SQL scripts and the

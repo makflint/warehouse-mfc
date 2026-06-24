@@ -128,7 +128,7 @@ The modern-MFC showcase: the plain SDI shell is now a modern Feature-Pack UI.
 - [x] README **SQL Server** section made honest: ships on LocalDB (same engine), full server is a
   one-line `Server=` switch in `connection_profiles.hpp`; everything in the repo runs against
   LocalDB — the VPS/Tailscale profile is the documented switch, not an exercised second profile.
-- [x] **Installer + GitHub** — published [release **v1.1**](https://github.com/macius702/warehouse-mfc/releases/tag/v1.1)
+- [x] **Installer + GitHub** — published [release **v1.1**](https://github.com/makflint/warehouse-mfc/releases/tag/v1.1)
   with `WarehouseMFC-Setup.exe` (installs as `WarehouseMFC.exe`, app "Warehouse MFC"); README links
   the latest release. (v1.0 was the older name + pre-pane-fix build.)
 - [x] **Architecture** section + **C++/Windows techniques** table in the README (layer diagram
