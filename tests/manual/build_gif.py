@@ -9,7 +9,8 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "tests" / "manual" / "gifframes"
-OUT = ROOT / "docs" / "screenshots" / "demo.gif"
+# Optional output basename (default demo.gif); e.g. `python build_gif.py demo-en.gif`.
+OUT = ROOT / "docs" / "screenshots" / (sys.argv[1] if len(sys.argv) > 1 else "demo.gif")
 
 WIDTH = 760            # output width in px (height scales to keep aspect)
 CROP_RIGHT = 7         # trim the 1px desktop-bleed sliver on the right edge
