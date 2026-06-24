@@ -28,7 +28,7 @@ Output/
 *.iss.bak
 installer/assets/
 
-# Machine setup log (not part of the portfolio)
+# Machine setup log (not part of the demo)
 docs/WINDOWS_SETUP_LOG.md
 
 # Local DB files / secrets

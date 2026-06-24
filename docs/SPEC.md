@@ -1,9 +1,9 @@
 # SPEC — warehouse-mfc
 
 ## Goal
-A small, polished MFC + SQL Server (LocalDB) desktop app demonstrating, for a Senior C++/MFC role:
-MFC UI (doc/view, grid, dialogs+DDX/DDV), SQL Server (view + stored proc + transaction),
-the **Command** design pattern (undo/redo), and a creative, domain-justified **voice control**.
+A small, polished **MFC / Windows desktop** demo app, showing: MFC UI (doc/view, grid,
+dialogs+DDX/DDV), SQL Server (LocalDB) (view + stored proc + transaction), and the **Command**
+design pattern (undo/redo).
 
 ## Domain
 Warehouse inventory. Stock is **derived from an append-only movement log** (no mutable
@@ -28,35 +28,13 @@ Three layers (see `CLAUDE.md` for the rule "keep these boundaries"):
 1. **core/** (pure C++, unit-tested, no MFC/ODBC)
    - `MovementCommand` (IExecutable/IUndoable): execute = record a movement; undo = record the
      **compensating** movement. `CommandStack` holds undo/redo history.
-   - `VoiceCommandParser`: maps a recognized phrase → a `MovementCommand` or a query intent.
 2. **data/** (ODBC, thin)
    - `StockRepository`: `loadCurrentStock()`, `recordMovement(...)` (calls `sp_RecordMovement`),
      `products()`, `warehouses()`. Connection string from the active profile.
-3. **app/** (MFC + SAPI)
+3. **app/** (MFC)
    - SDI **doc/view**; `CMFCListCtrl` showing `vCurrentStock`, low-stock rows owner-drawn red.
    - Dialogs: **Product edit** (DDX/DDV), **Record movement** (product/warehouse/qty/type).
    - Toolbar/menu: Refresh, Record IN, Record OUT, **Undo/Redo (Ctrl+Z/Ctrl+Y)**, Low-stock filter.
-   - **Voice (SAPI, command-and-control grammar)** + **TTS** confirmation.
-
-## Voice control (SAPI, scoped)
-Use **command-and-control with a small fixed grammar** (NOT free dictation) for reliability.
-Polish grammar (requires Windows PL speech pack):
-- `przyjmij <number> <product>`  → IN movement
-- `wydaj <number> <product>`     → OUT movement
-- `pokaż niskie stany`           → toggle low-stock filter
-- `odśwież`                      → refresh grid
-- `cofnij` / `ponów`            → undo / redo
-
-`<product>` is referenced by SKU spoken as digits (most reliable) or a short alias.
-Recognized phrase → `VoiceCommandParser` → same `MovementCommand` used by the dialogs (one code
-path). TTS speaks the result: *"zarejestrowano, nowy stan 35"*.
-
-**Implementation note (reality on Windows):** TTS is implemented (SAPI, Microsoft Paulina —
-the app speaks Polish confirmations). Speech *recognition* is **not** shipped: Windows has no
-on-device pl-PL recognizer (only en-US), and real Polish recognition would require cloud STT,
-which conflicts with the **ODBC-only / no-networking** rule. `VoiceCommandParser` is built and
-unit-tested in `core/`, so the recognition path is designed and ready to wire if that
-constraint is ever relaxed.
 
 ## SQL Server connection
 Ships on **LocalDB** (`Server=(localdb)\MSSQLLocalDB`, self-seeded by `db/02_seed.sql`, one-click
@@ -71,5 +49,5 @@ an exercised profile.
 - Warehouse-map visualization = possible later stretch, not in v1.
 
 ## Definition of done (demo)
-LocalDB seeded; app shows current stock; record IN/OUT via dialog **and** voice; undo/redo works;
+LocalDB seeded; app shows current stock; record IN/OUT via dialog; undo/redo works;
 low-stock rows highlighted; packaged as an MSI that installs and runs on a clean Windows box.

@@ -2,16 +2,6 @@
 
 Single source of truth for open work. Milestones follow `docs/PLAN.md`.
 
-## ⏸ Voice (STT + TTS) — built, evaluated, ARCHIVED off `main` (2026-06-22)
-M4 (SAPI TTS) + M7 (offline Polish STT via whisper.cpp) were fully built and verified, then
-**removed from `main`** — too many moving parts (mic/WASAPI, whisper, 465 MB model, OS
-audio-engine quirks) for a portfolio piece, and recognition stayed flaky on borderline mic
-input. **Nothing is lost** — the complete working voice app is preserved on branch
-**`archive/voice-stt-tts`** (tag **`voice-m4-m7-complete`**, commit `07a85aa`).
-Restore: `git checkout archive/voice-stt-tts`. That branch holds all the detail (WASAPI capture,
-the fuzzy command parser, the model research base/small/medium, the e2e harness, and the
-"voice commands don't name a warehouse" limitation).
-
 ## Done
 - [x] **M0 — Database.** Schema + idempotent seed on LocalDB; `vCurrentStock` and
   `sp_RecordMovement` (IN / OUT / insufficient-stock THROW) verified.
@@ -32,10 +22,8 @@ the fuzzy command parser, the model research base/small/medium, the e2e harness,
 - [x] **M6 — Polish.** README screenshots (`docs/screenshots/`), demo-installer + SmartScreen
   notes, secret scan clean.
 
-*(M4 TTS + M7 STT were done too — now archived, see the banner above.)*
-
 ## M8 — modern MFC Feature Pack UI + dashboard  (core DONE)
-The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Feature-Pack UI.
+The modern-MFC showcase: the plain SDI shell is now a modern Feature-Pack UI.
 - [x] **Frame upgrade** — `CWinAppEx` + `CFrameWndEx`, `CMFCVisualManager` with a **theme picker**
   (Widok → Motyw drop-down: Office 2007 Blue/Black/Silver/Aqua, Office 2003, VS 2008, Windows 7,
   radio-checked); `<afxcontrolbars.h>`.

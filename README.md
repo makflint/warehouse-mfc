@@ -2,20 +2,16 @@
 
 A small but real **MFC + SQL Server (LocalDB)** desktop app: warehouse stock & movements with a modern
 **MFC Feature Pack** UI (ribbon, dockable panes, themed dashboard) and **undo/redo** (Command
-pattern). Built as a portfolio piece for a *Senior C++ Developer (MFC)* role.
+pattern). A demo of **MFC / Windows desktop** application development.
 
 > Status: **M0–M6 + M8 done** — DB, `core/` (TDD), `data/` (ODBC), MFC UI (undo/redo, low-stock),
 > one-click installer, and a **Feature Pack UI**: `CMFCRibbonBar`, dockable panes, dark-mode
 > themes, and an owner-drawn dashboard (KPI tiles + bar chart). Open work lives in [TODO.md](TODO.md).
->
-> *An earlier offline-voice experiment (Polish STT via whisper.cpp + SAPI TTS) was built,
-> evaluated, and archived — preserved on branch `archive/voice-stt-tts` (tag
-> `voice-m4-m7-complete`); `git checkout archive/voice-stt-tts` brings it back.*
 
-## Why this app
-- **MFC**: SDI doc/view, list-view grid, dialogs with DDX/DDV — core of the offer.
+## What it demonstrates
+- **MFC**: SDI doc/view, list-view grid, dialogs with DDX/DDV.
 - **MS SQL Server**: real schema, a **view** and a **stored procedure with a transaction**.
-- **Design patterns**: **Command** pattern for undo/redo (explicitly requested in the offer).
+- **Design patterns**: **Command** pattern for undo/redo.
 - **Testable core**: domain logic (stock math, the Command/undo stack) lives in a pure C++
   `core/` static lib with **TDD** (Catch2), verified without a GUI.
 - **Modern MFC (M8)**: an MFC **Feature Pack** UI — `CMFCRibbonBar`, dockable panes,

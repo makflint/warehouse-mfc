@@ -1,8 +1,8 @@
 # CLAUDE.md — warehouse-mfc
 
 ## What this is
-MFC + SQL Server desktop demo (warehouse stock & movements) with voice control and undo/redo.
-Portfolio piece for a Senior C++/MFC role. Read `docs/SPEC.md` (design) and `docs/PLAN.md`
+MFC + SQL Server (LocalDB) desktop demo (warehouse stock & movements) with undo/redo — a demo of
+MFC / Windows desktop development. Read `docs/SPEC.md` (design) and `docs/PLAN.md`
 (ordered milestones) before coding.
 
 ## Platform
@@ -15,12 +15,11 @@ Portfolio piece for a Senior C++/MFC role. Read `docs/SPEC.md` (design) and `doc
 - **`data/`** — ODBC data access (query `vCurrentStock`, call `sp_RecordMovement`). Thin.
 - **`app/`** — MFC UI (doc/view, dialogs). Wires `core` + `data`.
 - Rationale: the testable logic lives in `core/` so we can TDD it without a GUI.
-- *Voice (STT+TTS) was built then archived to branch `archive/voice-stt-tts` — not on `main`.*
 
 ## Conventions
 - **TDD for `core/`**: red → green → refactor. Test framework: **Catch2** (amalgamated header).
 - Clean Code: small functions, meaningful names, no magic numbers, DRY. C++17/20.
-- Patterns the offer asks for: **Command** (undo/redo), RAII, clear ownership.
+- Patterns demonstrated: **Command** (undo/redo), RAII, clear ownership.
 - **No networking in C++.** The app uses **ODBC only**. Data ingestion is out of scope here.
 
 ## Connection profiles (single switch)

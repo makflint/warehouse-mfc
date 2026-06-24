@@ -11,7 +11,6 @@ Each milestone is small and verifiable. Do them in order. TDD the `core/` lib.
 ## M1 — core/ domain lib (pure C++, TDD, no MFC/ODBC)
 - `StockMath` (sum/derive on-hand, low-stock check) — tests first.
 - `MovementCommand` + `CommandStack` (execute/undo/redo via compensating movements) — tests.
-- `VoiceCommandParser` (phrase → command/intent) — tests for each grammar rule + garbage input.
 - ✅ Done when `core_tests` (Catch2) is green.
 
 ## M2 — data/ ODBC layer
@@ -27,12 +26,6 @@ Each milestone is small and verifiable. Do them in order. TDD the `core/` lib.
 - Undo/Redo on toolbar + Ctrl+Z/Ctrl+Y. Low-stock filter toggle.
 - ✅ Done when full CRUD-of-movements works from the GUI with working undo/redo.
 
-## M4 — Voice (SAPI) + TTS
-- Init SAPI in command-and-control mode with the SPEC grammar (PL).
-- Route recognized commands through the **same** `MovementCommand` path as the dialogs.
-- TTS confirmation of results.
-- ✅ Done when "przyjmij/wydaj/cofnij/odśwież" drive the app hands-free.
-
 ## M5 — Demo packaging (MSI)
 - Build the DEMO profile (LocalDB). Generate a seeded LocalDB on first run (run schema+seed,
   or ship an attached `.mdf`).
@@ -40,6 +33,6 @@ Each milestone is small and verifiable. Do them in order. TDD the `core/` lib.
 - Note "unsigned demo build" (SmartScreen).
 - ✅ Done when the MSI installs and runs on a clean Windows VM.
 
-## M6 — Polish / portfolio
+## M6 — Polish / demo-ready
 - README screenshots + a short screen-recording (the real "demo" for a desktop app).
 - Make the repo public-ready (no secrets; sensible commit history).

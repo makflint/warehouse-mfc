@@ -138,7 +138,7 @@ Two static gates back the test layers:
 
 ## Not automated (and why)
 - **No CI** — the build needs Windows + Visual Studio + MFC + LocalDB, which is out of scope
-  for a portfolio demo. `core_tests` is the gate that matters and runs anywhere; the `tests/ui`
+  for a desktop demo. `core_tests` is the gate that matters and runs anywhere; the `tests/ui`
   suite needs an interactive desktop, so it's a local gate (see [`tests/ui/README.md`](../tests/ui/README.md)).
 - **Visual UI checks are read by eye** — the assertion suite (`tests/ui`) covers what UIA can
   read as control *state* (dialog wiring, validation). What's left is genuinely visual — theme
