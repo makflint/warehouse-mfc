@@ -122,9 +122,9 @@ The modern-MFC showcase: the plain SDI shell is now a modern Feature-Pack UI.
   (foreground/focus); the sort arrow is owner-drawn (not machine-readable).
 
 ### Docs / README
-- [ ] **Test methodology** summary in the README (link `docs/TESTING.md`).
-- [ ] **Build / "local CI"** section: the local build+test script, and how to run a
-  **review / test with Claude (or any AI)**.
+- [x] **Test methodology** summary in the README (link `docs/TESTING.md`).
+- [x] **Build / "local CI"** section: the local build+test script (`run-tests.ps1` — layers,
+  switches, exit-code = failed gates; `-AiReview` for the AI eyeball pass).
 - [x] README **SQL Server** section made honest: ships on LocalDB (same engine), full server is a
   one-line `Server=` switch in `connection_profiles.hpp`; everything in the repo runs against
   LocalDB — the VPS/Tailscale profile is the documented switch, not an exercised second profile.

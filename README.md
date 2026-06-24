@@ -117,9 +117,29 @@ suite** ([`tests/ui/`](tests/ui/), Pester) that drives the running app and asser
 genuinely visual cases (theming, owner-draw, resize). Full methodology + case list:
 **[docs/TESTING.md](docs/TESTING.md)**.
 
+Just the unit layer (fast, GUI-free):
 ```powershell
 msbuild warehouse-mfc.sln /p:Configuration=Debug /p:Platform=x64 /t:core_tests
 x64\Debug\core_tests.exe        # exit 0 = green
+```
+
+### Build & local CI
+One script — [`run-tests.ps1`](run-tests.ps1) — runs every layer against LocalDB, resetting the DB
+to a clean baseline and clearing the saved language first so the run is deterministic and
+self-contained. The **exit code is the number of failed gating layers** (0 = all green).
+
+| Layer | What | Gates? |
+|---|---|---|
+| `core_tests` | Catch2 unit tests (`core/`) | ✓ exit code |
+| `data_smoke` | `data/` ODBC smoke vs LocalDB | ✓ exit code |
+| `tests/ui` | Pester + UI-Automation state assertions | ✓ exit code |
+| `sweep pl/en` | visual exploratory screenshots | informational (review by eye / `-AiReview`) |
+
+```powershell
+powershell -File run-tests.ps1                 # all layers (assumes already built)
+powershell -File run-tests.ps1 -Build          # build Debug + Release first
+powershell -File run-tests.ps1 -NoSweep        # gates only (skip the visual sweeps)
+powershell -File run-tests.ps1 -Coverage       # also report core/ line coverage
 ```
 
 ## Demo installer (one-click)
