@@ -192,5 +192,9 @@ Release app:
 See [docs/SPEC.md](docs/SPEC.md) for the design and [docs/PLAN.md](docs/PLAN.md) for the
 ordered implementation milestones.
 
+## Author
+Built by **Maciej Krzemiński**, using **Claude** generative-AI tooling — [Claude Code](https://claude.com/claude-code)
+and Claude models (Anthropic) — throughout for design, code generation and tests.
+
 ## License
 [MIT](LICENSE) © Maciej Krzemiński
