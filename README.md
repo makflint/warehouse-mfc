@@ -91,25 +91,17 @@ sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\02_seed.sql
 > `sqlcmd` needs `-f 65001`.
 
 ## Build
-No build script needed — it's a standard Visual Studio solution (`warehouse-mfc.sln`,
-`Debug|x64` + `Release|x64`, toolset v143). Pick either route:
-
-**Visual Studio** — open `warehouse-mfc.sln`, set the toolbar to **Release · x64**, then
-**Build → Build Solution** (Ctrl+Shift+B). Run with F5 (or launch the exe directly).
-
-**Command line** — from a *Developer PowerShell for VS 2022* (so `msbuild` is on PATH):
+One command, from zero — build (Debug + Release) → run the test gates → produce the installer:
 ```powershell
-msbuild warehouse-mfc.sln /p:Configuration=Release /p:Platform=x64 /m
+powershell -File release.ps1            # -> installer\Output\WarehouseMFC-Setup.exe
 ```
+It stops without an installer if a test gate fails. (No publishing — push a GitHub release by
+hand with `gh` when you want one. The installer step needs Inno Setup 6 and the bundled assets
+under `installer\assets\`.)
 
-| Target | Command / output |
-|---|---|
-| Whole app | the above → `app\x64\Release\app.exe` (Release runs standalone; Debug needs the debug MFC DLLs on PATH) |
-| Core unit tests only (no GUI) | `msbuild warehouse-mfc.sln /t:core_tests /p:Configuration=Debug /p:Platform=x64` → `x64\Debug\core_tests.exe` (exit 0 = green) |
-| Build **and** test every layer | `powershell -File run-tests.ps1 -Build` (builds Debug + Release, then runs the gates — see [Testing](#testing)) |
-
-The app **self-seeds its LocalDB database on first run**, so building and launching is enough —
-the `sqlcmd` step above is optional.
+Just hacking on it? Open `warehouse-mfc.sln` in **Visual Studio** (Release · x64, Ctrl+Shift+B,
+F5) — the app **self-seeds its LocalDB database on first run**, so building and launching is
+enough. Build + test only, no installer: `powershell -File run-tests.ps1 -Build`.
 
 ## Architecture
 Three layers with hard boundaries — the testable logic is isolated from the GUI so it can be
