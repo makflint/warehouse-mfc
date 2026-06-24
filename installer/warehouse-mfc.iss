@@ -10,7 +10,7 @@
 
 #define MyAppName "warehouse-mfc"
 #define MyAppVersion "1.0.0-demo"
-#define MyAppExe "app.exe"
+#define MyAppExe "warehouse-mfc.exe"
 
 [Setup]
 AppId={{A4F2C7E0-3D1B-4E9A-9C2F-1A2B3C4D5E6F}
@@ -33,7 +33,7 @@ WizardStyle=modern
 Name: "desktopicon"; Description: "Utworz skrot na pulpicie"; GroupDescription: "Skroty:"
 
 [Files]
-Source: "..\app\x64\Release\app.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\app\x64\Release\app.exe"; DestDir: "{app}"; DestName: "{#MyAppExe}"; Flags: ignoreversion
 Source: "..\db\01_schema.sql"; DestDir: "{app}\db"; Flags: ignoreversion
 Source: "..\db\02_seed.sql"; DestDir: "{app}\db"; Flags: ignoreversion
 Source: "assets\vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
