@@ -8,9 +8,9 @@
 ;   - vc_redist.x64.exe   (from the VS 2022 VC\Redist folder)
 ;   - SqlLocalDB.msi      (SQL Server 2022 LocalDB standalone installer)
 
-#define MyAppName "warehouse-mfc"
+#define MyAppName "Warehouse MFC"
 #define MyAppVersion "1.0.0-demo"
-#define MyAppExe "warehouse-mfc.exe"
+#define MyAppExe "WarehouseMFC.exe"
 
 [Setup]
 AppId={{A4F2C7E0-3D1B-4E9A-9C2F-1A2B3C4D5E6F}
