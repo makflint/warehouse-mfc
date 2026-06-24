@@ -124,7 +124,7 @@ x64\Debug\core_tests.exe        # exit 0 = green
 
 ## Demo installer (one-click)
 **Download:** [latest release](https://github.com/macius702/warehouse-mfc/releases/latest) →
-`warehouse-mfc-setup.exe`. Run it on a clean Windows machine — no prerequisites to install by hand.
+`WarehouseMFC-Setup.exe`. Run it on a clean Windows machine — no prerequisites to install by hand.
 
 An [Inno Setup](installer/warehouse-mfc.iss) script bundles the app, the SQL scripts and the
 two runtime prerequisites (Visual C++ runtime + SQL Server LocalDB) and installs them silently.
@@ -133,7 +133,7 @@ The app **seeds its LocalDB database on first run**, so it works on a fresh mach
 ```powershell
 # build the Release app, then:
 "%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" installer\warehouse-mfc.iss
-# -> installer\Output\warehouse-mfc-setup.exe
+# -> installer\Output\WarehouseMFC-Setup.exe
 ```
 > The binary assets (`vc_redist.x64.exe`, `SqlLocalDB.msi`) live under `installer/assets/`
 > (gitignored) and must be present before compiling. The build is **unsigned**, so Windows

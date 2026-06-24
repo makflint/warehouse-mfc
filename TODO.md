@@ -18,7 +18,7 @@ Single source of truth for open work. Milestones follow `docs/PLAN.md`.
   outside VS — Release runs standalone.
 - [x] **M5 — Installer.** `installer/warehouse-mfc.iss` (Inno Setup) bundles app + SQL scripts +
   VC++ runtime + LocalDB MSI, installs runtimes silently. App self-seeds the DB on first run.
-  Builds `warehouse-mfc-setup.exe`.
+  Builds `WarehouseMFC-Setup.exe`.
 - [x] **M6 — Polish.** README screenshots (`docs/screenshots/`), demo-installer + SmartScreen
   notes, secret scan clean.
 
@@ -128,8 +128,9 @@ The modern-MFC showcase: the plain SDI shell is now a modern Feature-Pack UI.
 - [x] README **SQL Server** section made honest: ships on LocalDB (same engine), full server is a
   one-line `Server=` switch in `connection_profiles.hpp`; everything in the repo runs against
   LocalDB — the VPS/Tailscale profile is the documented switch, not an exercised second profile.
-- [x] **Installer + GitHub** — published [release **v1.0**](https://github.com/macius702/warehouse-mfc/releases/tag/v1.0)
-  with `warehouse-mfc-setup.exe` (installs as `warehouse-mfc.exe`); README links the latest release.
+- [x] **Installer + GitHub** — published [release **v1.1**](https://github.com/macius702/warehouse-mfc/releases/tag/v1.1)
+  with `WarehouseMFC-Setup.exe` (installs as `WarehouseMFC.exe`, app "Warehouse MFC"); README links
+  the latest release. (v1.0 was the older name + pre-pane-fix build.)
 - [x] **Architecture** section + **C++/Windows techniques** table in the README (layer diagram
   with enforced boundaries; Command/pImpl/RAII, Feature Pack, ODBC wide API + proc/transaction,
   compile-time i18n, TDD/coverage, /WX + clang-tidy).
