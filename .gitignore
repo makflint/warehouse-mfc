@@ -40,6 +40,7 @@ Zrzut ekranu*.png
 
 # Manual-test screenshot output (keep the harness scripts, not the captures)
 tests/manual/shots/
+tests/manual/gifframes/
 
 # Code-coverage output (keep tools/coverage.ps1, not the generated report)
 coverage/

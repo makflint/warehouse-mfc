@@ -15,6 +15,8 @@ pattern). A demo of **MFC / Windows desktop** application development.
 > preinstalled. The GUI-free C++ core is **TDD'd at 100% line coverage**. Roadmap & open work:
 > [TODO.md](TODO.md).
 
+![Warehouse MFC — record a movement, undo/redo it, and switch to the dark theme; the dashboard repaints live](docs/screenshots/demo.gif)
+
 ## What it demonstrates
 - **MFC**: SDI doc/view, list-view grid, dialogs with DDX/DDV.
 - **MS SQL Server**: real schema, a **view** and a **stored procedure with a transaction**.
