@@ -130,8 +130,9 @@ The modern-MFC showcase: the plain SDI shell is now a modern Feature-Pack UI.
   LocalDB — the VPS/Tailscale profile is the documented switch, not an exercised second profile.
 - [x] **Installer + GitHub** — published [release **v1.0**](https://github.com/macius702/warehouse-mfc/releases/tag/v1.0)
   with `warehouse-mfc-setup.exe` (installs as `warehouse-mfc.exe`); README links the latest release.
-- [ ] **Architecture** section + a list of **C++ techniques / patterns / tech** used (Command +
-  undo/redo, RAII, pImpl, Feature Pack, ODBC, TDD/Catch2, i18n catalog, cross-process UIA testing…).
+- [x] **Architecture** section + **C++/Windows techniques** table in the README (layer diagram
+  with enforced boundaries; Command/pImpl/RAII, Feature Pack, ODBC wide API + proc/transaction,
+  compile-time i18n, TDD/coverage, /WX + clang-tidy).
 - [ ] *(nice)* a guided **project tour**.
 
 ### Engineering hygiene

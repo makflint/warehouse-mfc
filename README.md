@@ -75,6 +75,40 @@ sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\02_seed.sql
 > (`SQLExecDirectW`) and the modern `sqlcmd` handle this natively; the classic SQL-tools
 > `sqlcmd` needs `-f 65001`.
 
+## Architecture
+Three layers with hard boundaries — the testable logic is isolated from the GUI so it can be
+TDD'd without one. Dependencies point downward; no business rules live in `app/`.
+
+```
+app/    MFC Feature Pack — doc/view, ribbon, dockable panes, owner-drawn
+        dashboard, DDX/DDV dialogs, i18n catalog, visual-manager themes
+  │     (wires the layers below; holds no business logic)
+  ▼
+data/   thin ODBC — StockRepository (pImpl) over vCurrentStock + sp_RecordMovement
+  │
+  ▼
+core/   pure C++17 (no MFC / ODBC / Windows) — stock math, the Command/undo
+        stack, grid-sort & error-cleaning logic · unit-tested (Catch2, 100% lines)
+```
+
+- **[`core/`](core/include/warehouse/)** — domain only: `MovementCommand` + `CommandStack`
+  (undo/redo via *compensating* movements), `StockMath`, grid-sort / dialog-preselect
+  (`view_logic.hpp`), ODBC-error cleaning (`db_error.hpp`). No framework headers → tested without a GUI.
+- **[`data/`](data/include/warehouse/)** — `StockRepository` (pImpl) is a thin ODBC wrapper over the
+  view + stored proc; connection string from `connection_profiles.hpp`.
+- **[`app/`](app/)** — MFC UI; wires `core` + `data`. Pushing the logic into a GUI-free `core/` is
+  what makes the TDD + 100% coverage possible.
+
+## C++ / Windows techniques on show
+| Area | What |
+|---|---|
+| **Patterns** | **Command** (undo/redo, compensating ops) · **pImpl** (`StockRepository`) · RAII + clear ownership (`std::unique_ptr`, MFC `CDC`/`CFont`) · enforced layer boundaries |
+| **MFC Feature Pack** | `CMFCRibbonBar`, `CDockablePane`, `CMFCListCtrl`, `CMFCPropertyGridCtrl`, `CMFCVisualManager` (incl. a custom **dark** manager) · owner-drawn, double-buffered dashboard · DWM dark title bar |
+| **Data / SQL** | ODBC **wide** API (`SQLExecDirectW`, `NVARCHAR`, `N'…'`) Unicode round-trip · a **view** + a **stored proc with a transaction** (`UPDLOCK/HOLDLOCK`, `THROW` on overdraw) |
+| **i18n** | PL/EN string catalog with **compile-time** consistency (`static_assert` on a deduced table size) |
+| **Testing** | **TDD** (Catch2; **100%** `core/` line coverage via OpenCppCoverage) · cross-process **UI Automation + Win32** assertion suite · scripted visual sweep |
+| **Tooling** | `/W4 /WX` (MFC headers external-silenced) · **clang-tidy** clean · one-command local CI ([`run-tests.ps1`](run-tests.ps1)) |
+
 ## Testing
 Three layers: **unit tests** for the GUI-free `core/` (TDD, Catch2); an **assertion-based UI
 suite** ([`tests/ui/`](tests/ui/), Pester) that drives the running app and asserts on control
