@@ -84,11 +84,32 @@ cd warehouse-mfc
 # 1) create the demo DB in LocalDB and seed it (optional — the app self-seeds on first run)
 sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\01_schema.sql
 sqlcmd -S "(localdb)\MSSQLLocalDB" -i db\02_seed.sql
-# 2) open warehouse-mfc.sln in Visual Studio (build x64), or: msbuild warehouse-mfc.sln /p:Configuration=Release /p:Platform=x64
+# 2) build & run — see "Build" below
 ```
 > The SQL scripts are **UTF-8** (Polish names with diacritics). The app's first-run self-seed
 > (`SQLExecDirectW`) and the modern `sqlcmd` handle this natively; the classic SQL-tools
 > `sqlcmd` needs `-f 65001`.
+
+## Build
+No build script needed — it's a standard Visual Studio solution (`warehouse-mfc.sln`,
+`Debug|x64` + `Release|x64`, toolset v143). Pick either route:
+
+**Visual Studio** — open `warehouse-mfc.sln`, set the toolbar to **Release · x64**, then
+**Build → Build Solution** (Ctrl+Shift+B). Run with F5 (or launch the exe directly).
+
+**Command line** — from a *Developer PowerShell for VS 2022* (so `msbuild` is on PATH):
+```powershell
+msbuild warehouse-mfc.sln /p:Configuration=Release /p:Platform=x64 /m
+```
+
+| Target | Command / output |
+|---|---|
+| Whole app | the above → `app\x64\Release\app.exe` (Release runs standalone; Debug needs the debug MFC DLLs on PATH) |
+| Core unit tests only (no GUI) | `msbuild warehouse-mfc.sln /t:core_tests /p:Configuration=Debug /p:Platform=x64` → `x64\Debug\core_tests.exe` (exit 0 = green) |
+| Build **and** test every layer | `powershell -File run-tests.ps1 -Build` (builds Debug + Release, then runs the gates — see [Testing](#testing)) |
+
+The app **self-seeds its LocalDB database on first run**, so building and launching is enough —
+the `sqlcmd` step above is optional.
 
 ## Architecture
 Three layers with hard boundaries — the testable logic is isolated from the GUI so it can be
