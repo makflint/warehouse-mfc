@@ -26,6 +26,10 @@ tested in isolation. Development follows **red → green → refactor** (see CLA
   x64\Debug\core_tests.exe        # exit 0 = all green
   ```
   In Visual Studio: set `core_tests` as the startup project, Ctrl+F5.
+- **Coverage:** `core/` is at **100% line coverage** ([`tools/coverage.ps1`](../tools/coverage.ps1),
+  or `run-tests.ps1 -Coverage`) — [OpenCppCoverage](https://github.com/OpenCppCoverage/OpenCppCoverage)
+  runs the **Debug** `core_tests` (optimised Release folds lines away) and exports HTML + Cobertura
+  to `coverage/`. `data/` and `app/` aren't coverage targets (integration / UI, not unit-tested).
 
 ## 2. Data layer — `data/` (integration)
 

@@ -124,6 +124,9 @@ The strongest *Senior C++/MFC* signal: the plain SDI shell is now a modern Featu
   "BCG-style combo" deferred earlier; MFC ships no themed combo for dialogs.
 
 ### Testing
+- [x] **Coverage** — `core/` at **100% line coverage** (OpenCppCoverage over Debug `core_tests`),
+  `tools/coverage.ps1` / `run-tests.ps1 -Coverage`. Edge-case tests added for the trim / unbalanced-
+  bracket / spaced-prefix branches and the text-column movement compares. See `docs/TESTING.md`.
 - [ ] **Trim `sweep.ps1`** to the genuinely-visual + un-assertable cases (don't duplicate what
   `tests/ui` already asserts).
 - [ ] Document **`LVcnt` / `LVtext`** (cross-process grid reading) in `docs/TESTING.md`.

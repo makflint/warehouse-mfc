@@ -14,6 +14,7 @@
     powershell -File run-tests.ps1 -Build          # build Debug + Release first
     powershell -File run-tests.ps1 -NoSweep         # gates only (skip the visual sweeps)
     powershell -File run-tests.ps1 -Config Debug    # use the Debug binaries
+    powershell -File run-tests.ps1 -Coverage        # also report core/ line coverage
 
   Exit code = number of failed gating layers (0 = all green).
 #>
@@ -21,7 +22,8 @@ param(
     [switch]$Build,
     [ValidateSet('Release', 'Debug')] [string]$Config = 'Release',
     [switch]$NoSweep,
-    [switch]$AiReview   # after the sweep, ask the `claude` CLI to eyeball the shots
+    [switch]$AiReview,  # after the sweep, ask the `claude` CLI to eyeball the shots
+    [switch]$Coverage   # line coverage of core/ via OpenCppCoverage (Debug core_tests)
 )
 
 $root = $PSScriptRoot
@@ -67,6 +69,12 @@ Section 'tests/ui'
 Stop-Process -Name app -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500
 & powershell -NoProfile -ExecutionPolicy Bypass -File "$root\tests\ui\Run.ps1"
 $gates['tests/ui'] = ($LASTEXITCODE -eq 0)
+
+# --- core line coverage (informational: OpenCppCoverage over the Debug core_tests) ---
+if ($Coverage) {
+    Section 'coverage (core)'
+    & powershell -NoProfile -ExecutionPolicy Bypass -File "$root\tools\coverage.ps1"
+}
 
 # --- visual sweeps (informational) ---
 if (-not $NoSweep) {

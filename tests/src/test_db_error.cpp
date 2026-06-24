@@ -38,3 +38,15 @@ TEST_CASE("cleanDbError skips a diagnostic line that is only prefixes") {
         "[42000][driver]Real message.";
     REQUIRE(cleanDbError(raw) == "Real message.");
 }
+
+TEST_CASE("cleanDbError trims whitespace around a diagnostic line") {
+    REQUIRE(cleanDbError("   [42000][driver]Padded message.   ") == "Padded message.");
+}
+
+TEST_CASE("cleanDbError skips spaces between bracket groups") {
+    REQUIRE(cleanDbError("[A] [B]Spaced prefixes.") == "Spaced prefixes.");
+}
+
+TEST_CASE("cleanDbError leaves an unbalanced bracket line unchanged") {
+    REQUIRE(cleanDbError("[unterminated message") == "[unterminated message");
+}

@@ -65,6 +65,21 @@ TEST_CASE("compareMovement orders Czas chronologically via ISO text") {
     REQUIRE(compareMovement(older, newer, MovementColumn::Time) < 0);
 }
 
+TEST_CASE("compareMovement orders the Magazyn / Ruch / Symbol text columns") {
+    const MovementRow a = moveRow("2026-01-01", "MAG-A", "IN", "S-1", 1);
+    const MovementRow b = moveRow("2026-01-01", "MAG-B", "OUT", "S-2", 1);
+    REQUIRE(compareMovement(a, b, MovementColumn::Warehouse) < 0);
+    REQUIRE(compareMovement(a, b, MovementColumn::Type) < 0);  // "IN" < "OUT"
+    REQUIRE(compareMovement(a, b, MovementColumn::Sku) < 0);
+}
+
+TEST_CASE("compare* return 0 (stable) for an unknown column") {
+    const StockRow s = stockRow("MAG-A", "S", "P", 5);
+    const MovementRow m = moveRow("2026-01-01", "MAG-A", "IN", "S", 5);
+    REQUIRE(compareStock(s, s, static_cast<StockColumn>(99)) == 0);
+    REQUIRE(compareMovement(m, m, static_cast<MovementColumn>(99)) == 0);
+}
+
 TEST_CASE("selectedIndexForId finds the matching id, else falls back to 0") {
     const std::vector<int> ids = {4521, 4524, 4530};
     REQUIRE(selectedIndexForId(ids, 4521) == 0);
