@@ -12,8 +12,7 @@ pattern). A demo of **MFC / Windows desktop** application development.
 > change (Ctrl+Z / Ctrl+Y). A **ribbon** UI with dockable **Details** / **Movement-log** panes, a
 > **dark mode**, and an owner-drawn **dashboard** (KPI tiles + bar chart that repaints live). Ships
 > **bilingual** (Polish / English) and installs from a **one-click installer** that needs nothing
-> preinstalled. The GUI-free C++ core is **TDD'd at 100% line coverage**. Roadmap & open work:
-> [TODO.md](TODO.md).
+> preinstalled. The GUI-free C++ core is **TDD'd at 100% line coverage**.
 
 ![Warehouse MFC — record a movement, undo/redo it, and switch to the dark theme; the dashboard repaints live](docs/screenshots/demo-en.gif)
 
@@ -197,8 +196,7 @@ Release app:
 > (gitignored) and must be present before compiling. The build is **unsigned**, so Windows
 > SmartScreen will warn on first run ("More info" → "Run anyway").
 
-See [docs/SPEC.md](docs/SPEC.md) for the design and [docs/PLAN.md](docs/PLAN.md) for the
-ordered implementation milestones.
+See [docs/SPEC.md](docs/SPEC.md) for the design and [TODO.md](TODO.md) for the roadmap & open work.
 
 ## Author
 Built by **Maciej Krzemiński**, using **Claude** generative-AI tooling — [Claude Code](https://claude.com/claude-code)
