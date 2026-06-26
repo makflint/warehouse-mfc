@@ -36,7 +36,7 @@ The modern-MFC showcase: the plain SDI shell is now a modern Feature-Pack UI.
   low-stock / total units) + a bar chart of on-hand per SKU from `vCurrentStock`; repaints on
   every grid update (KPIs verified 5 / 7 / 154).
 - [x] **README + screenshots** refreshed for the Feature Pack UI
-  (`docs/screenshots/01-dashboard`, `02-dark-theme`, `03-record-dialog`).
+  (`docs/screenshots/04-feature-pack`, `02-dark-theme`, `03-record-dialog`).
 - [x] **Panes populated**: Details (selection-driven product info) and Movement log
   (`StockRepository::loadRecentMovements` → recent IN/OUT with timestamps).
 - [x] **Ribbon icons** — 32-bit ARGB (alpha-blended) glyph strips per category
