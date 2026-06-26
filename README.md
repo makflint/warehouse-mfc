@@ -31,13 +31,13 @@ desktop development.
 ## Screenshots
 ![Ribbon UI + dashboard + docked panes](docs/screenshots/04-feature-pack.png)
 
-The MFC Feature Pack UI. The ribbon carries icon glyphs on its *Magazyn* and *Widok* tabs (Stock
-and View). The owner-drawn *Pulpit* (dashboard) pane shows KPI tiles and an on-hand bar chart, the
-stock grid draws low-stock rows in red with the real Polish names, and the *Szczegóły* and *Dziennik
-ruchów* panes (Details and Movement-log) share a tab group. Along the bottom, a `CMFCRibbonStatusBar`
-shows the row count, the selected symbol, and the connection profile.
+The MFC Feature Pack UI. The ribbon has icon glyphs on its Stock and View tabs. The owner-drawn
+Dashboard pane shows KPI tiles and an on-hand bar chart, the stock grid draws low-stock rows in red
+(product names stay Polish, since they're data), and the Details and Movement journal panes share a
+tab group. Along the bottom, a `CMFCRibbonStatusBar` shows the row count, the selected symbol, and
+the connection profile.
 
-| Dark theme (Widok → Motyw → Ciemny, i.e. View → Theme → Dark) | Record movement (DDX/DDV) |
+| Dark theme (View → Theme → Dark) | Record movement (DDX/DDV) |
 |---|---|
 | ![Dark theme](docs/screenshots/02-dark-theme.png) | ![Record dialog](docs/screenshots/03-record-dialog.png) |
 
