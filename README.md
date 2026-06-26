@@ -1,6 +1,7 @@
 # Warehouse MFC
 
 [![CI](https://github.com/makflint/warehouse-mfc/actions/workflows/ci.yml/badge.svg)](https://github.com/makflint/warehouse-mfc/actions/workflows/ci.yml)
+[![coverage: OpenCppCoverage](https://img.shields.io/badge/coverage-OpenCppCoverage-blue.svg)](docs/TESTING.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 A small but real **MFC + SQL Server (LocalDB)** desktop app: warehouse stock & movements with an Office-style
@@ -29,12 +30,13 @@ pattern). A demo of **MFC / Windows desktop** application development.
 ## Screenshots
 ![Ribbon UI + dashboard + docked panes](docs/screenshots/04-feature-pack.png)
 
-The MFC **Feature Pack** UI: a `CMFCRibbonBar` with icon glyphs (*Magazyn* / *Widok* tabs), an
-owner-drawn **Pulpit** (dashboard) pane with KPI tiles + an on-hand bar chart, the stock grid (with
-low-stock rows in red and proper Polish names), the **Szczegóły** / **Dziennik ruchów** panes sharing
-one **tab group**, and a `CMFCRibbonStatusBar` (row count · selected symbol · connection profile).
+The MFC **Feature Pack** UI: a `CMFCRibbonBar` with icon glyphs (*Magazyn* / *Widok* — Stock / View
+tabs), an owner-drawn **Pulpit** (dashboard) pane with KPI tiles + an on-hand bar chart, the stock
+grid (with low-stock rows in red and proper Polish names), the **Szczegóły** / **Dziennik ruchów**
+(Details / Movement-log) panes sharing one **tab group**, and a `CMFCRibbonStatusBar` (row count ·
+selected symbol · connection profile).
 
-| Dark theme (Widok → Motyw → Ciemny) | Record movement (DDX/DDV) |
+| Dark theme (Widok → Motyw → Ciemny — View → Theme → Dark) | Record movement (DDX/DDV) |
 |---|---|
 | ![Dark theme](docs/screenshots/02-dark-theme.png) | ![Record dialog](docs/screenshots/03-record-dialog.png) |
 
@@ -55,7 +57,7 @@ data/   thin ODBC — StockRepository (pImpl) over vCurrentStock + sp_RecordMove
   │
   ▼
 core/   pure C++17 (no MFC / ODBC / Windows) — stock math, the Command/undo
-        stack, grid-sort & error-cleaning logic · unit-tested (Catch2, 100% lines)
+        stack, grid-sort & error-cleaning logic · unit-tested (Catch2)
 ```
 
 - **[`core/`](core/include/warehouse/)** — domain only: `MovementCommand` + `CommandStack`
@@ -64,7 +66,7 @@ core/   pure C++17 (no MFC / ODBC / Windows) — stock math, the Command/undo
 - **[`data/`](data/include/warehouse/)** — `StockRepository` (pImpl) is a thin ODBC wrapper over the
   view + stored proc; connection string from `connection_profiles.hpp`.
 - **[`app/`](app/)** — MFC UI; wires `core` + `data`. Pushing the logic into a GUI-free `core/` is
-  what makes the TDD + 100% coverage possible.
+  what makes the TDD + coverage possible.
 
 ## C++ / Windows techniques on show
 | Area | What |
@@ -73,7 +75,7 @@ core/   pure C++17 (no MFC / ODBC / Windows) — stock math, the Command/undo
 | **MFC Feature Pack** | `CMFCRibbonBar`, `CDockablePane`, `CMFCListCtrl`, `CMFCPropertyGridCtrl`, `CMFCVisualManager` (incl. a custom **dark** manager) · owner-drawn, double-buffered dashboard · DWM dark title bar |
 | **Data / SQL** | ODBC **wide** API (`SQLExecDirectW`, `NVARCHAR`, `N'…'`) Unicode round-trip · a **view** + a **stored proc with a transaction** (`UPDLOCK/HOLDLOCK`, `THROW` on overdraw) |
 | **i18n** | PL/EN string catalog with **compile-time** consistency (`static_assert` on a deduced table size) |
-| **Testing** | **TDD** (Catch2; **100%** `core/` line coverage via OpenCppCoverage) · cross-process **UI Automation + Win32** assertion suite · scripted visual sweep |
+| **Testing** | **TDD** (Catch2; `core/` line coverage via OpenCppCoverage) · cross-process **UI Automation + Win32** assertion suite · scripted visual sweep |
 | **Tooling** | `/W4 /WX` (MFC headers external-silenced) · **clang-tidy** clean · one-command local CI ([`run-tests.ps1`](run-tests.ps1)) |
 
 ## SQL Server connection
@@ -112,14 +114,16 @@ It stops **before** the installer if any test gate fails. What it emits:
 No publishing — push a GitHub release by hand with `gh` when you want one.
 
 ## Testing
-Three layers — **unit tests** (`core/`, TDD, Catch2, **100% line coverage**), an **assertion UI
+Three layers — **unit tests** (`core/`, TDD, Catch2), an **assertion UI
 suite** ([`tests/ui/`](tests/ui/), Pester + UI Automation on the running app) and a **visual sweep**
 ([`tests/manual/`](tests/manual/)) for the genuinely visual cases. One script runs them all against
 LocalDB; the exit code is the number of failed gates:
 ```powershell
 powershell -File run-tests.ps1          # -Build to build first · -Coverage · -AiReview
 ```
-Full methodology, layers and case list: **[docs/TESTING.md](docs/TESTING.md)**.
+`core/` line coverage is measured with **OpenCppCoverage** over the Debug `core_tests`
+(`run-tests.ps1 -Coverage`; HTML + Cobertura land in `coverage/`). Full methodology, layers and case
+list: **[docs/TESTING.md](docs/TESTING.md)**.
 
 ## Download
 Grab [release v1.1](https://github.com/makflint/warehouse-mfc/releases/tag/v1.1) →
