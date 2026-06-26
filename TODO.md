@@ -134,6 +134,9 @@ The modern-MFC showcase: the plain SDI shell is now a modern Feature-Pack UI.
 - [x] **Architecture** section + **C++/Windows techniques** table in the README (layer diagram
   with enforced boundaries; Command/pImpl/RAII, Feature Pack, ODBC wide API + proc/transaction,
   compile-time i18n, TDD/coverage, /WX + clang-tidy).
+- [x] **Bilingual README** — `README.pl.md` (PL) mirrors `README.md` (EN = source of truth) with an
+  EN⇄PL switcher at the top of both; Polish screenshots are the `docs/screenshots/*-pl.png` set.
+  **Keep the two in sync** whenever the README changes.
 - [ ] *(nice)* a guided **project tour**.
 
 ### Repo presentation (outsider's first impression)

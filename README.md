@@ -1,5 +1,7 @@
 # Warehouse MFC
 
+**English** | [Polski](README.pl.md)
+
 [![CI](https://github.com/makflint/warehouse-mfc/actions/workflows/ci.yml/badge.svg)](https://github.com/makflint/warehouse-mfc/actions/workflows/ci.yml)
 [![coverage: OpenCppCoverage](https://img.shields.io/badge/coverage-OpenCppCoverage-blue.svg)](docs/TESTING.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
