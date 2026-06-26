@@ -10,6 +10,28 @@ that can be unit-tested with TDD, and cover the UI boundary with a scripted manu
 | `data/` | ODBC access (`vCurrentStock`, `sp_RecordMovement`) | **Integration** against LocalDB; rules enforced in the SP |
 | `app/`  | MFC Feature Pack UI (ribbon, panes, grids, dialogs) | **Assertion UI suite** (Pester + UIA) + **exploratory harness** |
 
+## Running the suite (local CI)
+
+[`run-tests.ps1`](../run-tests.ps1) runs every layer against LocalDB, resetting the DB to a clean
+baseline and clearing the saved language first so the run is deterministic and self-contained. The
+**exit code is the number of failed gating layers** (0 = all green).
+
+| Layer | What | Gates? |
+|---|---|---|
+| `core_tests` | Catch2 unit tests (`core/`) | ✓ exit code |
+| `data_smoke` | `data/` ODBC smoke vs LocalDB | ✓ exit code |
+| `tests/ui` | Pester + UI-Automation state assertions | ✓ exit code |
+| `sweep pl/en` | visual exploratory screenshots | informational (review by eye / `-AiReview`) |
+
+```powershell
+powershell -File run-tests.ps1                 # all layers (assumes already built)
+powershell -File run-tests.ps1 -Build          # build Debug + Release first
+powershell -File run-tests.ps1 -NoSweep        # gates only (skip the visual sweeps)
+powershell -File run-tests.ps1 -Coverage       # also report core/ line coverage
+powershell -File run-tests.ps1 -AiReview       # also AI-review the sweep shots (needs the `claude` CLI)
+```
+Only the three gating layers decide the exit code; the sweep is informational.
+
 ## 1. Unit tests — `core/` (TDD, Catch2)
 
 The domain logic lives in a pure C++ static lib with no GUI/DB dependencies, so it is
