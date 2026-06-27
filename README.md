@@ -17,7 +17,9 @@ desktop development.
 
 ## What it demonstrates
 - **MFC**: SDI doc/view, list-view grid, dialogs with DDX/DDV.
-- **MS SQL Server**: a real schema with a view and a stored procedure that runs in a transaction.
+- **MS SQL Server**: a real schema showing SQL features like an aggregating view (`vCurrentStock`),
+  a stored procedure that runs in a transaction (`sp_RecordMovement`), and integrity constraints
+  (foreign keys, `CHECK`, `UNIQUE`).
 - **Design patterns**: the Command pattern for undo/redo.
 - **Testable core**: the domain logic (stock math, the Command/undo stack) lives in a pure C++
   `core/` static lib, tested with Catch2 and no GUI in sight.

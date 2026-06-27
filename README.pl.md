@@ -18,7 +18,9 @@ programowania w MFC i na desktopie Windows.
 
 ## Co pokazuje
 - **MFC**: architektura dokument/widok (SDI), tabelka (list-view), okna dialogowe z DDX/DDV.
-- **MS SQL Server**: prawdziwy schemat z widokiem i procedurą składowaną działającą w transakcji.
+- **MS SQL Server**: prawdziwy schemat z elementami SQL-a takimi jak widok z agregacją
+  (`vCurrentStock`), procedura składowana działająca w transakcji (`sp_RecordMovement`) oraz
+  mechanizmy integralności danych (klucze obce, `CHECK`, `UNIQUE`).
 - **Wzorce projektowe**: wzorzec Command do cofania i ponawiania.
 - **Testowalny rdzeń**: logika domenowa (matematyka stanów, stos Command/undo) żyje w czystej
   bibliotece C++ `core/`, testowanej Catch2 i bez GUI.
