@@ -17,7 +17,7 @@ programowania w MFC i na desktopie Windows.
 <sub>Interfejs pokazany po polsku. Aplikacja działa też po angielsku ([to samo demo, angielski UI](docs/screenshots/demo-en.gif)); nazwy produktów i magazynów zostają polskie, bo to dane z bazy.</sub>
 
 ## Co pokazuje
-- **MFC**: architektura dokument/widok (SDI), siatka list-view, okna dialogowe z DDX/DDV.
+- **MFC**: architektura dokument/widok (SDI), tabelka (list-view), okna dialogowe z DDX/DDV.
 - **MS SQL Server**: prawdziwy schemat z widokiem i procedurą składowaną działającą w transakcji.
 - **Wzorce projektowe**: wzorzec Command do cofania i ponawiania.
 - **Testowalny rdzeń**: logika domenowa (matematyka stanów, stos Command/undo) żyje w czystej
@@ -29,13 +29,13 @@ programowania w MFC i na desktopie Windows.
   Język / Language na wstążce zmienia go po restarcie. Nazwy produktów i komunikat błędu z SQL
   Servera zostają polskie, bo to dane. Polskie znaki działają od początku do końca: zasoby `.cpp`/`.rc`
   są w UTF-8, a wywołania ODBC używają szerokiego API (`SQLExecDirectW`, literały `N'…'`, `NVARCHAR`),
-  więc nazwy z seedu jak *Młotek*, *Wkrętarka* czy *Śruba* pokazują się w interfejsie poprawnie.
+  więc nazwy z danych startowych jak *Młotek*, *Wkrętarka* czy *Śruba* pokazują się w interfejsie poprawnie.
 
 ## Zrzuty ekranu
 ![Wstążka + pulpit + dokowane panele](docs/screenshots/04-feature-pack-pl.png)
 
 Interfejs MFC Feature Pack. Wstążka ma ikony na zakładkach Magazyn i Widok. Ręcznie rysowany
-panel Pulpit pokazuje kafelki informacyjne i wykres słupkowy stanu, siatka rysuje wiersze z niskim
+panel Pulpit pokazuje kafelki informacyjne i wykres słupkowy stanu, tabelka rysuje wiersze z niskim
 stanem na czerwono, a panele Szczegóły i Dziennik ruchów znajdują się w jednej grupie zakładek. Na dole
 `CMFCRibbonStatusBar` pokazuje liczbę pozycji, wybrany symbol i profil połączenia.
 
@@ -61,17 +61,17 @@ data/   cienki ODBC — StockRepository (pImpl) nad vCurrentStock + sp_RecordMov
   │
   ▼
 core/   czysty C++17 (bez MFC / ODBC / Windows) — matematyka stanów, stos Command/undo,
-        logika sortowania siatki i czyszczenia błędów, testy jednostkowe (Catch2)
+        logika sortowania tabelki i czyszczenia błędów, testy jednostkowe (Catch2)
 ```
 
 - [`core/`](core/include/warehouse/) to warstwa domenowa: `MovementCommand` i `CommandStack`
-  (cofanie/ponawianie przez ruchy kompensujące), `StockMath`, helpery sortowania siatki i preselekcji
-  w dialogu (`view_logic.hpp`) oraz czyszczenie błędów ODBC (`db_error.hpp`). Nie wciąga żadnych
+  (cofanie/ponawianie przez ruchy kompensujące), `StockMath`, funkcje pomocnicze do sortowania tabelki i preselekcji
+  w oknie dialogowym (`view_logic.hpp`) oraz czyszczenie błędów ODBC (`db_error.hpp`). Nie wciąga żadnych
   nagłówków frameworka, więc testuje się bez GUI.
 - [`data/`](data/include/warehouse/) to cienka nakładka na ODBC: `StockRepository` (pImpl) nad
-  widokiem i procedurą składowaną, ze stringiem połączenia z `connection_profiles.hpp`.
+  widokiem i procedurą składowaną, z parametrami połączenia z `connection_profiles.hpp`.
 - [`app/`](app/) to interfejs MFC i spina `core` z `data`. Trzymanie logiki w `core/` bez GUI jest
-  tym, co umożliwia pracę test-first i mierzenie pokrycia.
+  tym, co umożliwia pracę sterowaną testami i mierzenie pokrycia.
 
 ## Techniki C++ / Windows w akcji
 | Obszar | Co |
@@ -117,7 +117,7 @@ Zatrzymuje się przed budową instalatora, jeśli którakolwiek grupa testów pa
 | Plik aplikacji (Release, x64) | `app\x64\Release\app.exe` |
 | Instalator | `installer\Output\WarehouseMFC-Setup.exe` |
 
-Nic nie publikuje; wypchnij release na GitHubie ręcznie przez `gh`, gdy zechcesz.
+Nic nie publikuje; wypchnij wydanie na GitHubie ręcznie przez `gh`, gdy zechcesz.
 
 ## Testy (lokalne CI)
 Testy mają trzy warstwy: testy jednostkowe (`core/`, TDD z Catch2), zestaw asercji UI
@@ -135,7 +135,7 @@ przypadków jest w [docs/TESTING.md](docs/TESTING.md).
 Pobierz `WarehouseMFC-Setup.exe` z [release v1.1](https://github.com/makflint/warehouse-mfc/releases/tag/v1.1)
 i uruchom na czystej maszynie z Windows. Instalator [Inno Setup](installer/warehouse-mfc.iss) pakuje
 aplikację, skrypty SQL oraz runtime VC++ i LocalDB, a aplikacja wypełnia bazę przy pierwszym
-uruchomieniu, więc nic nie trzeba instalować wcześniej. Build jest niepodpisany, więc SmartScreen
+uruchomieniu, więc nic nie trzeba instalować wcześniej. Wersja jest niepodpisana, więc SmartScreen
 ostrzeże za pierwszym razem: wybierz *More info* → *Run anyway*. Żeby zbudować instalator samodzielnie,
 użyj `release.ps1` powyżej.
 
